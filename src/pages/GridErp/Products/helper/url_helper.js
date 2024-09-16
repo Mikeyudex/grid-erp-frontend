@@ -1,0 +1,26 @@
+
+const baseUrl = "http://localhost:5000"
+
+// PRODUCTS
+export const GET_LAST_SKU= baseUrl + "/products/last-sku";
+
+//Attributes
+export const GET_ATTR_PRODUCT= baseUrl + "/products/attributes/getByCompanyId";
+export const ADD_ATTR_PRODUCT= baseUrl + "/products/attributes/create";
+
+export const ADD_PRODUCT= baseUrl + "/products/create";
+export const UPDATE_PRODUCT= baseUrl + "/products/update";
+export const DELETE_PRODUCT= baseUrl + "/products/delete";
+export const GET_PRODUCTS = baseUrl + "/products/getAllByCompany";
+export const GET_CATEGORIES_PRODUCT = baseUrl + "/products/category/getCategoriesFull";
+export const GET_CATEGORIES_PRODUCT_SELECT = baseUrl + "/products/category/getCategoriesFullSelect";
+export const GET_TYPES_PRODUCT = baseUrl + "/products/types-product/getAll";
+
+
+export const GET_WAREHOUSES_BYCOMPANY = baseUrl + "/warehouse/getbyCompany";
+export const GET_WAREHOUSES_BYCOMPANY_SELECT = baseUrl + "/warehouse/getbyCompanySelect";
+export const GET_PROVIDERS_BYCOMPANY = baseUrl + "/provider/getbyCompany";
+export const GET_TAXES_BYCOMPANY = baseUrl + "/taxes/getbyCompany";
+export const GET_UNIT_OF_MEASURE = baseUrl + "/units/getAll";
+export const UPLOAD_IMAGES = baseUrl + "/products/upload";
+export const DELETE_FILE = baseUrl + "/products/deleteFile";

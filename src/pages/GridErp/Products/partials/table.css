@@ -1,0 +1,15 @@
+.MuiTableRow-head {
+    background-color: #edf2fa !important;
+}
+
+.css-1ucns9m-MuiButtonBase-root-MuiCheckbox-root.Mui-checked,
+.css-1ucns9m-MuiButtonBase-root-MuiCheckbox-root.MuiCheckbox-indeterminate {
+    color: #5a96f7 !important;
+}
+
+.PrivateSwitchBase-input input[type="checkbox"] {
+    border: 1px solid #c8ccd4;
+    border-radius: 3px;
+    vertical-align: middle;
+    cursor: pointer;
+}
