@@ -150,7 +150,8 @@ export const AdjustmentStockView = (props) => {
       {
         header: "Número",
         accessorKey: "adjustmentId",
-        enableColumnFilter: false,
+        enableColumnFilter: true,
+        enableEditing: false,
         grow: true,
         size: 100,
         Cell: ({ cell }) => (
@@ -196,7 +197,7 @@ export const AdjustmentStockView = (props) => {
       {
         header: "Fecha",
         accessorKey: "adjustmentDate",
-        enableColumnFilter: false,
+        enableColumnFilter: true,
         enableEditing: false,
         Cell: ({ cell }) => {
           return <FormatDate {...cell} />;
@@ -205,7 +206,7 @@ export const AdjustmentStockView = (props) => {
       {
         header: "Total ajustado",
         accessorKey: "totalAdjustedPrice",
-        enableColumnFilter: false,
+        enableColumnFilter: true,
         enableEditing: false,
         muiEditTextFieldProps: {
           required: true,
@@ -251,7 +252,7 @@ export const AdjustmentStockView = (props) => {
         onCloseClick={() => setDeleteModalMulti(false)}
       />
       <Container fluid>
-        <BreadCrumb title="Ver productos" pageTitle="Productos" />
+        <BreadCrumb title="Ajuste de stock" pageTitle="Stock" />
 
         <Row>
           <div className="card-body pt-2 mt-1">

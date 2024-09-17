@@ -7,7 +7,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 import { ListProductHelper } from '../../Products/helper/list_products_helper';
-import { TopToolbarActions } from '../../Products/partials/TopToolbarActions';
+import { TopToolbarActions } from '../partials/TopToolbarActions';
 import './table.css'
 import { IconsTopToolbarAction } from '../../Products/partials/IconsTopToolbarAction';
 import { Col, Row } from 'reactstrap';
