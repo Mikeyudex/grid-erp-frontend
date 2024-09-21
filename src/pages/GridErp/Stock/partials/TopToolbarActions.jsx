@@ -54,7 +54,8 @@ const csvConfig = mkConfig({
 
 
 export function TopToolbarActions({
-    table
+    table,
+    toggleDrawerCreateAdjustment
 }) {
 
     const handleExportRows = (rows) => {
@@ -72,7 +73,9 @@ export function TopToolbarActions({
         <Row md={1}
         >
             <Col md={24} >
-                <DropdownOptions table={table}></DropdownOptions>
+                <DropdownOptions
+                    toggleDrawerCreateAdjustment={toggleDrawerCreateAdjustment}
+                    table={table} />
             </Col>
 
         </Row>

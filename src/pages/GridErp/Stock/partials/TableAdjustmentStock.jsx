@@ -20,7 +20,8 @@ export function TableAdjustmentStock({
   showProgressBarTable,
   adjustmentList,
   setAdjustmenttList,
-  setValidationErrors
+  setValidationErrors,
+  toggleDrawerCreateAdjustment
 }) {
   const [rowSelection, setRowSelection] = useState({});
   const [isUpdatingUser, setIsUpdatingUser] = useState(false);
@@ -96,7 +97,7 @@ export function TableAdjustmentStock({
                           className="text-secondary d-inline-block edit-item-btn"
                           onClick={() => table.setEditingRow(row)}
                       >
-                          <button type="button" class="btn btn-outline-primary btn-icon waves-effect waves-light">
+                          <button type="button" className="btn btn-outline-primary btn-icon waves-effect waves-light">
                               <i className="ri-pencil-line"></i>
                           </button>
                       </Link>
@@ -108,7 +109,7 @@ export function TableAdjustmentStock({
                           className="d-inline-block remove-item-btn"
                           onClick={() => openDeleteConfirmModal(row)}
                       >
-                          <button type="button" class="btn btn-outline-danger btn-icon waves-effect waves-light">
+                          <button type="button" className="btn btn-outline-danger btn-icon waves-effect waves-light">
                               <i className="ri-delete-bin-5-line"></i>
                           </button>
                       </Link>
@@ -155,7 +156,10 @@ export function TableAdjustmentStock({
       positionToolbarAlertBanner: 'bottom',
       enableStickyHeader: true,
       renderTopToolbarCustomActions: ({ table }) => (
-          <TopToolbarActions table={table}></TopToolbarActions>
+          <TopToolbarActions 
+          table={table}
+          toggleDrawerCreateAdjustment={toggleDrawerCreateAdjustment}
+          ></TopToolbarActions>
       ),
       icons: IconsTopToolbarAction
   });

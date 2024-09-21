@@ -7,7 +7,7 @@ import { RiFileDownloadFill } from "react-icons/ri";
 import { TbFileExport } from "react-icons/tb";
 import './BtnOptions.css';
 
-const DropdownOptions = ({ table }) => {
+const DropdownOptions = ({ table, toggleDrawerCreateAdjustment }) => {
 
     return (
         <DropdownMenu.Root>
@@ -24,7 +24,7 @@ const DropdownOptions = ({ table }) => {
 
             <DropdownMenu.Portal>
                 <DropdownMenu.Content className="DropdownMenuContent" sideOffset={5}>
-                    <DropdownMenu.Item className="DropdownMenuItem">
+                    <DropdownMenu.Item className="DropdownMenuItem" onClick={toggleDrawerCreateAdjustment}>
                         <div className="LeftSlot"><CiSquarePlus /></div>
                         <span style={{marginLeft:'0.5em'}} >Nuevo ajuste de stock</span> 
                     </DropdownMenu.Item>

@@ -35,7 +35,8 @@ import { FormatDate } from "../../Products/components/FormatDate";
 //import { TableContainerListProducts } from "../partials/TableContainerListProducts";
 import BreadCrumb from "../../Products/components/BreadCrumb";
 import { ProductHelper } from "../../Products/helper/product_helper";
-import {TableAdjustmentStock} from "../partials/TableAdjustmentStock";
+import { TableAdjustmentStock } from "../partials/TableAdjustmentStock";
+import { CreateAdjustmentStock } from "../components/CreateAdjustmentStock";
 
 
 const helper = new StockHelper();
@@ -53,7 +54,6 @@ export const AdjustmentStockView = (props) => {
   // Inside your component
   const products = useSelector(selectecomproductData);
 
-  const [productList, setProductList] = useState([]);
   const [adjustmentList, setAdjustmentList] = useState([]);
   const [activeTab, setActiveTab] = useState("1");
   const [product, setProduct] = useState(null);
@@ -62,8 +62,13 @@ export const AdjustmentStockView = (props) => {
   const [isLoadingTable, setIsLoadingTable] = useState(true);
   const [showProgressBarTable, setShowProgressBarTable] = useState(true);
   const [dataSelectWarehouses, setDataSelectWarehouses] = useState([]);
+  const [productList, setProductList] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+  const [showCreateAdjustment, setShowCreateAdjustment] = useState(false);
 
+  const toggleDrawerCreateAdjustment = () => {
+    setShowCreateAdjustment(!showCreateAdjustment);
+  }
 
   useEffect(() => {
     helper.getRecentAdjustmentStock(page, limit)
@@ -95,6 +100,31 @@ export const AdjustmentStockView = (props) => {
       })
   }, []);
 
+  useEffect(() => {
+    helperProduct.getProducts(page, limit)
+      .then(async (products) => {
+        if (products && Array.isArray(products) && products.length > 0) {
+          let parseProducts = products.map((p) => {
+            return {
+              id: p?._id,
+              image: p?.additionalConfigs?.images?.[0] ?? "",
+              name: p?.name,
+              category: p?.categoryName,
+              subCategory: p?.subCategoryName,
+              stock: p?.stock,
+              warehouse: p?.warehouseName,
+              salePrice: p?.salePrice,
+              costPrice: p?.costPrice,
+              createdAt: p?.createdAt
+            }
+          });
+          setProductList(parseProducts);
+        }
+        return;
+      })
+      .catch(e => console.log(e))
+  }, []);
+
 
   const toggleTab = (tab, type) => {
     if (activeTab !== tab) {
@@ -103,7 +133,6 @@ export const AdjustmentStockView = (props) => {
       if (type !== "all") {
         filteredProducts = products.filter((product) => product.status === type);
       }
-      setProductList(filteredProducts);
     }
   };
 
@@ -256,6 +285,12 @@ export const AdjustmentStockView = (props) => {
 
         <Row>
           <div className="card-body pt-2 mt-1">
+            <CreateAdjustmentStock
+              openDrawer={showCreateAdjustment}
+              toggleDrawerCreateAdjustment={toggleDrawerCreateAdjustment}
+              dataSelectWarehouses={dataSelectWarehouses}
+              productList={productList}
+            />
             <TableAdjustmentStock
               columns={columns}
               adjustmentList={(adjustmentList || [])}
@@ -264,6 +299,7 @@ export const AdjustmentStockView = (props) => {
               setAdjustmentList={setAdjustmentList}
               setValidationErrors={setValidationErrors}
               validationErrors={validationErrors}
+              toggleDrawerCreateAdjustment={toggleDrawerCreateAdjustment}
             />
           </div>
         </Row>

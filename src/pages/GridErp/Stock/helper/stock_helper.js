@@ -47,7 +47,9 @@ export const optionsSnackbarSuccess = {
 };
 
 export const numberFormatPrice = (value = "") => {
-
+  if(typeof value !== 'string') {
+    String(value)
+  }
   let USDollar = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
