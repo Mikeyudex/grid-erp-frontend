@@ -10,7 +10,7 @@ const api = new APIClient();
 export class StockHelper {
 
   //getRecentAdjustmentStock
-  getRecentAdjustmentStock = (page, limit) => api.get(`${url.GET_RECENT_ADJUSTMENT}`, {page, limit});
+  getRecentAdjustmentStock = (page, limit) => api.get(`${url.GET_RECENT_ADJUSTMENT}`, { page, limit });
 
 }
 
@@ -47,7 +47,7 @@ export const optionsSnackbarSuccess = {
 };
 
 export const numberFormatPrice = (value = "") => {
-  if(typeof value !== 'string') {
+  if (typeof value !== 'string') {
     String(value)
   }
   let USDollar = new Intl.NumberFormat("en-US", {
@@ -58,8 +58,6 @@ export const numberFormatPrice = (value = "") => {
 
   return operator;
 };
-
-
 
 export const handleValidDate = (date) => {
   const date1 = moment(new Date(date)).format("DD MMM Y");
@@ -80,3 +78,32 @@ export const handleValidTime = (time) => {
   const updateTime = moment(getTime, 'hh:mm').format('hh:mm') + " " + meridiem;
   return updateTime;
 };
+
+
+export const validateInputs = (setErrors, data) => {
+  const newErrors = {};
+
+  if (!data.companyId || data.companyId === '') {
+    newErrors.companyId = 'El id de la compañía es requerido';
+  }
+
+  if (!data.warehouseId || data.warehouseId === '') {
+    newErrors.warehouseId = 'La bodega es requerida';
+  }
+
+  if (!data.totalAdjustedPrice) {
+    newErrors.totalAdjustedPrice = 'El precio total ajustado es requerido';
+  }
+
+  if (!data.note || data.note === '') {
+    newErrors.note = 'El atributo note es requerido';
+  }
+
+  if (!data.createdBy || data.createdBy === '') {
+    newErrors.createdBy = 'El atributo createdBy es requerido';
+  }
+
+  setErrors(newErrors);
+
+  return Object.keys(newErrors).length === 0; // Devuelve true si no hay errores
+}

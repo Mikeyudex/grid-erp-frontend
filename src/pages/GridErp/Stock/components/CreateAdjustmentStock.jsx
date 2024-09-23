@@ -7,16 +7,16 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
-import { Col, Form, Input, Label, Row, Table } from 'reactstrap';
+import { Col, Input, Row, Table } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import Select from "react-select";
 import InputSpin from '../../Products/components/InputSpin';
-import { numberFormatPrice } from '../helper/stock_helper';
+import { numberFormatPrice, validateInputs } from '../helper/stock_helper';
+import { companyId } from '../helper/url_helper';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
-
 
 export function CreateAdjustmentStock({
   openDrawer,
@@ -28,16 +28,15 @@ export function CreateAdjustmentStock({
     {
       productId: '',
       adjustmentType: 'increase',
-      quantity: 1,
-      totalAdjustedPrice: 0
+      quantity: 1
     },
   ]);
   const [disableInput, setDisableInput] = React.useState(true);
-  const [warehouseSelected, setWarehouseSelected] = React.useState({
-    warehouseId: ''
-  });
+  const [warehouseSelected, setWarehouseSelected] = React.useState({ warehouseId: '' });
   const [note, setNote] = React.useState("");
   const [productSelected, setProductSelected] = React.useState([]);
+  const [totalAdjustedPrice, setTotalAdjustedPrice] = React.useState(0);
+  const [errors, setErrors] = React.useState({});
 
   const handleClose = () => {
     toggleDrawerCreateAdjustment();
@@ -45,13 +44,13 @@ export function CreateAdjustmentStock({
       {
         productId: '',
         adjustmentType: 'increase',
-        quantity: 1,
-        totalAdjustedPrice: 0
+        quantity: 1
       },
     ]);
-    setWarehouseSelected({warehouseId: ''});
+    setWarehouseSelected({ warehouseId: '' });
     setProductSelected([]);
     setNote("");
+    setTotalAdjustedPrice(0);
   };
 
   // Función para manejar los cambios en cada input
@@ -74,55 +73,55 @@ export function CreateAdjustmentStock({
 
     const { value } = event;
     let productFiltered = productList.filter((p) => p.id === value)[0];
+    let currentStock = productFiltered?.stock ?? 0;
+    let productCost = productFiltered?.costPrice;
 
     if (productSelected[index]) {
-
       const newProductsSelected = [...productSelected];
-      newProductsSelected[index].price = productFiltered?.id;
+      newProductsSelected[index].id = productFiltered?.id;
       newProductsSelected[index].price = productFiltered?.costPrice;
       newProductsSelected[index].currentQuantity = productFiltered?.stock;
-      newProductsSelected[index].amountToAdjust = 1;
+      newProductsSelected[index].amountToAdjust = currentStock + 1;
+      newProductsSelected[index].adjustedPrice = (currentStock + 1) * productCost;
       setProductSelected(newProductsSelected);
 
     } else {
-
       let newProduct = {
         id: productFiltered?.id,
         price: productFiltered?.costPrice,
         currentQuantity: productFiltered?.stock,
-        amountToAdjust: 1
+        amountToAdjust: currentStock + 1,
+        adjustedPrice: (currentStock + 1) * productCost
       };
       setProductSelected([...productSelected, newProduct]);
-
     };
 
     let newAdjustment = [...adjustments];
-    let currentStock = productFiltered?.stock ?? 0;
-    let productCost = productFiltered?.costPrice;
-    newAdjustment[index]['totalAdjustedPrice'] = (currentStock + 1) * productCost;
-    newAdjustment[index]['quantity'] = currentStock + 1;
+    newAdjustment[index]['quantity'] = 1;
+    newAdjustment[index]['productId'] = productFiltered?.id;
+    newAdjustment[index]['adjustmentType'] = 'increase';
+
     setAdjustments(newAdjustment);
     setDisableInput(false);
-
   };
 
   const handleSetQuantity = (value, index) => {
     const newProductsSelected = [...productSelected];
-    newProductsSelected[index]['amountToAdjust'] = Number(value);
+
     let newAdjustment = [...adjustments];
     let productFiltered = productList.filter((p) => p.id === newProductsSelected[index]['id'])[0];
+    newAdjustment[index]['quantity'] = Number(value);
 
     if (newAdjustment[index].adjustmentType === 'increase') {
-
-      newAdjustment[index]['quantity'] = productFiltered?.stock + Number(value);
-      newAdjustment[index]['totalAdjustedPrice'] = newAdjustment[index]['quantity'] * productFiltered?.costPrice;
+      newProductsSelected[index]['amountToAdjust'] = productFiltered?.stock + Number(value);
+      newProductsSelected[index]['adjustedPrice'] = newProductsSelected[index]['amountToAdjust'] * productFiltered?.costPrice;
 
     } else if (newAdjustment[index].adjustmentType === 'decrease') {
-      newAdjustment[index]['quantity'] = productFiltered?.stock - Number(value);
-      newAdjustment[index]['totalAdjustedPrice'] = newAdjustment[index]['quantity'] * productFiltered?.costPrice;
+      newProductsSelected[index]['amountToAdjust'] = productFiltered?.stock - Number(value);
+      newProductsSelected[index]['adjustedPrice'] = newProductsSelected[index]['amountToAdjust'] * productFiltered?.costPrice;
     }
-    setAdjustments(newAdjustment);
     setProductSelected(newProductsSelected);
+    setAdjustments(newAdjustment);
   }
 
   // Función para agregar una nueva fila
@@ -133,6 +132,9 @@ export function CreateAdjustmentStock({
   // Función para eliminar una fila
   const removeRow = (index) => {
     const newAdjustments = adjustments.filter((_, i) => i !== index);
+    let newProductsSelected = [...productSelected];
+    newProductsSelected.splice(index, 1);
+    setProductSelected(newProductsSelected);
     setAdjustments(newAdjustments);
   };
 
@@ -146,6 +148,46 @@ export function CreateAdjustmentStock({
     return productsSelect;
   };
 
+  const calcTotalAdjustedPrice = () => {
+    let newProductsSelected = [...productSelected];
+
+    let _totalAdjustedPrice = newProductsSelected.reduce((acc, currentValue) => {
+      let adjustedPrice = currentValue?.adjustedPrice;
+      return acc + adjustedPrice;
+    }, 0);
+    setTotalAdjustedPrice(_totalAdjustedPrice);
+  }
+
+  const handleSubmit = async () => {
+    try {
+      let products = productSelected.map((p) => {
+        return {
+          productId: p?.id,
+          oldQuantity: p?.currentQuantity,
+          newQuantity: p?.amountToAdjust,
+          costPrice: p?.price
+        }
+      })
+      let payload = {
+        companyId: companyId,
+        warehouseId: warehouseSelected.warehouseId,
+        products: products,
+        totalAdjustedPrice: totalAdjustedPrice,
+        note: note,
+        createdBy: "66d4ed2f825f2d54204555c1"
+      }
+
+      if (!validateInputs(setErrors, payload)) return;
+
+
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  React.useEffect(() => {
+    calcTotalAdjustedPrice();
+  }, [productSelected]);
 
   return (
     <React.Fragment>
@@ -170,8 +212,8 @@ export function CreateAdjustmentStock({
             <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
               Nuevo ajuste de stock
             </Typography>
-            <Button autoFocus color="inherit" onClick={handleClose}>
-              save
+            <Button autoFocus color="inherit" onClick={handleSubmit}>
+              Guardar
             </Button>
           </Toolbar>
         </AppBar>
@@ -200,22 +242,22 @@ export function CreateAdjustmentStock({
                   })
                 }
               </Input>
-
+              {errors.warehouseId && (<span className="form-product-input-error">{errors.warehouseId}</span>)}
             </Col>
 
             <Col md={6}>
 
-              <label className='form-label' htmlFor="providerId">*Nota:</label>
+              <label className='form-label' htmlFor="note">*Nota:</label>
               <div>
                 <Input
                   type="text"
                   name="note"
                   value={note}
-                  onChange={setNote}
+                  onChange={(e) => setNote(e.target.value)}
                   placeholder="Agregar nota"
                 />
               </div>
-
+              {errors.note && (<span className="form-product-input-error">{errors.note}</span>)}
             </Col>
 
           </Row>
@@ -233,7 +275,7 @@ export function CreateAdjustmentStock({
                       <th>Acción</th>
                       <th>Cantidad</th>
                       <th>Cantidad Ajustada</th>
-                      <th>Precio Total</th>
+                      <th>Precio ajustado</th>
                       <th>Acciones</th>
                     </tr>
                   </thead>
@@ -281,7 +323,7 @@ export function CreateAdjustmentStock({
                             {/* Cantidad para ajustar */}
                             <InputSpin
                               setState={(value) => handleSetQuantity(value, index)}
-                              value={productSelected[index]?.amountToAdjust ?? 1}
+                              value={adjustment.quantity}
                               min={"0"}
                               max={"5000"}
                               inputClassname={'bg-red'}
@@ -292,8 +334,8 @@ export function CreateAdjustmentStock({
                             {/* Cantidad del producto ajustada */}
                             <Input
                               type="number"
-                              name="quantity"
-                              value={adjustment.quantity}
+                              name="amountToAdjust"
+                              value={productSelected[index]?.amountToAdjust ?? 1}
                               onChange={(e) => handleInputChange(index, e)}
                               placeholder="-"
                               disabled={true}
@@ -302,8 +344,8 @@ export function CreateAdjustmentStock({
                           <td width={150}>
                             <Input
                               type="string"
-                              name="totalAdjustedPrice"
-                              value={numberFormatPrice(adjustment.totalAdjustedPrice)}
+                              name="adjustedPrice"
+                              value={numberFormatPrice(productSelected[index]?.adjustedPrice ?? 0)}
                               onChange={(e) => handleInputChange(index, e)}
                               placeholder="0,00"
                               disabled={true}
@@ -337,6 +379,10 @@ export function CreateAdjustmentStock({
                           <i className="ri-add-fill me-1 align-bottom"></i>{" "}
                           Agregar producto
                         </Link>
+                      </td>
+
+                      <td colSpan="3" >
+                        <h5 className=' mt-3'>Total: <span>{numberFormatPrice(totalAdjustedPrice)}</span></h5>
                       </td>
                     </tr>
                   </tbody>
