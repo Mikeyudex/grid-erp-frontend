@@ -87,7 +87,7 @@ export const validateInputs = (setErrors, data) => {
     newErrors.companyId = 'El id de la compañía es requerido';
   }
 
-  if (!data.warehouseId || data.warehouseId === '') {
+  if (!data.warehouseId || data.warehouseId === '' || data.warehouseId === '0') {
     newErrors.warehouseId = 'La bodega es requerida';
   }
 
@@ -96,7 +96,7 @@ export const validateInputs = (setErrors, data) => {
   }
 
   if (!data.note || data.note === '') {
-    newErrors.note = 'El atributo note es requerido';
+    newErrors.note = 'Debes agregar una nota para continuar';
   }
 
   if (!data.createdBy || data.createdBy === '') {

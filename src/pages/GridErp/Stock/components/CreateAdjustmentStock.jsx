@@ -10,9 +10,16 @@ import Slide from '@mui/material/Slide';
 import { Col, Input, Row, Table } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import Select from "react-select";
+import { useSnackbar } from 'react-simple-snackbar';
+
 import InputSpin from '../../Products/components/InputSpin';
-import { numberFormatPrice, validateInputs } from '../helper/stock_helper';
+import { numberFormatPrice, optionsSnackbarDanger, optionsSnackbarSuccess, validateInputs } from '../helper/stock_helper';
 import { companyId } from '../helper/url_helper';
+import GlobalInputText from '../../Products/partials/inputs/GlobalInputText';
+import { APIClient } from '../../../../helpers/api_helper';
+import * as url from '../helper/url_helper';
+
+const apiClient = new APIClient();
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -37,6 +44,8 @@ export function CreateAdjustmentStock({
   const [productSelected, setProductSelected] = React.useState([]);
   const [totalAdjustedPrice, setTotalAdjustedPrice] = React.useState(0);
   const [errors, setErrors] = React.useState({});
+  const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
+  const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
 
   const handleClose = () => {
     toggleDrawerCreateAdjustment();
@@ -51,6 +60,7 @@ export function CreateAdjustmentStock({
     setProductSelected([]);
     setNote("");
     setTotalAdjustedPrice(0);
+    setErrors({});
   };
 
   // Función para manejar los cambios en cada input
@@ -59,6 +69,26 @@ export function CreateAdjustmentStock({
     const newAdjustments = [...adjustments];
     newAdjustments[index][name] = value;
     setAdjustments(newAdjustments);
+    if(name === 'adjustmentType'){
+      handleChangeAction(index, value);
+    }
+  };
+
+  const handleChangeAction = (index, action) => {
+    const newProductsSelected = [...productSelected];
+    let newAdjustment = [...adjustments];
+    let productFiltered = productList.filter((p) => p.id === newProductsSelected[index]['id'])[0];
+    let quantity = newAdjustment[index]['quantity'];
+
+    if (action === 'increase') {
+      newProductsSelected[index]['amountToAdjust'] = productFiltered?.stock + quantity;
+      newProductsSelected[index]['adjustedPrice'] = quantity * productFiltered?.costPrice;
+    }
+    else if (action === 'decrease') {
+      newProductsSelected[index]['amountToAdjust'] = productFiltered?.stock - quantity;
+      newProductsSelected[index]['adjustedPrice'] = -quantity * productFiltered?.costPrice;
+    }
+    setProductSelected(newProductsSelected);
   };
 
   const handleWarehouseChange = (e) => {
@@ -82,7 +112,7 @@ export function CreateAdjustmentStock({
       newProductsSelected[index].price = productFiltered?.costPrice;
       newProductsSelected[index].currentQuantity = productFiltered?.stock;
       newProductsSelected[index].amountToAdjust = currentStock + 1;
-      newProductsSelected[index].adjustedPrice = (currentStock + 1) * productCost;
+      newProductsSelected[index].adjustedPrice = 1 * productCost;
       setProductSelected(newProductsSelected);
 
     } else {
@@ -91,7 +121,7 @@ export function CreateAdjustmentStock({
         price: productFiltered?.costPrice,
         currentQuantity: productFiltered?.stock,
         amountToAdjust: currentStock + 1,
-        adjustedPrice: (currentStock + 1) * productCost
+        adjustedPrice: 1 * productCost
       };
       setProductSelected([...productSelected, newProduct]);
     };
@@ -114,11 +144,11 @@ export function CreateAdjustmentStock({
 
     if (newAdjustment[index].adjustmentType === 'increase') {
       newProductsSelected[index]['amountToAdjust'] = productFiltered?.stock + Number(value);
-      newProductsSelected[index]['adjustedPrice'] = newProductsSelected[index]['amountToAdjust'] * productFiltered?.costPrice;
+      newProductsSelected[index]['adjustedPrice'] = Number(value) * productFiltered?.costPrice;
 
     } else if (newAdjustment[index].adjustmentType === 'decrease') {
       newProductsSelected[index]['amountToAdjust'] = productFiltered?.stock - Number(value);
-      newProductsSelected[index]['adjustedPrice'] = newProductsSelected[index]['amountToAdjust'] * productFiltered?.costPrice;
+      newProductsSelected[index]['adjustedPrice'] = Number(-value) * productFiltered?.costPrice;
     }
     setProductSelected(newProductsSelected);
     setAdjustments(newAdjustment);
@@ -179,9 +209,16 @@ export function CreateAdjustmentStock({
 
       if (!validateInputs(setErrors, payload)) return;
 
+      let response = await apiClient.create(url.CREATE_STOCK_ADJUSTMENT, payload);
+      console.log(response);
 
+      openSnackbarSuccess('Ajuste de stock creado exitosamente!');
+
+      handleClose();
+      
     } catch (error) {
       console.log(error);
+      openSnackbarDanger('Ocurrió un error :(, intenta más tarde.');
     }
   }
 
@@ -225,7 +262,14 @@ export function CreateAdjustmentStock({
 
               <label className='form-label' htmlFor="warehouseId">*Bodega:</label>
               <Input
-                style={{ border: 'none', borderBottom: '1px solid #132649', background: '#f7f7f9c7' }}
+                style={{
+                  border: 'none !important',
+                  borderBottom: '2px solid #ccc !important',
+                  backgroundColor: 'transparent',
+                  color: '#132649',
+                  '&:focus': { border: 'none', boxShadow: 'none' },
+                  fontSize: '1em',
+                }}
                 bsSize="md"
                 type="select"
                 id="warehouseId"
@@ -249,12 +293,15 @@ export function CreateAdjustmentStock({
 
               <label className='form-label' htmlFor="note">*Nota:</label>
               <div>
-                <Input
-                  type="text"
-                  name="note"
-                  value={note}
+                <GlobalInputText
+                  name={'note'}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Agregar nota"
+                  placeholder={'Agregar nota'}
+                  value={note}
+                  type={"text"}
+                  className={"input-box"}
+                  id={'note'}
+                  disabled={false}
                 />
               </div>
               {errors.note && (<span className="form-product-input-error">{errors.note}</span>)}
@@ -274,7 +321,7 @@ export function CreateAdjustmentStock({
                       <th>Precio</th>
                       <th>Acción</th>
                       <th>Cantidad</th>
-                      <th>Cantidad Ajustada</th>
+                      <th>Cantidad final</th>
                       <th>Precio ajustado</th>
                       <th>Acciones</th>
                     </tr>
@@ -287,24 +334,47 @@ export function CreateAdjustmentStock({
                         <tr key={index}>
                           <td width={550} >
                             <Select
+                              styles={{
+                                control: (baseStyles, state) => ({
+                                  ...baseStyles,
+                                  border: 'none !important',
+                                  borderBottom: '2px solid #ccc !important',
+                                  backgroundColor: 'transparent',
+                                  color: '#132649',
+                                  fontSize: '1em',
+                                  border: state.isFocused && 'none', boxShadow: state.isFocused && 'none',
+                                  paddingTop: '5px'
+                                }),
+                              }}
                               isSearchable={true}
                               onChange={(e) => handleProductSelected(index, e)}
                               options={handleMapProducts()}
                               placeholder={'Buscar producto...'}
                             />
+                            {productSelected[index]?.currentQuantity && (<span className=''>Stock actual: {productSelected[index]?.currentQuantity}</span>)}
                           </td>
                           <td width={120} >
-                            <Input
-                              type="number"
-                              name="price"
+                            <GlobalInputText
+                              name={'price'}
+                              onChange={handleInputChange}
+                              placeholder={'$0'}
                               value={productSelected[index]?.price}
-                              placeholder="-"
+                              type={"number"}
+                              className={"input-box"}
+                              id={'price'}
                               disabled={true}
                             />
                           </td>
                           <td width={220}>
                             <Input
-                              style={{ border: 'none', borderBottom: '1px solid #132649', background: '#f7f7f9c7' }}
+                              style={{
+                                border: 'none !important',
+                                borderBottom: '2px solid #ccc !important',
+                                backgroundColor: 'transparent',
+                                color: '#132649',
+                                '&:focus': { border: 'none', boxShadow: 'none' },
+                                fontSize: '1em',
+                              }}
                               bsSize="md"
                               type="select"
                               id="adjustmentType"
@@ -332,22 +402,26 @@ export function CreateAdjustmentStock({
                           </td>
                           <td width={100}>
                             {/* Cantidad del producto ajustada */}
-                            <Input
-                              type="number"
-                              name="amountToAdjust"
-                              value={productSelected[index]?.amountToAdjust ?? 1}
+                            <GlobalInputText
+                              name={'amountToAdjust'}
                               onChange={(e) => handleInputChange(index, e)}
-                              placeholder="-"
+                              placeholder={'-'}
+                              value={productSelected[index]?.amountToAdjust ?? 1}
+                              type={"number"}
+                              className={"input-box"}
+                              id={'amountToAdjust'}
                               disabled={true}
                             />
                           </td>
                           <td width={150}>
-                            <Input
-                              type="string"
-                              name="adjustedPrice"
-                              value={numberFormatPrice(productSelected[index]?.adjustedPrice ?? 0)}
+                            <GlobalInputText
+                              name={'adjustedPrice'}
                               onChange={(e) => handleInputChange(index, e)}
-                              placeholder="0,00"
+                              placeholder={'0,00'}
+                              value={numberFormatPrice(productSelected[index]?.adjustedPrice ?? 0)}
+                              type={"string"}
+                              className={"input-box"}
+                              id={'adjustedPrice'}
                               disabled={true}
                             />
                           </td>
