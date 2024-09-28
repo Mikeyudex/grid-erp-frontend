@@ -222,7 +222,7 @@ export function CreateAdjustmentStock({
 
       await apiClient.create(url.CREATE_STOCK_ADJUSTMENT, payload);
 
-      toggleBackdrop();
+      setOpenBackdrop(false);
       openSnackbarSuccess('Ajuste de stock creado exitosamente!');
 
       handleClose();
