@@ -11,11 +11,12 @@ export class StockHelper {
 
   //getRecentAdjustmentStock
   getRecentAdjustmentStock = (page, limit) => api.get(`${url.GET_RECENT_ADJUSTMENT}`, { page, limit });
+  getProductsByWarehouse = (page, limit, warehouseId) => api.get(`${url.GET_PRODUCTS_BY_WAREHOUSE}/${warehouseId}`, { page, limit });
 
 }
 
 export const optionsSnackbarDanger = {
-  position: 'bottom-left',
+  position: 'bottom-right',
   style: {
     backgroundColor: '#ffece3',
     border: '2px solid #de6c37',
@@ -31,7 +32,7 @@ export const optionsSnackbarDanger = {
 };
 
 export const optionsSnackbarSuccess = {
-  position: 'bottom-left',
+  position: 'bottom-right',
   style: {
     backgroundColor: '#dbf8f4',
     border: '2px solid #0eb6b6',

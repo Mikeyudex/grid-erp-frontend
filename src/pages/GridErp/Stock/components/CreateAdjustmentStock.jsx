@@ -9,17 +9,18 @@ import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
 import { Col, Input, Row, Table } from 'reactstrap';
 import { Link } from 'react-router-dom';
-import Select from "react-select";
 import { useSnackbar } from 'react-simple-snackbar';
 
 import InputSpin from '../../Products/components/InputSpin';
-import { numberFormatPrice, optionsSnackbarDanger, optionsSnackbarSuccess, validateInputs } from '../helper/stock_helper';
+import { numberFormatPrice, optionsSnackbarDanger, optionsSnackbarSuccess, StockHelper, validateInputs } from '../helper/stock_helper';
 import { companyId } from '../helper/url_helper';
 import GlobalInputText from '../../Products/partials/inputs/GlobalInputText';
 import { APIClient } from '../../../../helpers/api_helper';
 import * as url from '../helper/url_helper';
+import { Autocomplete, Backdrop, CircularProgress, TextField } from '@mui/material';
 
 const apiClient = new APIClient();
+const stockHelper = new StockHelper();
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -28,8 +29,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 export function CreateAdjustmentStock({
   openDrawer,
   toggleDrawerCreateAdjustment,
-  dataSelectWarehouses,
-  productList
+  dataSelectWarehouses
 }) {
   const [adjustments, setAdjustments] = React.useState([
     {
@@ -46,6 +46,10 @@ export function CreateAdjustmentStock({
   const [errors, setErrors] = React.useState({});
   const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
   const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
+  const [productList, setProductList] = React.useState([]);
+  const [page, setPage] = React.useState(1);
+  const [limit, setLimit] = React.useState(100);
+  const [openBackdrop, setOpenBackdrop] = React.useState(false);
 
   const handleClose = () => {
     toggleDrawerCreateAdjustment();
@@ -61,6 +65,11 @@ export function CreateAdjustmentStock({
     setNote("");
     setTotalAdjustedPrice(0);
     setErrors({});
+    setProductList([]);
+  };
+
+  const toggleBackdrop = () => {
+    setOpenBackdrop(!openBackdrop);
   };
 
   // Función para manejar los cambios en cada input
@@ -69,7 +78,7 @@ export function CreateAdjustmentStock({
     const newAdjustments = [...adjustments];
     newAdjustments[index][name] = value;
     setAdjustments(newAdjustments);
-    if(name === 'adjustmentType'){
+    if (name === 'adjustmentType') {
       handleChangeAction(index, value);
     }
   };
@@ -97,11 +106,11 @@ export function CreateAdjustmentStock({
       ...prev,
       [name]: value,
     }));
+    handleChangeWarehouse(value);
   };
 
-  const handleProductSelected = (index, event) => {
-
-    const { value } = event;
+  const handleProductSelected = (index, newValue) => {
+    const { value } = newValue;
     let productFiltered = productList.filter((p) => p.id === value)[0];
     let currentStock = productFiltered?.stock ?? 0;
     let productCost = productFiltered?.costPrice;
@@ -209,18 +218,48 @@ export function CreateAdjustmentStock({
 
       if (!validateInputs(setErrors, payload)) return;
 
-      let response = await apiClient.create(url.CREATE_STOCK_ADJUSTMENT, payload);
-      console.log(response);
+      toggleBackdrop();
 
+      await apiClient.create(url.CREATE_STOCK_ADJUSTMENT, payload);
+
+      toggleBackdrop();
       openSnackbarSuccess('Ajuste de stock creado exitosamente!');
 
       handleClose();
-      
+
     } catch (error) {
       console.log(error);
       openSnackbarDanger('Ocurrió un error :(, intenta más tarde.');
     }
   }
+
+  const handleChangeWarehouse = async (warehouseId) => {
+    try {
+      let products = await stockHelper.getProductsByWarehouse(page, limit, warehouseId);
+
+      if (products && Array.isArray(products) && products.length > 0) {
+        let parseProducts = products.map((p) => {
+          return {
+            id: p?._id,
+            image: p?.additionalConfigs?.images?.[0] ?? "",
+            name: p?.name,
+            category: p?.categoryName,
+            subCategory: p?.subCategoryName,
+            stock: p?.stock,
+            warehouse: p?.warehouseName,
+            salePrice: p?.salePrice,
+            costPrice: p?.costPrice,
+            createdAt: p?.createdAt
+          }
+        });
+        setProductList(parseProducts);
+      }
+      return;
+
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   React.useEffect(() => {
     calcTotalAdjustedPrice();
@@ -256,6 +295,14 @@ export function CreateAdjustmentStock({
         </AppBar>
 
         <div>
+          <Backdrop
+            sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+            open={openBackdrop}
+          /*  onClick={toggleBackdrop} */
+          >
+            <CircularProgress color="inherit" />
+          </Backdrop>
+
           <Row className='px-4 py-3'>
 
             <Col md={6}>
@@ -333,7 +380,7 @@ export function CreateAdjustmentStock({
                       return (
                         <tr key={index}>
                           <td width={550} >
-                            <Select
+                            {/* <Select
                               styles={{
                                 control: (baseStyles, state) => ({
                                   ...baseStyles,
@@ -347,11 +394,24 @@ export function CreateAdjustmentStock({
                                 }),
                               }}
                               isSearchable={true}
-                              onChange={(e) => handleProductSelected(index, e)}
+                              onChange={(e, newValue) => handleProductSelected(index, newValue)}
                               options={handleMapProducts()}
                               placeholder={'Buscar producto...'}
+                            /> */}
+                            <Autocomplete
+                              disablePortal
+                              options={handleMapProducts()}
+                              sx={{
+                                width: 600,
+                                padding: "0.69em",
+                              }}
+                              renderInput={(params) => <TextField className='input-box' {...params} variant="standard" placeholder={'Buscar producto...'} />}
+                              onChange={(e, newValue) => handleProductSelected(index, newValue)}
+                              disableClearable
+                              noOptionsText={"No hay productos, selecciona una bodega."}
+                              freeSolo
                             />
-                            {productSelected[index]?.currentQuantity && (<span className=''>Stock actual: {productSelected[index]?.currentQuantity}</span>)}
+                            {productSelected[index]?.currentQuantity && (<span className='px-2'>Stock actual: {productSelected[index]?.currentQuantity}</span>)}
                           </td>
                           <td width={120} >
                             <GlobalInputText
