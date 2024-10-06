@@ -19,7 +19,6 @@ export function TableAdjustmentStock({
   isLoadingTable,
   showProgressBarTable,
   adjustmentList,
-  setAdjustmenttList,
   setValidationErrors,
   toggleDrawerCreateAdjustment
 }) {
@@ -43,22 +42,6 @@ export function TableAdjustmentStock({
       setIsUpdatingUser(false);
       exitEditingMode();
   };
-
-  /* const updateProduct = async (row, values) => {
-      try {
-          let idProduct = row?.id;
-          values['id'] = idProduct;
-          console.log(values);
-          let changes = listProductsHelper.detectChanges(productList[row.index], values);
-          console.log('Cambios: ', changes);
-
-          await listProductsHelper.updateProduct(changes, idProduct);
-          productList[row.index] = values;
-          setProductList([...productList]);
-      } catch (error) {
-          console.log(error);
-      }
-  } */
 
   const deleteProduct = async (id) => {
       try {
@@ -158,7 +141,7 @@ export function TableAdjustmentStock({
       renderTopToolbarCustomActions: ({ table }) => (
           <TopToolbarActions 
           table={table}
-          toggleDrawerCreateAdjustment={toggleDrawerCreateAdjustment}
+          toggleDrawer={toggleDrawerCreateAdjustment}
           ></TopToolbarActions>
       ),
       icons: IconsTopToolbarAction

@@ -7,14 +7,12 @@ import { RiFileDownloadFill } from "react-icons/ri";
 import { TbFileExport } from "react-icons/tb";
 import './BtnOptions.css';
 
-const DropdownOptions = ({ table, toggleDrawer}) => {
+const DropdownOptionsTransferStock = ({ table, toggleDrawer }) => {
 
     return (
         <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
                 <button
-                    /*  disabled={table.getPrePaginationRowModel().rows.length === 0}
-                     onClick={() => handleExportRows(table.getPrePaginationRowModel().rows)} */
                     type="button"
                     className="btn btn-ghost-secondary waves-effect waves-light Innventabtn">
                     <CgOptions></CgOptions>
@@ -26,7 +24,7 @@ const DropdownOptions = ({ table, toggleDrawer}) => {
                 <DropdownMenu.Content className="DropdownMenuContent" sideOffset={5}>
                     <DropdownMenu.Item className="DropdownMenuItem" onClick={toggleDrawer}>
                         <div className="LeftSlot"><CiSquarePlus /></div>
-                        <span style={{marginLeft:'0.5em'}} >Nuevo ajuste de stock</span> 
+                        <span style={{marginLeft:'0.5em'}} >Nuevo traslado</span> 
                     </DropdownMenu.Item>
 
                     <DropdownMenu.Item className="DropdownMenuItem">
@@ -51,4 +49,4 @@ const DropdownOptions = ({ table, toggleDrawer}) => {
     );
 };
 
-export default DropdownOptions;
+export default DropdownOptionsTransferStock;

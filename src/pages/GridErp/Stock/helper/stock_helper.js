@@ -12,7 +12,8 @@ export class StockHelper {
   //getRecentAdjustmentStock
   getRecentAdjustmentStock = (page, limit) => api.get(`${url.GET_RECENT_ADJUSTMENT}`, { page, limit });
   getProductsByWarehouse = (page, limit, warehouseId) => api.get(`${url.GET_PRODUCTS_BY_WAREHOUSE}/${warehouseId}`, { page, limit });
-
+  //Movements
+  getAllTransfer = (page, limit, companyId, type) => api.get(`${url.GET_ALL_TRANSFER_STOCK}`, { page, limit, companyId, type });
 }
 
 export const optionsSnackbarDanger = {
@@ -98,6 +99,38 @@ export const validateInputs = (setErrors, data) => {
 
   if (!data.note || data.note === '') {
     newErrors.note = 'Debes agregar una nota para continuar';
+  }
+
+  if (!data.createdBy || data.createdBy === '') {
+    newErrors.createdBy = 'El atributo createdBy es requerido';
+  }
+
+  setErrors(newErrors);
+
+  return Object.keys(newErrors).length === 0; // Devuelve true si no hay errores
+}
+
+export const validateInputsCreateTransfer = (setErrors, data) => {
+  const newErrors = {};
+
+  if (!data.companyId || data.companyId === '') {
+    newErrors.companyId = 'El id de la compañía es requerido';
+  }
+
+  if (!data.warehouseId || data.warehouseId === '' || data.warehouseId === '0') {
+    newErrors.warehouseId = 'La bodega de origen es requerida';
+  }
+
+  if (!data.destinationWarehouseId || data.destinationWarehouseId === '' || data.destinationWarehouseId === '0') {
+    newErrors.destinationWarehouseId = 'La bodega de destino es requerida';
+  }
+
+  if (!data.quantity || data.quantity === '') {
+    newErrors.quantity = 'La cantidad total es requerida';
+  }
+
+  if (!data.reason || data.reason === '') {
+    newErrors.reason = 'Debes agregar una nota para continuar';
   }
 
   if (!data.createdBy || data.createdBy === '') {

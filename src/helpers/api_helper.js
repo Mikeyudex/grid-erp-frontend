@@ -8,8 +8,8 @@ axios.defaults.headers.post["Content-Type"] = "application/json";
 
 // content type
 const token = JSON.parse(sessionStorage.getItem("authUser")) ? JSON.parse(sessionStorage.getItem("authUser")).token : null;
-if(token)
-axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+if (token)
+  axios.defaults.headers.common["Authorization"] = "Bearer " + token;
 
 // intercepting to capture errors
 axios.interceptors.response.use(

@@ -1,50 +1,8 @@
-import { Button, Col, Row } from "reactstrap";
-import {
-    MaterialReactTable,
-    createMRTColumnHelper,
-    useMaterialReactTable,
-} from 'material-react-table';
+import { Col, Row } from "reactstrap";
+
 import { mkConfig, generateCsv, download } from 'export-to-csv';
 import DropdownOptions from "./BtnOptions";
-
-
-
-const columnHelper = createMRTColumnHelper();
-
-const columns = [
-    columnHelper.accessor('name', {
-        header: 'Producto',
-        size: 100,
-    }),
-    columnHelper.accessor('warehouse', {
-        header: 'Bodega',
-        size: 80,
-    }),
-    columnHelper.accessor('stock', {
-        header: 'Stock',
-        size: 40,
-    }),
-    columnHelper.accessor('costPrice', {
-        header: 'Precio de costo',
-        size: 100,
-    }),
-    columnHelper.accessor('salePrice', {
-        header: 'Precio de venta',
-        size: 100,
-    }),
-    columnHelper.accessor('category', {
-        header: 'Categoría',
-        size: 120,
-    }),
-    columnHelper.accessor('subCategory', {
-        header: 'Subcategoría',
-        size: 120,
-    }),
-    columnHelper.accessor('createdAt', {
-        header: 'Creado',
-        size: 80,
-    }),
-];
+import DropdownOptionsTransferStock from "./BtnOptionsTransferStock";
 
 const csvConfig = mkConfig({
     fieldSeparator: ',',
@@ -55,7 +13,8 @@ const csvConfig = mkConfig({
 
 export function TopToolbarActions({
     table,
-    toggleDrawerCreateAdjustment
+    toggleDrawer,
+    viewType
 }) {
 
     const handleExportRows = (rows) => {
@@ -73,9 +32,19 @@ export function TopToolbarActions({
         <Row md={1}
         >
             <Col md={24} >
-                <DropdownOptions
-                    toggleDrawerCreateAdjustment={toggleDrawerCreateAdjustment}
+
+            {
+                viewType === 'transferStock' ? (
+                    <DropdownOptionsTransferStock
+                    toggleDrawer={toggleDrawer}
                     table={table} />
+                ) : (
+                    <DropdownOptions
+                    toggleDrawer={toggleDrawer}
+                    table={table} />
+                )
+            }
+
             </Col>
 
         </Row>

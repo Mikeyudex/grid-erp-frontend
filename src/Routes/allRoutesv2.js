@@ -9,6 +9,7 @@ import { ListProducts } from "../pages/GridErp/Products/pages/ListProducts";
 import LayoutCreateProduct from "../pages/GridErp/Products/components/LayoutCreateProduct";
 import { SuccessProductCreateView } from "../pages/GridErp/Products/components/SuccessProductCreateView";
 import { AdjustmentStockView } from "../pages/GridErp/Stock/pages/AdjustmentStockView";
+import { TransferStockView } from "../pages/GridErp/Stock/pages/TransferStockView";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -32,6 +33,10 @@ const authProtectedRoutes = [
     {
         path: "/adjustment-stock-view",
         component: <AdjustmentStockView />,
+    },
+    {
+        path: "/transfer-stock-view",
+        component: <TransferStockView />,
     },
 ]
 
