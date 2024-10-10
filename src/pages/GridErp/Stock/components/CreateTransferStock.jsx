@@ -10,6 +10,7 @@ import Slide from '@mui/material/Slide';
 import { Col, Input, Row, Table } from 'reactstrap';
 import { Link } from 'react-router-dom';
 import { useSnackbar } from 'react-simple-snackbar';
+import { Autocomplete, Backdrop, CircularProgress, TextField } from '@mui/material';
 
 import InputSpin from '../../Products/components/InputSpin';
 import { numberFormatPrice, optionsSnackbarDanger, optionsSnackbarSuccess, StockHelper, validateInputs, validateInputsCreateTransfer } from '../helper/stock_helper';
@@ -17,10 +18,8 @@ import { companyId } from '../helper/url_helper';
 import GlobalInputText from '../../Products/partials/inputs/GlobalInputText';
 import { APIClient } from '../../../../helpers/api_helper';
 import * as url from '../helper/url_helper';
-import { Autocomplete, Backdrop, CircularProgress, TextField } from '@mui/material';
-import { set } from 'lodash';
 import ResponseModal from '../partials/ResponseModal';
-import axios from 'axios';
+
 
 const apiClient = new APIClient();
 const stockHelper = new StockHelper();
@@ -203,13 +202,9 @@ export function CreateTransferStock({
 
       if (!validateInputsCreateTransfer(setErrors, payload)) return;
 
-      console.log(payload);
-
       toggleBackdrop();
 
       let response = await apiClient.create(url.CREATE_TRANSFER_STOCK, payload);
-
-      console.log(response);
 
       if (response && response.results && Array.isArray(response.results)) {
         setResponseData(response);

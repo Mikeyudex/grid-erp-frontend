@@ -9,6 +9,7 @@ const Navdata = () => {
   const [isWarehouses, setIsWarehouses] = useState(false);
   const [isStock, setIsStock] = useState(false);
   const [isConfigurations, setIsConfigurations] = useState(false);
+  const [isWoocommerce, setIsWoocommerce] = useState(false);
   const [isAuth, setIsAuth] = useState(false);
   const [isPages, setIsPages] = useState(false);
   const [isBaseUi, setIsBaseUi] = useState(false);
@@ -276,9 +277,23 @@ const Navdata = () => {
         },
         {
           id: "conf-company",
-          label: "Conf. Empresa",
+          label: "Mi Empresa",
           link: "/company-conf",
+          isChildItem: true,
+          click: function (e) {
+            e.preventDefault();
+            setIsWoocommerce(!isWoocommerce);
+          },
           parentId: "configurations",
+          stateVariables: isWoocommerce,
+          childItems: [
+            {
+              id: 1,
+              label: "General",
+              link: "/config-company",
+              parentId: "configurations",
+            },
+          ],
         },
       ],
     },

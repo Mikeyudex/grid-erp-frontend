@@ -10,6 +10,9 @@ import LayoutCreateProduct from "../pages/GridErp/Products/components/LayoutCrea
 import { SuccessProductCreateView } from "../pages/GridErp/Products/components/SuccessProductCreateView";
 import { AdjustmentStockView } from "../pages/GridErp/Stock/pages/AdjustmentStockView";
 import { TransferStockView } from "../pages/GridErp/Stock/pages/TransferStockView";
+import WooCommerceConfigView from "../pages/GridErp/Configs/Company/woocommerce/pages/WooConfig";
+import CompanyConfigView from "../pages/GridErp/Configs/Company/general/pages/CompanyConfigView";
+import ThemedCategoryMapping from "../pages/GridErp/Configs/Company/woocommerce/pages/CategoryMapping";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -38,6 +41,10 @@ const authProtectedRoutes = [
         path: "/transfer-stock-view",
         component: <TransferStockView />,
     },
+    // Company config
+    { path: "/config-company", component: <CompanyConfigView /> },
+    { path: "/woocommerce-config", component: <WooCommerceConfigView />, },
+    { path: "/woocommerce-config/category-mapping", component: <ThemedCategoryMapping />, }
 ]
 
 const publicRoutes = [

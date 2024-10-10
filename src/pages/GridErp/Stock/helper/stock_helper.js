@@ -137,6 +137,10 @@ export const validateInputsCreateTransfer = (setErrors, data) => {
     newErrors.createdBy = 'El atributo createdBy es requerido';
   }
 
+  if(data.warehouseId === data.destinationWarehouseId){ 
+    newErrors.warehouseId = 'El destino no puede ser el mismo que el origen';
+  }
+  
   setErrors(newErrors);
 
   return Object.keys(newErrors).length === 0; // Devuelve true si no hay errores

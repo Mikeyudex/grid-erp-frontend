@@ -4,7 +4,7 @@ import {
     Row,
 } from "reactstrap";
 import { useSnackbar } from 'react-simple-snackbar';
-import { toast, ToastContainer } from "react-toastify";
+import { ToastContainer } from "react-toastify";
 import { Link } from "react-router-dom";
 
 import "nouislider/distribute/nouislider.css";
@@ -12,7 +12,6 @@ import { optionsSnackbarDanger, optionsSnackbarSuccess, StockHelper } from "../h
 import { FormatDate } from "../../Products/components/FormatDate";
 import BreadCrumb from "../../Products/components/BreadCrumb";
 import { ProductHelper } from "../../Products/helper/product_helper";
-import { CreateAdjustmentStock } from "../components/CreateAdjustmentStock";
 import { TableTransferStock } from "../partials/TableTranferStock";
 import { CreateTransferStock } from "../components/CreateTransferStock";
 
