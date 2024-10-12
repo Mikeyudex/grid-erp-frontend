@@ -1,77 +1,74 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Button, Snackbar, ThemeProvider, createTheme, FormControl, Select, MenuItem, Backdrop, CircularProgress } from '@mui/material';
-import MuiAlert from '@mui/material/Alert';
+import { Typography, Button, ThemeProvider, createTheme, FormControl, Select, MenuItem, Backdrop, CircularProgress } from '@mui/material';
+import { useSnackbar } from 'react-simple-snackbar';
 
 import BreadCrumb from '../../../../Products/components/BreadCrumb';
 import { Container, MappingContainer, ColumnHeaders, MappingRow, Column } from './CategoryMapping.styles';
-import { ProductHelper } from '../../../../Products/helper/product_helper';
+import { optionsSnackbarDanger, optionsSnackbarSuccess } from '../../../../Stock/helper/stock_helper';
 import * as url from '../helper/url_helper';
+import { WooCommerceHelper } from '../helper/woocommerce_helper';
+import { ProductHelper } from '../../../../Products/helper/product_helper';
+import { APIClient } from '../../../../../../helpers/api_helper';
 
 const productHelper = new ProductHelper();
+const wooCommerceHelper = new WooCommerceHelper();
+const apiClient = new APIClient();
 // Crear un tema personalizado
 const theme = createTheme();
-
-// Supongamos que estas son las categorías que obtienes de tu backend
-// Ahora usamos objetos con label y value para nuestras categorías
-const internalCategoriesMock = [
-  { label: 'Electrónicos', value: 'electronics' },
-  { label: 'Ropa', value: 'clothing' },
-  { label: 'Hogar', value: 'home' },
-  { label: 'Deportes', value: 'sports' },
-  { label: 'Libros', value: 'books' }
-];
-
-const wooCommerceCategoriesMock = [
-  { label: 'Electronics', value: 'wc_electronics' },
-  { label: 'Apparel', value: 'wc_apparel' },
-  { label: 'Home & Living', value: 'wc_home' },
-  { label: 'Sports & Outdoors', value: 'wc_sports' },
-  { label: 'Books & Media', value: 'wc_books' }
-];
-
-const Alert = React.forwardRef(function Alert(props, ref) {
-  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
-});
 
 function CategoryMapping() {
   const [mappings, setMappings] = useState({});
   const [isValid, setIsValid] = useState(false);
-  const [openSnackbar, setOpenSnackbar] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [internalCategories, setInternalCategories] = useState([]);
-  const [wooCommerceCategories, setWooCommerceCategories] = useState(wooCommerceCategoriesMock);
+  const [wooCommerceCategories, setWooCommerceCategories] = useState([]);
   const [openBackdrop, setOpenBackdrop] = useState(true);
+  const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
+  const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
 
   useEffect(() => {
     validateMappings();
   }, [mappings]);
 
   useEffect(() => {
-    productHelper.getCategoriesFullByCompanySelect(url.companyId)
-      .then(response => {
-        if (response.data) {
-          let internalCategories = response.data.map(cat => {
-            return {
-              label: cat.label,
-              value: cat.value
-            }
-          });
-          setInternalCategories(internalCategories);
-        }
-      })
-      .catch(error => {
+    (async () => {
+      try {
+        let internalCategories = await productHelper.getCategoriesFullByCompanySelect(url.companyId);
+        let internalCategoriesMap = internalCategories.data.map(cat => { return { label: cat?.label, value: cat?.value } });
+        setInternalCategories(internalCategoriesMap);
+        openSnackbarSuccess('Categorías internas cargadas exitosamente');
+      } catch (error) {
         console.log(error);
-      })
-      .finally(() => {
-        setOpenBackdrop(false);
-      });
+        openSnackbarDanger('Ocurrió un error al obtener las categorías :(', 'Intenta mas tarde');
+      }
+    })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        let responseWoo = await wooCommerceHelper.getCategoriesWoocommerce(url.companyId);
+        let successWoo = responseWoo?.success;
+        let resultWoo = responseWoo?.result;
+        if (successWoo && Array.isArray(resultWoo) && resultWoo.length > 0) {
+          let wooCategoriesFiltered = resultWoo.filter(cat => cat?.parent === 0);
+          let woocommerceCategoriesMap = wooCategoriesFiltered.map(cat => { return { label: cat?.name, value: cat?.id } });
+          setWooCommerceCategories(woocommerceCategoriesMap);
+          openSnackbarSuccess('Categorías Woocommerce cargadas exitosamente');
+        }
+      } catch (error) {
+        console.log(error);
+        openSnackbarDanger('Ocurrió un error al obtener las categorías de woocommerce :(', 'Intenta mas tarde');
+      } finally {
+        setOpenBackdrop(false);
+      }
+    })();
+  }, []);
+
 
   const handleMapping = (internalCategoryValue, wooCommerceCategoryValue) => {
     console.log('internalCategoryValue', internalCategoryValue);
     console.log('wooCommerceCategoryValue', wooCommerceCategoryValue);
-    
+
     setMappings(prev => ({
       ...prev,
       [internalCategoryValue]: wooCommerceCategoryValue
@@ -83,24 +80,31 @@ function CategoryMapping() {
     setIsValid(allMapped);
   };
 
-  const saveMapping = () => {
-    if (isValid) {
-      console.log('Mapeo guardado:', mappings);
-      setSnackbarMessage('Mapeo guardado exitosamente');
-      setSnackbarSeverity('success');
-    } else {
-      setSnackbarMessage('Por favor, mapea todas las categorías antes de guardar');
-      setSnackbarSeverity('error');
-    }
-    setOpenSnackbar(true);
+  const transformMappings = () => {
+    return Object.entries(mappings).map(([internalCategoryId, woocommerceCategoryId]) => ({
+      internalCategoryId,
+      woocommerceCategoryId: String(woocommerceCategoryId),
+      companyId: url.companyId,
+      createdBy: url.createdByMock,
+    }));
   };
 
-  const handleCloseSnackbar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
+  const saveMapping = async () => {
+    if (isValid) {
+      try {
+        const transformedMappings = transformMappings();
+        console.log('Mapeo transformado para enviar al backend:', transformedMappings);
+        let response = await apiClient.create(url.CREATE_MAPPING_CATEGORIES, { mappings: transformedMappings });
+        console.log('Respuesta del backend:', response);
+        openSnackbarSuccess('Mapeo guardado exitosamente');
+      } catch (error) {
+        openSnackbarDanger('Error interno. Por favor, intenta mas tarde');
+      }
+    } else {
+      openSnackbarDanger('Por favor, mapea todas las categorías antes de guardar');
     }
-    setOpenSnackbar(false);
   };
+
 
   return (
     <div className="page-content">
@@ -152,11 +156,6 @@ function CategoryMapping() {
         >
           Guardar Mapeo
         </Button>
-        <Snackbar open={openSnackbar} autoHideDuration={6000} onClose={handleCloseSnackbar}>
-          <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
-            {snackbarMessage}
-          </Alert>
-        </Snackbar>
       </Container>
     </div>
   );

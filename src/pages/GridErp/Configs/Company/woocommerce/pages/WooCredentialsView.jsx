@@ -11,7 +11,7 @@ import * as url from '../helper/url_helper';
 
 const apiClient = new APIClient();
 
-export default function WooCommerceConfigView() {
+export default function WooCredentialsView() {
   const [open, setOpen] = useState(false);
   const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
   const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
@@ -88,7 +88,7 @@ export default function WooCommerceConfigView() {
   return (
 
     <div className="page-content">
-      <BreadCrumb title="Woocommerce" pageTitle="Mi empresa" />
+      <BreadCrumb title="General" pageTitle="Mi empresa" to={'/config-company'} />
       <div>
         <Backdrop
           sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
@@ -97,7 +97,7 @@ export default function WooCommerceConfigView() {
           <CircularProgress color="inherit" />
         </Backdrop>
 
-        <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Configuración de WooCommerce</h1>
+        <h1 style={{ textAlign: 'center', marginBottom: '2rem' }}>Configuración de credenciales</h1>
         <StyledForm onSubmit={handleSubmit}>
           <StyledField name="wooCommerceUrl">
             <StyledLabel>URL de WooCommerce</StyledLabel>

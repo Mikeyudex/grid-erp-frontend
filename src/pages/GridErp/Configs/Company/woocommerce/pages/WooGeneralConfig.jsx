@@ -50,36 +50,24 @@ const ConfigCard = ({ title, description, icon, to }) => (
   </Grid2>
 );
 
-export default function CompanyConfigView() {
+export default function WooGeneralConfig() {
   return (
     <div className="page-content">
-      <BreadCrumb title="General" pageTitle="Mi Empresa" to={'/'} />
+      <BreadCrumb title="General" pageTitle="Mi empresa" to={'/config-company'}/>
 
       <Container maxWidth="lg" sx={{ mt: 2 }}>
         <Grid2 container spacing={4}>
           <ConfigCard
-            title="WooCommerce"
-            description="Configura tu tienda WooCommerce"
+            title="Credenciales"
+            description="Configura el api de tu tienda WooCommerce"
             icon={<ShoppingCartIcon fontSize="large" />}
-            to="/woocommerce-config"
+            to="/woocommerce-config/credentials"
           />
-          <ConfigCard
-            title="Credenciales Mercado Libre"
-            description="Configura las credenciales de tu cuenta de Mercado Libre"
-            icon={<ShoppingBagIcon fontSize="large" />}
-            to="/config/mercadolibre"
-          />
-          <ConfigCard
-            title="Configuraciones de Stock"
-            description="Gestiona las configuraciones de stock de tus productos"
-            icon={<StorageIcon fontSize="large" />}
-            to="/config/stock"
-          />
-          <ConfigCard
-            title="Configuraciones de Bodegas"
-            description="Administra las configuraciones de tus bodegas"
-            icon={<WarehouseIcon fontSize="large" />}
-            to="/config/bodegas"
+            <ConfigCard
+            title="Mapeo de Categorías"
+            description="Mapea las categorías de tu WooCommerce a las de tu empresa"
+            icon={<CategoryRoundedIcon fontSize="large" />}
+            to="/woocommerce-config/category-mapping"
           />
         </Grid2>
       </Container>

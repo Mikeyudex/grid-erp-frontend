@@ -10,9 +10,10 @@ import LayoutCreateProduct from "../pages/GridErp/Products/components/LayoutCrea
 import { SuccessProductCreateView } from "../pages/GridErp/Products/components/SuccessProductCreateView";
 import { AdjustmentStockView } from "../pages/GridErp/Stock/pages/AdjustmentStockView";
 import { TransferStockView } from "../pages/GridErp/Stock/pages/TransferStockView";
-import WooCommerceConfigView from "../pages/GridErp/Configs/Company/woocommerce/pages/WooConfig";
+import WooCredentialsView from "../pages/GridErp/Configs/Company/woocommerce/pages/WooCredentialsView";
 import CompanyConfigView from "../pages/GridErp/Configs/Company/general/pages/CompanyConfigView";
-import ThemedCategoryMapping from "../pages/GridErp/Configs/Company/woocommerce/pages/CategoryMapping";
+import ThemedCategoryMapping from "../pages/GridErp/Configs/Company/woocommerce/pages/WooCategoryMapping";
+import WooGeneralConfig from "../pages/GridErp/Configs/Company/woocommerce/pages/WooGeneralConfig";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -43,8 +44,9 @@ const authProtectedRoutes = [
     },
     // Company config
     { path: "/config-company", component: <CompanyConfigView /> },
-    { path: "/woocommerce-config", component: <WooCommerceConfigView />, },
-    { path: "/woocommerce-config/category-mapping", component: <ThemedCategoryMapping />, }
+    { path: "/woocommerce-config", component: <WooGeneralConfig />, },
+    { path: "/woocommerce-config/category-mapping", component: <ThemedCategoryMapping />, },
+    { path: "/woocommerce-config/credentials", component: <WooCredentialsView />, }
 ]
 
 const publicRoutes = [
