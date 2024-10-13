@@ -9,6 +9,7 @@ export const GET_ATTR_PRODUCT= baseUrl + "/products/attributes/getByCompanyId";
 export const ADD_ATTR_PRODUCT= baseUrl + "/products/attributes/create";
 
 export const ADD_PRODUCT= baseUrl + "/products/create";
+export const SYNC_PRODUCT_WOOCOMMERCE= baseUrl + "/api-woocommerce/syncProduct";
 export const UPDATE_PRODUCT= baseUrl + "/products/update";
 export const DELETE_PRODUCT= baseUrl + "/products/delete";
 export const GET_PRODUCTS = baseUrl + "/products/getAllByCompany";

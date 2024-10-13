@@ -12,6 +12,7 @@ export class ProductHelper {
     // get attributes of product
     getAttrProduct = companyId => api.get(`${url.GET_ATTR_PRODUCT}/${companyId}`);
     addAttrProduct = payload => api.create(`${url.ADD_ATTR_PRODUCT}`, payload);
+    
 
     addProduct = payload => api.create(`${url.ADD_PRODUCT}`, payload);
     getProducts = (page, limit) => api.get(`${url.GET_PRODUCTS}?page=${page}&limit=${limit}`);
@@ -20,6 +21,9 @@ export class ProductHelper {
     getLastSku = companyId => api.get(`${url.GET_LAST_SKU}/${companyId}`);
     deleteImageProduct = fileName => api.delete(`${url.DELETE_FILE}/${fileName}`);
     getTypesProduct = () => api.get(url.GET_TYPES_PRODUCT);
+
+    //Sync product in marketplace
+    syncProductWooCommerce = payload => api.create(`${url.SYNC_PRODUCT_WOOCOMMERCE}/${companyId}`, payload);
 
     //Bodega
     getWarehouseByCompany = companyId => api.get(`${url.GET_WAREHOUSES_BYCOMPANY}?companyId=${companyId}`);

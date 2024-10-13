@@ -8,12 +8,18 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import { styled } from '@mui/material/styles';
 import { grey } from '@mui/material/colors';
+import Button from '@mui/material/Button';
 
 import iconWoo from '../../../../icon-woo.png';
 import iconMeli from '../../../../meli-logo.png';
 import { Checkbox } from '@mui/material';
 
-export function DrawerProductSync({ openDrawerSync, setOpenDrawerSync }) {
+export function DrawerProductSync({
+    openDrawerSync,
+    setOpenDrawerSync,
+    setMarketPlaceToSync,
+    handleSyncProduct
+}) {
 
     const [checked, setChecked] = React.useState([0]);
 
@@ -29,26 +35,29 @@ export function DrawerProductSync({ openDrawerSync, setOpenDrawerSync }) {
         setOpenDrawerSync(open);
     };
 
-    const handleToggleChecked = (value) => {
-        const currentIndex = checked.indexOf(value);
+    const handleToggleChecked = (index, value) => {
+        const currentIndex = checked.indexOf(index);
         const newChecked = [...checked];
         if (currentIndex === -1) {
-            newChecked.push(value);
+            newChecked.push(index);
+            setMarketPlaceToSync((prevMarketPlaceToSync) => [...prevMarketPlaceToSync, value]);
         } else {
             newChecked.splice(currentIndex, 1);
+            setMarketPlaceToSync((prevMarketPlaceToSync) => prevMarketPlaceToSync.filter((item) => item !== value));
         }
-
         setChecked(newChecked);
     }
 
     const options = [
         {
             title: <h5>Woocommerce</h5>,
-            icon: <img src={iconWoo} height={48} width={48}></img>
+            icon: <img src={iconWoo} height={48} width={48}></img>,
+            value: "woocommerce"
         },
         {
             title: <h5>Mercado libre</h5>,
-            icon: <img src={iconMeli} height={48} width={48}></img>
+            icon: <img src={iconMeli} height={48} width={48}></img>,
+            value: "meli"
         }
     ]
 
@@ -75,7 +84,7 @@ export function DrawerProductSync({ openDrawerSync, setOpenDrawerSync }) {
                 borderTopRightRadius: 8,
             }}
             role="presentation"
-           /*  onClick={toggleDrawer(false)} */
+            /*  onClick={toggleDrawer(false)} */
             onKeyDown={toggleDrawer(false)}
         >
             <Puller />
@@ -88,7 +97,7 @@ export function DrawerProductSync({ openDrawerSync, setOpenDrawerSync }) {
                     const labelId = `checkbox-list-label-${index}`;
                     return (
                         <ListItem key={index} disablePadding>
-                            <ListItemButton role={undefined} onClick={() => handleToggleChecked(index)} dense>
+                            <ListItemButton role={undefined} onClick={() => handleToggleChecked(index, item.value)} dense>
                                 <Checkbox
                                     edge="start"
                                     checked={checked.indexOf(index) !== -1}
@@ -105,6 +114,15 @@ export function DrawerProductSync({ openDrawerSync, setOpenDrawerSync }) {
                     )
                 })}
             </List>
+
+            <div className='px-3 py-3' style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <div className='px-2' >
+                    <Button variant="outlined" onClick={toggleDrawer(false)}>Cancelar</Button>
+                </div>
+                <div className='px-2'>
+                    <Button variant="contained" onClick={handleSyncProduct}>Sincronizar</Button>
+                </div>
+            </div>
 
         </Box>
     );

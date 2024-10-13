@@ -23,6 +23,7 @@ import SpeedDialProduct from "./SpeedDial";
 import { BackdropGlobal } from "./Backdrop";
 import '../pages/form-product.css';
 import { DrawerProductSync } from "./DrawerProductSync";
+import { set } from "lodash";
 
 // Register the plugins
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
@@ -71,12 +72,11 @@ export default function LayoutCreateProduct(props) {
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openBackdrop, setOpenBackdrop] = useState(false);
     const [openDrawerSync, setOpenDrawerSync] = useState(false);
-
-    
+    const [marketPlaceToSync, setMarketPlaceToSync] = useState([]);
+    const [titleBackdrop, setTitleBackdrop] = useState("");
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        
         // Si el nombre del campo coincide con un campo fijo (name, sku, price)
         if (Object.keys(formData).includes(name)) {
             setFormData((prevFormData) => ({
@@ -143,33 +143,80 @@ export default function LayoutCreateProduct(props) {
         }));
     }
 
-    const handleSubmit = async () => {
+    const handleProductOperation = async (sync = false) => {
         try {
+            // Validación del formulario
             if (!helper.validateForm(setErrors, formData)) {
                 return;
             }
+    
             setOpenBackdrop(true);
-            let payload = formData;
-            let payloadModiffied = { ...payload, sku: lastSku };
-            payloadModiffied.quantity = Number(formData.quantity);
-            payloadModiffied.costPrice = Number(formData.costPrice);
-            payloadModiffied.salePrice = Number(formData.salePrice);
-
-            let additionalConfigsModiffied = { ...additionalConfigs, images: fileData.map(({ url }) => url) }
-            /* console.log({ ...payloadModiffied, additionalConfigs: additionalConfigsModiffied });
-            return; */
-            await helper.addProduct({ ...payloadModiffied, additionalConfigs: additionalConfigsModiffied });
+            setTitleBackdrop("Creando producto...");
+            
+            // Preparar el payload y agregar el producto
+            let payload = preparePayload();
+            await helper.addProduct(payload);
             openSnackbarSuccess('Producto creado!');
             handleClearForm();
-            return navigate('/success-product');
+    
+            // Sincronización opcional
+            if (sync) {
+                setTitleBackdrop("Sincronizando producto en woocommerce...");
+                switch (marketPlaceToSync) {
+                    case "woocommerce":
+                        await handleSyncProductWooCommerce(preparePayload());
+                        break;
+                    /* case "mercadolibre":
+                        await helper.syncProductMercadoLibre(preparePayload());
+                        break; */
+                    default:
+                        break;
+                }
+            } else {
+                // Navegar en caso de no sincronizar
+                return navigate('/success-product');
+            }
+    
         } catch (error) {
             console.log(error);
-            openSnackbarDanger('Ocurrió un error al crear el producto');
+            openSnackbarDanger('Ocurrió un error al crear el producto.');
             setHasSuccessProductCreate(false);
         } finally {
             handleCloseBackdrop();
         }
     };
+
+    const handleSubmit = async () => {
+        await handleProductOperation(false);
+    };
+
+    const handleSyncProduct = async () => {
+        await handleProductOperation(true);
+    };
+
+    const handleSyncProductWooCommerce = async (payload) => {
+        try {
+            await helper.syncProductWooCommerce(payload);
+            openSnackbarSuccess('Solicitud enviada, se recibirá una notificación cuando se complete el proceso.');
+        } catch (error) {
+            console.log(error);
+            openSnackbarDanger('Ocurrió un error al sincronizar el producto en woocommerce.');
+        } finally {
+            setOpenBackdrop(false);
+            setTitleBackdrop("");
+        }
+    };
+
+    const preparePayload = () => {
+        let payload = formData;
+        let payloadModiffied = { ...payload, sku: lastSku };
+        payloadModiffied.quantity = Number(formData.quantity);
+        payloadModiffied.costPrice = Number(formData.costPrice);
+        payloadModiffied.salePrice = Number(formData.salePrice);
+
+        let additionalConfigsModiffied = { ...additionalConfigs, images: fileData.map(({ url }) => url) }
+        return { ...payloadModiffied, additionalConfigs: additionalConfigsModiffied };
+    }
 
     const handleSetLastSku = async () => {
         let { lastSku } = await helper.getLastSku(companyId);
@@ -229,10 +276,20 @@ export default function LayoutCreateProduct(props) {
     return (
         <Fragment>
             <SpeedDialProduct actions={actions}> </SpeedDialProduct>
-            <BackdropGlobal openBackdrop={openBackdrop} handleClose={handleCloseBackdrop}></BackdropGlobal>
+            <BackdropGlobal
+                openBackdrop={openBackdrop}
+                handleClose={handleCloseBackdrop}
+                title={titleBackdrop}
+            />
 
             <div className="page-content">
-                <DrawerProductSync openDrawerSync={openDrawerSync} setOpenDrawerSync={setOpenDrawerSync}/>
+                <DrawerProductSync
+                    openDrawerSync={openDrawerSync}
+                    setOpenDrawerSync={setOpenDrawerSync}
+                    setMarketPlaceToSync={setMarketPlaceToSync}
+                    handleSyncProduct={handleSyncProduct}
+                />
+
                 <Container fluid>
                     <BreadCrumb title="Crear Producto" pageTitle="Productos" />
 
@@ -281,36 +338,36 @@ export default function LayoutCreateProduct(props) {
                                         }
                                         item3={
                                             <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                            <label className='form-label' htmlFor="id_type_product">*Tipo de producto:</label>
-                                            <div>
-                                                <Input
-                                                    style={{
-                                                        border: 'none !important',
-                                                        borderBottom: '2px solid #ccc !important',
-                                                        backgroundColor: 'transparent',
-                                                        color: '#132649',
-                                                        '&:focus': { border: 'none', boxShadow: 'none' },
-                                                        fontSize: '1em',
-                                                    }}
-                                                    bsSize="md"
-                                                    type="select"
-                                                    id="id_type_product"
-                                                    name="id_type_product"
-                                                    value={formData.id_type_product}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                    className="form-control"
-                                                >
-                                                    <option value="0">Selecciona una opción</option>
-                                                    {
-                                                        typesProduct.map((typeProduct) => {
-                                                            return (<option key={typeProduct?._id} label={typeProduct?.name} value={typeProduct?._id}></option>)
-                                                        })
-                                                    }
-                                                </Input>
+                                                <label className='form-label' htmlFor="id_type_product">*Tipo de producto:</label>
+                                                <div>
+                                                    <Input
+                                                        style={{
+                                                            border: 'none !important',
+                                                            borderBottom: '2px solid #ccc !important',
+                                                            backgroundColor: 'transparent',
+                                                            color: '#132649',
+                                                            '&:focus': { border: 'none', boxShadow: 'none' },
+                                                            fontSize: '1em',
+                                                        }}
+                                                        bsSize="md"
+                                                        type="select"
+                                                        id="id_type_product"
+                                                        name="id_type_product"
+                                                        value={formData.id_type_product}
+                                                        onChange={handleInputChange}
+                                                        required
+                                                        className="form-control"
+                                                    >
+                                                        <option value="0">Selecciona una opción</option>
+                                                        {
+                                                            typesProduct.map((typeProduct) => {
+                                                                return (<option key={typeProduct?._id} label={typeProduct?.name} value={typeProduct?._id}></option>)
+                                                            })
+                                                        }
+                                                    </Input>
+                                                </div>
+                                                {errors.id_type_product && (<span className="form-product-input-error">{errors.id_type_product}</span>)}
                                             </div>
-                                            {errors.id_type_product && (<span className="form-product-input-error">{errors.id_type_product}</span>)}
-                                        </div>
                                         }
                                     />
                                 </Col>
@@ -721,9 +778,9 @@ export default function LayoutCreateProduct(props) {
                                         }
 
                                     />
-                                </Col>
+                                </Col >
 
-                            </Row>
+                            </Row >
 
                             <Row>
                                 <Col md={12} style={{}}>
@@ -836,15 +893,15 @@ export default function LayoutCreateProduct(props) {
 
                             </Row>
 
-                        </Col>
+                        </Col >
 
-                    </Row>
+                    </Row >
 
-                </Container>
+                </Container >
 
-            </div>
+            </div >
 
-        </Fragment>
+        </Fragment >
     )
 
 }

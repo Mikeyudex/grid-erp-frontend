@@ -3,7 +3,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 export function BackdropGlobal({
     openBackdrop,
-    handleClose
+    handleClose,
+    title
 }) {
 
     return (
@@ -13,6 +14,7 @@ export function BackdropGlobal({
             onClick={handleClose}
         >
             <CircularProgress color="inherit" />
+            <h4>{title ?? "Cargando..."}</h4>
         </Backdrop>
     )
 
