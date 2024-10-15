@@ -23,6 +23,7 @@ import SpeedDialProduct from "./SpeedDial";
 import { BackdropGlobal } from "./Backdrop";
 import '../pages/form-product.css';
 import { DrawerProductSync } from "./DrawerProductSync";
+import { GenericDialog } from "../partials/dialogs/GenericDialog";
 
 // Register the plugins
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
@@ -75,6 +76,7 @@ export default function LayoutCreateProduct(props) {
     const [marketPlaceToSync, setMarketPlaceToSync] = useState(['woocommerce']);
     const [titleBackdrop, setTitleBackdrop] = useState("");
     const [savedProduct, setSavedProduct] = useState(false);
+    const [openAlertSuccessSync, setOpenAlertSuccessSync] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -204,6 +206,12 @@ export default function LayoutCreateProduct(props) {
         await handleProductOperation(true);
     };
 
+    const handleClickDialogSyncSuccess = () => {
+        setOpenAlertSuccessSync(false);
+        openSnackbarSuccess('Solicitud enviada, se recibirá una notificación cuando se complete el proceso.');
+        return navigate('/success-product');
+    }
+
     const handleSyncProductWooCommerce = async (payload) => {
         try {
             await helper.syncProductWooCommerce(payload, companyId);
@@ -211,8 +219,7 @@ export default function LayoutCreateProduct(props) {
             setAttributeConfigs([]);
             setAdditionalConfigs({ hasBarcode: false });
             setFileData([]);
-            openSnackbarSuccess('Solicitud enviada, se recibirá una notificación cuando se complete el proceso.');
-            return navigate('/success-product');
+            setOpenAlertSuccessSync(true);
         } catch (error) {
             console.log(error);
             openSnackbarDanger('Ocurrió un error al sincronizar el producto en woocommerce.');
@@ -292,6 +299,16 @@ export default function LayoutCreateProduct(props) {
 
     return (
         <Fragment>
+            <GenericDialog
+                open={openAlertSuccessSync}
+                handleClose={() => setOpenAlertSuccessSync(false)}
+                title="Sincronización añadida a la cola"
+                body="El producto ha sido añadido a la cola de sincronización, te notificaremos cuando sea concluida la operación."
+                icon="Aceptar"
+                isCancelable={false}
+                handleClick={handleClickDialogSyncSuccess}
+            />
+
             <SpeedDialProduct actions={actions}> </SpeedDialProduct>
             <BackdropGlobal
                 openBackdrop={openBackdrop}
