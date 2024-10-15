@@ -23,7 +23,7 @@ export class ProductHelper {
     getTypesProduct = () => api.get(url.GET_TYPES_PRODUCT);
 
     //Sync product in marketplace
-    syncProductWooCommerce = payload => api.create(`${url.SYNC_PRODUCT_WOOCOMMERCE}/${companyId}`, payload);
+    syncProductWooCommerce = (payload, companyId) => api.create(`${url.SYNC_PRODUCT_WOOCOMMERCE}/${companyId}`, payload);
 
     //Bodega
     getWarehouseByCompany = companyId => api.get(`${url.GET_WAREHOUSES_BYCOMPANY}?companyId=${companyId}`);
@@ -97,7 +97,7 @@ export class ProductHelper {
 }
 
 export const optionsSnackbarDanger = {
-    position: 'bottom-left',
+    position: 'top-right',
     style: {
         backgroundColor: '#ffece3',
         border: '2px solid #de6c37',
@@ -113,7 +113,7 @@ export const optionsSnackbarDanger = {
 };
 
 export const optionsSnackbarSuccess = {
-    position: 'bottom-left',
+    position: 'top-right',
     style: {
         backgroundColor: '#dbf8f4',
         border: '2px solid #0eb6b6',

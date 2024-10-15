@@ -14,7 +14,7 @@ export function BackdropGlobal({
             onClick={handleClose}
         >
             <CircularProgress color="inherit" />
-            <h4>{title ?? "Cargando..."}</h4>
+            <h4 style={{ textAlign: 'center', color: '#fff', padding: '0.5em', marginTop: '0.5em' }}>{title ?? "Cargando..."}</h4>
         </Backdrop>
     )
 

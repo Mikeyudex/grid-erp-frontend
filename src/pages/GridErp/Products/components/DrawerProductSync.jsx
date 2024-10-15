@@ -74,7 +74,6 @@ export function DrawerProductSync({
         }),
     }));
 
-
     const listItems = () => (
         <Box
             sx={{

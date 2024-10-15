@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
-import { Col, Container, FormGroup, Input, Label, Row } from "reactstrap";
+import { Col, Container, Input, Row } from "reactstrap";
 import BreadCrumb from "./BreadCrumb";
 import * as url from "../helper/url_helper";
 import { FilePond, registerPlugin } from 'react-filepond';
@@ -23,7 +23,6 @@ import SpeedDialProduct from "./SpeedDial";
 import { BackdropGlobal } from "./Backdrop";
 import '../pages/form-product.css';
 import { DrawerProductSync } from "./DrawerProductSync";
-import { set } from "lodash";
 
 // Register the plugins
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
@@ -47,6 +46,7 @@ export default function LayoutCreateProduct(props) {
     const [typesProduct, setTypesProduct] = useState([]);
     const [lastSku, setLastSku] = useState("0");
     const [formData, setFormData] = useState({
+        companyId: companyId,
         externalId: '',
         warehouseId: '',
         providerId: '',
@@ -72,8 +72,9 @@ export default function LayoutCreateProduct(props) {
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openBackdrop, setOpenBackdrop] = useState(false);
     const [openDrawerSync, setOpenDrawerSync] = useState(false);
-    const [marketPlaceToSync, setMarketPlaceToSync] = useState([]);
+    const [marketPlaceToSync, setMarketPlaceToSync] = useState(['woocommerce']);
     const [titleBackdrop, setTitleBackdrop] = useState("");
+    const [savedProduct, setSavedProduct] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -149,40 +150,49 @@ export default function LayoutCreateProduct(props) {
             if (!helper.validateForm(setErrors, formData)) {
                 return;
             }
-    
             setOpenBackdrop(true);
-            setTitleBackdrop("Creando producto...");
-            
-            // Preparar el payload y agregar el producto
-            let payload = preparePayload();
-            await helper.addProduct(payload);
-            openSnackbarSuccess('Producto creado!');
-            handleClearForm();
-    
+
+            if (!savedProduct) {
+                setTitleBackdrop("Creando producto...");
+                let payload = preparePayload();
+                await helper.addProduct(payload);
+                openSnackbarSuccess('Producto creado!');
+                setSavedProduct(true);
+            }
+
             // Sincronización opcional
             if (sync) {
-                setTitleBackdrop("Sincronizando producto en woocommerce...");
-                switch (marketPlaceToSync) {
-                    case "woocommerce":
-                        await handleSyncProductWooCommerce(preparePayload());
-                        break;
-                    /* case "mercadolibre":
-                        await helper.syncProductMercadoLibre(preparePayload());
-                        break; */
-                    default:
-                        break;
+                try {
+                    setTitleBackdrop("Sincronizando producto en woocommerce...");
+                    if (marketPlaceToSync.includes("woocommerce")) {
+                        return await handleSyncProductWooCommerce(preparePayload());
+                    }
+                    if (marketPlaceToSync.includes("meli")) {
+                        return await helper.syncProductMercadoLibre(preparePayload());
+                    }
+                    setTitleBackdrop("No hay un marketplace seleccionado");
+                    setOpenBackdrop(false);
+                    return;
+                } catch (error) {
+                    console.log('Error al sincronizar producto:', error);
+                    setTitleBackdrop("Ocurrió un error al sincronizar el producto");
+                    setOpenBackdrop(false);
+                    return;
                 }
             } else {
                 // Navegar en caso de no sincronizar
+                handleClearForm();
+                setAttributeConfigs([]);
+                setAdditionalConfigs({ hasBarcode: false });
+                setFileData([]);
                 return navigate('/success-product');
             }
-    
+
         } catch (error) {
             console.log(error);
+            handleCloseBackdrop();
             openSnackbarDanger('Ocurrió un error al crear el producto.');
             setHasSuccessProductCreate(false);
-        } finally {
-            handleCloseBackdrop();
         }
     };
 
@@ -196,14 +206,20 @@ export default function LayoutCreateProduct(props) {
 
     const handleSyncProductWooCommerce = async (payload) => {
         try {
-            await helper.syncProductWooCommerce(payload);
+            await helper.syncProductWooCommerce(payload, companyId);
+            handleClearForm();
+            setAttributeConfigs([]);
+            setAdditionalConfigs({ hasBarcode: false });
+            setFileData([]);
             openSnackbarSuccess('Solicitud enviada, se recibirá una notificación cuando se complete el proceso.');
+            return navigate('/success-product');
         } catch (error) {
             console.log(error);
             openSnackbarDanger('Ocurrió un error al sincronizar el producto en woocommerce.');
         } finally {
             setOpenBackdrop(false);
             setTitleBackdrop("");
+            setOpenDrawerSync(false);
         }
     };
 
@@ -213,6 +229,7 @@ export default function LayoutCreateProduct(props) {
         payloadModiffied.quantity = Number(formData.quantity);
         payloadModiffied.costPrice = Number(formData.costPrice);
         payloadModiffied.salePrice = Number(formData.salePrice);
+        payloadModiffied.companyId = companyId;
 
         let additionalConfigsModiffied = { ...additionalConfigs, images: fileData.map(({ url }) => url) }
         return { ...payloadModiffied, additionalConfigs: additionalConfigsModiffied };
