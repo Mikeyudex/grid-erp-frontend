@@ -24,6 +24,7 @@ export class ProductHelper {
 
     //Sync product in marketplace
     syncProductWooCommerce = (payload, companyId) => api.create(`${url.SYNC_PRODUCT_WOOCOMMERCE}/${companyId}`, payload);
+    syncProductWooCommerceQueue = (payload, companyId) => api.create(`${url.SYNC_PRODUCT_WOOCOMMERCE_QUEUE}/${companyId}`, payload);
 
     //Bodega
     getWarehouseByCompany = companyId => api.get(`${url.GET_WAREHOUSES_BYCOMPANY}?companyId=${companyId}`);
@@ -105,6 +106,7 @@ export const optionsSnackbarDanger = {
         fontFamily: 'Menlo, monospace',
         fontSize: '1.2em',
         textAlign: 'center',
+        marginTop: '3.5em',
     },
     closeStyle: {
         color: '#de6c37',
@@ -121,6 +123,7 @@ export const optionsSnackbarSuccess = {
         fontFamily: 'Menlo, monospace',
         fontSize: '1.2em',
         textAlign: 'center',
+        marginTop: '3.5em',
     },
     closeStyle: {
         color: '#0eb6b6',

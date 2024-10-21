@@ -208,13 +208,13 @@ export default function LayoutCreateProduct(props) {
 
     const handleClickDialogSyncSuccess = () => {
         setOpenAlertSuccessSync(false);
-        openSnackbarSuccess('Solicitud enviada, se recibirá una notificación cuando se complete el proceso.');
+        openSnackbarSuccess('Proceso exitoso! recibirás una notificación cuando se haya sincronizado el producto.');
         return navigate('/success-product');
     }
 
     const handleSyncProductWooCommerce = async (payload) => {
         try {
-            await helper.syncProductWooCommerce(payload, companyId);
+            await helper.syncProductWooCommerceQueue(payload, companyId);
             handleClearForm();
             setAttributeConfigs([]);
             setAdditionalConfigs({ hasBarcode: false });
