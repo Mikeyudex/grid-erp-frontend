@@ -77,6 +77,7 @@ export default function LayoutCreateProduct(props) {
     const [titleBackdrop, setTitleBackdrop] = useState("");
     const [savedProduct, setSavedProduct] = useState(false);
     const [openAlertSuccessSync, setOpenAlertSuccessSync] = useState(false);
+    const [idProduct, setIdProduct] = useState("");
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -157,7 +158,9 @@ export default function LayoutCreateProduct(props) {
             if (!savedProduct) {
                 setTitleBackdrop("Creando producto...");
                 let payload = preparePayload();
-                await helper.addProduct(payload);
+                let response = await helper.addProduct(payload);
+                let idProduct = response?._id;
+                setIdProduct(idProduct);
                 openSnackbarSuccess('Producto creado!');
                 setSavedProduct(true);
             }
@@ -214,7 +217,7 @@ export default function LayoutCreateProduct(props) {
 
     const handleSyncProductWooCommerce = async (payload) => {
         try {
-            await helper.syncProductWooCommerceQueue(payload, companyId);
+            await helper.syncProductWooCommerceQueue(payload, companyId, idProduct);
             handleClearForm();
             setAttributeConfigs([]);
             setAdditionalConfigs({ hasBarcode: false });

@@ -24,7 +24,7 @@ export class ProductHelper {
 
     //Sync product in marketplace
     syncProductWooCommerce = (payload, companyId) => api.create(`${url.SYNC_PRODUCT_WOOCOMMERCE}/${companyId}`, payload);
-    syncProductWooCommerceQueue = (payload, companyId) => api.create(`${url.SYNC_PRODUCT_WOOCOMMERCE_QUEUE}/${companyId}`, payload);
+    syncProductWooCommerceQueue = (payload, companyId, idProduct) => api.create(`${url.SYNC_PRODUCT_WOOCOMMERCE_QUEUE}/${companyId}/${idProduct}`, payload);
 
     //Bodega
     getWarehouseByCompany = companyId => api.get(`${url.GET_WAREHOUSES_BYCOMPANY}?companyId=${companyId}`);
