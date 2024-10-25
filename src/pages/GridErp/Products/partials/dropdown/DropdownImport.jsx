@@ -4,8 +4,15 @@ import {
     UploadIcon
 } from '@radix-ui/react-icons';
 import './dropdownExports.css';
+import { ImportProductContext } from '../../context/imports/importProductContext';
 
 const DropdownMenuImport = ({ table }) => {
+
+    const { updateImportData, importData } = React.useContext(ImportProductContext);
+
+    const handleOpenDrawer = () => {
+        updateImportData({ ...importData, openDrawer: true });
+    };
 
     return (
         <Fragment>
@@ -24,8 +31,8 @@ const DropdownMenuImport = ({ table }) => {
 
                 <DropdownMenu.Portal>
                     <DropdownMenu.Content className="DropdownMenuContent" sideOffset={5}>
-                        <DropdownMenu.Item className="DropdownMenuItem">
-                            Importar csv<div className="RightSlot">⌘+T</div>
+                        <DropdownMenu.Item className="DropdownMenuItem" onClick={handleOpenDrawer}>
+                            Importar xlsx<div className="RightSlot">⌘+T</div>
                         </DropdownMenu.Item>
 
                         <DropdownMenu.Item className="DropdownMenuItem">

@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import DashboardEcommerce from "../pages/DashboardEcommerce";
+import { ImportProductState } from '../pages/GridErp/Products/context/imports/importProductState';
 
 //login
 import Login from "../pages/Authentication/Login";
@@ -22,13 +23,14 @@ const authProtectedRoutes = [
         exact: true,
         component: <Navigate to="/dashboard" />,
     },
+    // Products
     {
         path: "/products-create",
         component: <LayoutCreateProduct />,
     },
     {
         path: "/products-list",
-        component: <ListProducts />,
+        component: <ImportProductState> <ListProducts /> </ImportProductState>,
     },
     {
         path: "/success-product",
@@ -42,6 +44,7 @@ const authProtectedRoutes = [
         path: "/transfer-stock-view",
         component: <TransferStockView />,
     },
+
     // Company config
     { path: "/config-company", component: <CompanyConfigView /> },
     { path: "/woocommerce-config", component: <WooGeneralConfig />, },

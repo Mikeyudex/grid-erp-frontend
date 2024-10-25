@@ -1,75 +1,55 @@
 import React, { useEffect, useState, useMemo } from "react";
-
 import {
   Container,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownItem,
-  DropdownMenu,
-  Nav,
-  NavItem,
-  NavLink,
-  UncontrolledCollapse,
   Row,
-  Card,
-  CardHeader,
-  Col,
-  Input,
 } from "reactstrap";
-
+import Tooltip from '@mui/material/Tooltip';
 
 // RangeSlider
 import "nouislider/distribute/nouislider.css";
-
-import DeleteModal from "../../../../Components/Common/DeleteModal";
-
 import BreadCrumb from "../components/BreadCrumb";
-
-
-//Import actions
-import { getProducts as onGetProducts, deleteProducts as onDeleteProducts } from "../../../../slices/thunks";
-
 //Import helpers
-import { numberFormatPrice, optionsSnackbarDanger, optionsSnackbarSuccess, ProductHelper } from '../helper/product_helper';
+import { handleValidDate, handleValidTime, numberFormatPrice, optionsSnackbarDanger, optionsSnackbarSuccess, ProductHelper } from '../helper/product_helper';
 
-//redux
-import { useSelector, useDispatch } from "react-redux";
-import { toast, ToastContainer } from "react-toastify";
-import { createSelector } from "reselect";
+import { ToastContainer } from "react-toastify";
 import { Link } from "react-router-dom";
 import { FormatDate } from "../components/FormatDate";
 import { TableContainerListProducts } from "../partials/TableContainerListProducts";
+import WoocommerceLogo from '../../../../assets/svg/woocommerce-logo-svgrepo-com.svg';
+import { DrawerProductsImport } from "../components/DrawerImportProduct";
 
 const helper = new ProductHelper();
 const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
+const marketplaces = { woocommerce: 'woocommerce', meli: 'meli' };
 
 export const ListProducts = (props) => {
   document.title = "Productos | Innventa-G";
-  const dispatch = useDispatch();
-
-  const selectecomproductData = createSelector(
-    (state) => state.Ecommerce,
-    (products) => products.products
-  );
-  // Inside your component
-  const products = useSelector(selectecomproductData);
 
   const [productList, setProductList] = useState([]);
-  const [activeTab, setActiveTab] = useState("1");
-  const [product, setProduct] = useState(null);
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(50);
   const [isLoadingTable, setIsLoadingTable] = useState(true);
-  const [showProgressBarTable, setShowProgressBarTable] = useState(true);
+  const [showProgressBarTable, setShowProgressBarTable] = useState(false);
   const [dataSelectCategories, setDataSelectCategories] = useState([]);
   const [dataSelectSubCategories, setDataSelectSubCategories] = useState([]);
   const [dataSelectWarehouses, setDataSelectWarehouses] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20, //customize the default page size
+  });
+  const [rowCount, setRowCount] = useState(0);
+  const [openDrawerImport, setOpenDrawerImport] = useState(false);
 
 
   useEffect(() => {
-    helper.getProducts(page, limit)
-      .then(async (products) => {
+    if (!productList.length) {
+      setIsLoadingTable(true);
+    } else {
+      setShowProgressBarTable(true);
+    }
+    helper.getProducts(pagination.pageIndex + 1, pagination.pageSize)
+      .then(async (response) => {
+        let products = response?.data;
+        let totalRowCount = response?.totalRowCount;
         if (products && Array.isArray(products) && products.length > 0) {
           let parseProducts = products.map((p) => {
             return {
@@ -82,24 +62,21 @@ export const ListProducts = (props) => {
               warehouse: p?.warehouseName,
               salePrice: p?.salePrice,
               costPrice: p?.costPrice,
-              createdAt: p?.createdAt
+              createdAt: p?.createdAt,
+              syncInfo: p?.syncInfo
             }
           });
           setProductList(parseProducts);
+          setRowCount(totalRowCount);
         }
-        setIsLoadingTable(false);
-        setShowProgressBarTable(false);
         return;
       })
       .catch(e => console.log(e))
-  }, []);
-
-  /* useEffect(() => {
-    helper.getCategoriesFullByCompanySelect(companyId)
-      .then(async (response) => {
-        setDataSelectCategories(response?.data ?? []);
-      })
-  }, []); */
+      .finally(() => {
+        setIsLoadingTable(false);
+        setShowProgressBarTable(false);
+      });
+  }, [pagination.pageIndex, pagination.pageSize,]);
 
   useEffect(() => {
     helper.getWarehouseByCompanySelect(companyId)
@@ -108,55 +85,9 @@ export const ListProducts = (props) => {
       })
   }, []);
 
-
-  const toggleTab = (tab, type) => {
-    if (activeTab !== tab) {
-      setActiveTab(tab);
-      let filteredProducts = products;
-      if (type !== "all") {
-        filteredProducts = products.filter((product) => product.status === type);
-      }
-      setProductList(filteredProducts);
-    }
-  };
-
-  //delete order
-  const [deleteModal, setDeleteModal] = useState(false);
-  const [deleteModalMulti, setDeleteModalMulti] = useState(false);
-
-
-
-  const handleDeleteProduct = () => {
-    if (product) {
-      dispatch(onDeleteProducts(product._id));
-      setDeleteModal(false);
-    }
-  };
-
-  // Displat Delete Button
-  const [dele, setDele] = useState(0);
-  const displayDelete = () => {
-    const ele = document.querySelectorAll(".productCheckBox:checked");
-    const del = document.getElementById("selection-element");
-    setDele(ele.length);
-    if (ele.length === 0) {
-      del.style.display = 'none';
-    } else {
-      del.style.display = 'block';
-    }
-  };
-
-  // Delete Multiple
-  const deleteMultiple = () => {
-    const ele = document.querySelectorAll(".productCheckBox:checked");
-    const del = document.getElementById("selection-element");
-    ele.forEach((element) => {
-      dispatch(onDeleteProducts(element.value));
-      setTimeout(() => { toast.clearWaitingQueue(); }, 3000);
-      del.style.display = 'none';
-    });
-  };
-
+  useEffect(() => {
+    //do something when the pagination state changes
+  }, [pagination.pageIndex, pagination.pageSize]);
 
   const columns = useMemo(() =>
     [
@@ -186,7 +117,27 @@ export const ListProducts = (props) => {
                   >
                     {" "}
                     {cell.getValue()}
+                    {" "}
                   </Link>
+                  {
+                    cell.row.original.syncInfo && cell.row.original.syncInfo[marketplaces.woocommerce]?.synced &&
+                    (
+                      <Tooltip
+                        sx={{ backgroundColor: '#132649 !important', fontFamily: 'Outfit', }}
+                        disableFocusListener
+                        disableTouchListener
+                        arrow
+                        title={`Sincronizado el ${handleValidDate(cell.row.original.syncInfo[marketplaces.woocommerce]?.lastSyncedAt)} ${handleValidTime(cell.row.original.syncInfo[marketplaces.woocommerce]?.lastSyncedAt)}`}>
+                        <img
+                          src={WoocommerceLogo}
+                          width={25}
+                          height={25}
+                          alt="Woocommerce"
+                          style={{ cursor: 'pointer' }}
+                        />
+                      </Tooltip>
+                    )
+                  }
                 </h5>
               </div>
             </div>
@@ -319,21 +270,15 @@ export const ListProducts = (props) => {
   return (
     <div className="page-content">
       <ToastContainer closeButton={false} limit={1} />
-      <DeleteModal
-        show={deleteModal}
-        onDeleteClick={handleDeleteProduct}
-        onCloseClick={() => setDeleteModal(false)}
-      />
-      <DeleteModal
-        show={deleteModalMulti}
-        onDeleteClick={() => {
-          deleteMultiple();
-          setDeleteModalMulti(false);
-        }}
-        onCloseClick={() => setDeleteModalMulti(false)}
+      <DrawerProductsImport
+        openDrawer={openDrawerImport}
+        setOpenDrawer={setOpenDrawerImport}
+      /* handleAction={handleAction} */
       />
       <Container fluid>
         <BreadCrumb title="Ver productos" pageTitle="Productos" />
+
+
 
         <Row>
           <div className="card-body pt-2 mt-1">
@@ -345,6 +290,11 @@ export const ListProducts = (props) => {
               setProductList={setProductList}
               setValidationErrors={setValidationErrors}
               validationErrors={validationErrors}
+              pagination={pagination}
+              setPagination={setPagination}
+              rowCount={rowCount}
+              setOpenDrawerImport={setOpenDrawerImport}
+              openDrawerImport={openDrawerImport}
             />
           </div>
         </Row>

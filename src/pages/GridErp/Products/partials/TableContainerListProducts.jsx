@@ -10,7 +10,6 @@ import { ListProductHelper } from '../helper/list_products_helper';
 import { TopToolbarActions } from './TopToolbarActions';
 import './table.css'
 import { IconsTopToolbarAction } from './IconsTopToolbarAction';
-import { Col, Row } from 'reactstrap';
 
 const listProductsHelper = new ListProductHelper();
 
@@ -20,7 +19,12 @@ export function TableContainerListProducts({
     showProgressBarTable,
     productList,
     setProductList,
-    setValidationErrors
+    setValidationErrors,
+    pagination,
+    setPagination,
+    rowCount,
+    setOpenDrawerImport,
+    openDrawerImport
 }) {
     const [rowSelection, setRowSelection] = useState({});
     const [isUpdatingUser, setIsUpdatingUser] = useState(false);
@@ -120,17 +124,21 @@ export function TableContainerListProducts({
         positionActionsColumn: 'last',
         getRowId: (row) => row.id,
         onRowSelectionChange: setRowSelection,
+        manualPagination: true,
+        onPaginationChange: setPagination,
+        rowCount: rowCount,
         state: {
             rowSelection,
             isLoading: isLoadingTable,
             showProgressBars: showProgressBarTable,
             isSaving: isUpdatingUser || isDeletingUser,
             columnPinning: { right: ['mrt-row-actions'] },
+            pagination: pagination
         },
         enableColumnPinning: true,
         enableColumnOrdering: true,
         enableGlobalFilter: true,
-        muiTableContainerProps: { sx: { maxHeight: '400px' } },
+        muiTableContainerProps: { sx: { maxHeight: '59vh' } },
         muiTableBodyCellProps: {
             sx: (theme) => ({
                 backgroundColor:
@@ -157,7 +165,8 @@ export function TableContainerListProducts({
         renderTopToolbarCustomActions: ({ table }) => (
             <TopToolbarActions table={table}></TopToolbarActions>
         ),
-        icons: IconsTopToolbarAction
+        icons: IconsTopToolbarAction,
+
     });
 
     useEffect(() => {
