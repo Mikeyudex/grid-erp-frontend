@@ -12,6 +12,7 @@ export class ProductHelper {
     // get attributes of product
     getAttrProduct = companyId => api.get(`${url.GET_ATTR_PRODUCT}/${companyId}`);
     addAttrProduct = payload => api.create(`${url.ADD_ATTR_PRODUCT}`, payload);
+    importProducts = companyId => api.create(`${url.IMPORT_PRODUCTS}/${companyId}`);
     
 
     addProduct = payload => api.create(`${url.ADD_PRODUCT}`, payload);

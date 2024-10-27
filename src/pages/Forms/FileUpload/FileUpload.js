@@ -91,7 +91,7 @@ const FileUpload = () => {
                                   height="80"
                                   className="avatar-sm rounded bg-light"
                                   alt={f.name}
-                                  src={f.preview}
+                                  src={'https://themesbrand.com/velzon/html/interactive/assets/images/new-document.png'}
                                 />
                               </Col>
                               <Col>

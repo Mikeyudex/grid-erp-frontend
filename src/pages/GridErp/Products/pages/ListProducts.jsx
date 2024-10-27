@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useContext } from "react";
 import {
   Container,
   Row,
@@ -17,6 +17,8 @@ import { FormatDate } from "../components/FormatDate";
 import { TableContainerListProducts } from "../partials/TableContainerListProducts";
 import WoocommerceLogo from '../../../../assets/svg/woocommerce-logo-svgrepo-com.svg';
 import { DrawerProductsImport } from "../components/DrawerImportProduct";
+import { BackdropGlobal } from "../components/Backdrop";
+import { ImportProductContext } from "../context/imports/importProductContext";
 
 const helper = new ProductHelper();
 const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
@@ -24,7 +26,7 @@ const marketplaces = { woocommerce: 'woocommerce', meli: 'meli' };
 
 export const ListProducts = (props) => {
   document.title = "Productos | Innventa-G";
-
+  const { updateImportData, importData } = useContext(ImportProductContext);
   const [productList, setProductList] = useState([]);
   const [isLoadingTable, setIsLoadingTable] = useState(true);
   const [showProgressBarTable, setShowProgressBarTable] = useState(false);
@@ -277,9 +279,6 @@ export const ListProducts = (props) => {
       />
       <Container fluid>
         <BreadCrumb title="Ver productos" pageTitle="Productos" />
-
-
-
         <Row>
           <div className="card-body pt-2 mt-1">
             <TableContainerListProducts

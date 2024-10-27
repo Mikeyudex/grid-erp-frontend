@@ -13,7 +13,8 @@ export const ImportProductState = (props) => {
             fileName: null,
             fileType: null,
             fileSize: null,
-            importProducts: []
+            importProducts: [],
+            openBackdrop: false,
         },
     }
 
