@@ -19,6 +19,7 @@ import WoocommerceLogo from '../../../../assets/svg/woocommerce-logo-svgrepo-com
 import { DrawerProductsImport } from "../components/DrawerImportProduct";
 import { BackdropGlobal } from "../components/Backdrop";
 import { ImportProductContext } from "../context/imports/importProductContext";
+import { useWebSocketClient } from "../../../../context/websocketClient";
 
 const helper = new ProductHelper();
 const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
@@ -26,7 +27,7 @@ const marketplaces = { woocommerce: 'woocommerce', meli: 'meli' };
 
 export const ListProducts = (props) => {
   document.title = "Productos | Innventa-G";
-  const { updateImportData, importData } = useContext(ImportProductContext);
+  /* const { updateImportData, importData } = useContext(ImportProductContext); */
   const [productList, setProductList] = useState([]);
   const [isLoadingTable, setIsLoadingTable] = useState(true);
   const [showProgressBarTable, setShowProgressBarTable] = useState(false);
@@ -41,6 +42,16 @@ export const ListProducts = (props) => {
   const [rowCount, setRowCount] = useState(0);
   const [openDrawerImport, setOpenDrawerImport] = useState(false);
 
+  const handler = {
+    notification: (data) => {
+      console.log('Notification received:', data);
+    },
+    pong: (data) => {
+      console.log('Pong received:', data);
+    },
+  };
+
+  useWebSocketClient({ userId: "1143135078", handler });
 
   useEffect(() => {
     if (!productList.length) {

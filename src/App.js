@@ -16,6 +16,7 @@ import fakeBackend from "./helpers/AuthType/fakeBackend";
 
 import SnackbarProvider from 'react-simple-snackbar';
 
+
 // Activating fake backend
 fakeBackend();
 
@@ -37,7 +38,7 @@ function App() {
   return (
     <React.Fragment>
       <SnackbarProvider>
-        <Route />
+          <Route />
       </SnackbarProvider>
     </React.Fragment>
   );
