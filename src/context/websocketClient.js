@@ -8,13 +8,13 @@ export const useWebSocketClient = ({ userId, handler }) => {
     const wsUrl = useMemo(() => {
         switch (environment) {
             case 'DEV':
-                return "ws://localhost:4400";
+                return "http://localhost:4400";
             case 'LOCAL':
-                return "ws://localhost:4400";
+                return "http://localhost:4400";
             case 'PROD':
                 return "";
             default:
-                return "ws://localhost:4400";
+                return "http://localhost:4400";
         }
     }, []);
 
@@ -26,6 +26,8 @@ export const useWebSocketClient = ({ userId, handler }) => {
             if (topic === 'notification') {
                 handler[topic](data);
             } else if (topic === 'pong') {
+                handler[topic](data);
+            }else if(topic === 'product-import'){
                 handler[topic](data);
             }
         }, []),

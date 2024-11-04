@@ -1,5 +1,6 @@
 
 const baseUrl = "http://localhost:5000";
+const baseUrlImport = "http://localhost:4405";
 export const companyId = "3423f065-bb88-4cc5-b53a-63290b960c1a";
 
 // PRODUCTS
@@ -18,7 +19,7 @@ export const GET_PRODUCTS = baseUrl + "/products/getAllByCompany";
 export const GET_CATEGORIES_PRODUCT = baseUrl + "/products/category/getCategoriesFull";
 export const GET_CATEGORIES_PRODUCT_SELECT = baseUrl + "/products/category/getCategoriesFullSelect";
 export const GET_TYPES_PRODUCT = baseUrl + "/products/types-product/getAll";
-export const IMPORT_PRODUCTS = baseUrl + "/products/import-xlsx";
+export const IMPORT_PRODUCTS = baseUrlImport + "/import/import-products-xlsx";
 
 
 export const GET_WAREHOUSES_BYCOMPANY = baseUrl + "/warehouse/getbyCompany";

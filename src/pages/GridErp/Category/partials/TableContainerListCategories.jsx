@@ -18,13 +18,10 @@ export function TableContainerListCategories({
     isLoadingTable,
     showProgressBarTable,
     dataList,
-    setDataList,
     setValidationErrors,
     pagination,
     setPagination,
     rowCount,
-    setOpenDrawerImport,
-    openDrawerImport
 }) {
     const [rowSelection, setRowSelection] = useState({});
     const [isUpdatingUser, setIsUpdatingUser] = useState(false);

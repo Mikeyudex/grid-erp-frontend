@@ -1,4 +1,5 @@
 import { Button, Col, Row } from "reactstrap";
+import React from "react";
 import {
     MaterialReactTable,
     createMRTColumnHelper,
@@ -12,7 +13,7 @@ import { mkConfig, generateCsv, download } from 'export-to-csv';
 import DropdownExport from "./dropdown/dropdownExports";
 import DropdownMenuExport from "./dropdown/dropdownExports";
 import DropdownMenuImport from "./dropdown/DropdownImport";
-import { Link } from "react-router-dom";
+import { CategoryProductContext } from "../context/categoryProductContext";
 
 
 const csvConfig = mkConfig({
@@ -24,7 +25,7 @@ const csvConfig = mkConfig({
 export function TopToolbarActions({
     table
 }) {
-
+    const { updateCategoryData, categoryData } = React.useContext(CategoryProductContext);
     const handleExportRows = (rows) => {
         const rowData = rows.map((row) => row.original);
         const csv = generateCsv(csvConfig)(rowData);
@@ -36,6 +37,10 @@ export function TopToolbarActions({
         download(csvConfig)(csv);
     };
 
+    const handleClickCreateCategory = () => {
+        updateCategoryData({ ...categoryData, openDrawer: true });
+    };
+
     return (
         <Row md={1}
         >
@@ -43,17 +48,14 @@ export function TopToolbarActions({
                 <DropdownMenuExport table={table}></DropdownMenuExport>
 
                 <DropdownMenuImport table={table}></DropdownMenuImport>
-
-                <Link to="/products-create" className="text-secondary d-inline-block edit-item-btn">
-                    <button
-                    style={{background:'#132649', color:'white'}}
-                        type="button"
-                        className="btn btn-ghost-secondary waves-effect waves-light Innventabtn">
-                        <PlusCircledIcon></PlusCircledIcon>
-                        <span style={{ marginLeft: '0.3em' }}> Crear</span>
-                    </button>
-                </Link>
-
+                <button
+                    onClick={handleClickCreateCategory}
+                    style={{ background: '#132649', color: 'white' }}
+                    type="button"
+                    className="btn btn-ghost-secondary waves-effect waves-light Innventabtn">
+                    <PlusCircledIcon></PlusCircledIcon>
+                    <span style={{ marginLeft: '0.3em' }}> Crear</span>
+                </button>
             </Col>
 
         </Row>

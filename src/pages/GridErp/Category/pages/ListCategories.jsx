@@ -5,13 +5,16 @@ import { FormatDate } from "../../Products/components/FormatDate";
 import { ToastContainer } from "react-toastify";
 import { TableContainerListCategories } from "../partials/TableContainerListCategories";
 import BreadCrumb from "../../Products/components/BreadCrumb";
+import { useWebSocketClient } from "../../../../context/websocketClient";
+import { DrawerCreateCategory } from "../components/DrawerCreateCategory";
+import { CategoryProductContext } from "../context/categoryProductContext";
 
 
 const helper = new CategoryHelper();
 
 export function ListCategories() {
     document.title = "Categorias | Innventa-G";
-
+    const { updateCategoryData, categoryData } = React.useContext(CategoryProductContext);
     const [categoryList, setCategoryList] = useState([]);
     const [isLoadingTable, setIsLoadingTable] = useState(true);
     const [showProgressBarTable, setShowProgressBarTable] = useState(false);
@@ -22,8 +25,21 @@ export function ListCategories() {
         pageSize: 20, //customize the default page size
     });
     const [rowCount, setRowCount] = useState(0);
-    const [openDrawerImport, setOpenDrawerImport] = useState(false);
 
+    const handler = {
+        notification: (data) => {
+            console.log('Notification received:', data);
+        },
+        pong: (data) => {
+            console.log('Pong received:', data);
+        },
+        importProduct: (data) => {
+            console.log('Product received:', data);
+        },
+    };
+
+    /*  useWebSocketClient({ userId: "1143135078", handler });
+  */
     useEffect(() => {
         if (!categoryList.length) {
             setIsLoadingTable(true);
@@ -33,7 +49,6 @@ export function ListCategories() {
 
         helper.getCategories(pagination.pageIndex + 1, pagination.pageSize)
             .then(async (response) => {
-                console.log(response);
                 let categories = response?.data;
                 let totalRowCount = response?.totalRowCount;
                 if (categories && Array.isArray(categories) && categories.length > 0) {
@@ -41,6 +56,7 @@ export function ListCategories() {
                         return {
                             id: c?._id,
                             name: c?.name,
+                            shortCode: c?.shortCode,
                             description: c?.description,
                             createdAt: c?.createdAt,
                         }
@@ -55,7 +71,7 @@ export function ListCategories() {
                 setIsLoadingTable(false);
                 setShowProgressBarTable(false);
             });
-    }, []);
+    }, [categoryData.categoryList]);
 
     useEffect(() => {
         console.log('useEffect');
@@ -72,6 +88,16 @@ export function ListCategories() {
                 size: 300, //large column
                 Cell: ({ cell }) => (
                     <h5>{cell.row.original.name}</h5>
+                ),
+            },
+            {
+                header: "Código corto",
+                accessorKey: "shortCode",
+                enableColumnFilter: false,
+                enableEditing: false,
+                size: 200, //large column
+                Cell: ({ cell }) => (
+                    <h5>{cell.row.original.shortCode}</h5>
                 ),
             },
             {
@@ -102,6 +128,8 @@ export function ListCategories() {
         <div className="page-content">
             <ToastContainer closeButton={false} limit={1} />
 
+            <DrawerCreateCategory />
+
             <Container fluid>
                 <BreadCrumb title="Ver categorías" pageTitle="Categorías" />
                 <Row>
@@ -117,8 +145,6 @@ export function ListCategories() {
                             pagination={pagination}
                             setPagination={setPagination}
                             rowCount={rowCount}
-                            setOpenDrawerImport={setOpenDrawerImport}
-                            openDrawerImport={openDrawerImport}
                         />
                     </div>
                 </Row>

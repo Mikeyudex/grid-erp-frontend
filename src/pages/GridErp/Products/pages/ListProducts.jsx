@@ -27,7 +27,6 @@ const marketplaces = { woocommerce: 'woocommerce', meli: 'meli' };
 
 export const ListProducts = (props) => {
   document.title = "Productos | Innventa-G";
-  /* const { updateImportData, importData } = useContext(ImportProductContext); */
   const [productList, setProductList] = useState([]);
   const [isLoadingTable, setIsLoadingTable] = useState(true);
   const [showProgressBarTable, setShowProgressBarTable] = useState(false);
@@ -42,7 +41,7 @@ export const ListProducts = (props) => {
   const [rowCount, setRowCount] = useState(0);
   const [openDrawerImport, setOpenDrawerImport] = useState(false);
 
-  const handler = {
+  /* const handler = {
     notification: (data) => {
       console.log('Notification received:', data);
     },
@@ -51,7 +50,7 @@ export const ListProducts = (props) => {
     },
   };
 
-  useWebSocketClient({ userId: "1143135078", handler });
+  useWebSocketClient({ userId: "1143135078", handler }); */
 
   useEffect(() => {
     if (!productList.length) {

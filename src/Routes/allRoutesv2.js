@@ -16,6 +16,7 @@ import CompanyConfigView from "../pages/GridErp/Configs/Company/general/pages/Co
 import ThemedCategoryMapping from "../pages/GridErp/Configs/Company/woocommerce/pages/WooCategoryMapping";
 import WooGeneralConfig from "../pages/GridErp/Configs/Company/woocommerce/pages/WooGeneralConfig";
 import { ListCategories } from "../pages/GridErp/Category/pages/ListCategories";
+import { CategoryProductState } from "../pages/GridErp/Category/context/categoryProductState";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -47,7 +48,7 @@ const authProtectedRoutes = [
     },
     {
         path: "/category",
-        component: <ListCategories />,
+        component: <CategoryProductState><ListCategories /></CategoryProductState>,
     },
 
     // Company config
