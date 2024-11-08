@@ -17,6 +17,8 @@ import ThemedCategoryMapping from "../pages/GridErp/Configs/Company/woocommerce/
 import WooGeneralConfig from "../pages/GridErp/Configs/Company/woocommerce/pages/WooGeneralConfig";
 import { ListCategories } from "../pages/GridErp/Category/pages/ListCategories";
 import { CategoryProductState } from "../pages/GridErp/Category/context/categoryProductState";
+import { ListSubCategories } from "../pages/GridErp/Subcategory/pages/ListSubcategories";
+import { SubCategoryProductState } from "../pages/GridErp/Subcategory/context/subcategoryState";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -49,6 +51,10 @@ const authProtectedRoutes = [
     {
         path: "/category",
         component: <CategoryProductState><ListCategories /></CategoryProductState>,
+    },
+    {
+        path: "/subcategory",
+        component: <SubCategoryProductState><ListSubCategories /></SubCategoryProductState>,
     },
 
     // Company config
