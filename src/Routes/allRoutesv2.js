@@ -19,6 +19,8 @@ import { ListCategories } from "../pages/GridErp/Category/pages/ListCategories";
 import { CategoryProductState } from "../pages/GridErp/Category/context/categoryProductState";
 import { ListSubCategories } from "../pages/GridErp/Subcategory/pages/ListSubcategories";
 import { SubCategoryProductState } from "../pages/GridErp/Subcategory/context/subcategoryState";
+import { CreateCustomer } from "../pages/GridErp/Customers/pages/CreateCustomer";
+import { ListCustomersView } from "../pages/GridErp/Customers/pages/ListCustomers";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -61,7 +63,11 @@ const authProtectedRoutes = [
     { path: "/config-company", component: <CompanyConfigView /> },
     { path: "/woocommerce-config", component: <WooGeneralConfig />, },
     { path: "/woocommerce-config/category-mapping", component: <ThemedCategoryMapping />, },
-    { path: "/woocommerce-config/credentials", component: <WooCredentialsView />, }
+    { path: "/woocommerce-config/credentials", component: <WooCredentialsView />, },
+
+    // Customers
+    { path: "/customers-create", component: <CreateCustomer />, },
+    { path: "/customers-list", component: <ListCustomersView />, },
 ]
 
 const publicRoutes = [

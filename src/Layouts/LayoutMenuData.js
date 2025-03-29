@@ -10,6 +10,10 @@ const Navdata = () => {
   const [isStock, setIsStock] = useState(false);
   const [isConfigurations, setIsConfigurations] = useState(false);
   const [isWoocommerce, setIsWoocommerce] = useState(false);
+  const [isCustomers, setIsCustomers] = useState(false);
+
+
+
   const [isAuth, setIsAuth] = useState(false);
   const [isPages, setIsPages] = useState(false);
   const [isBaseUi, setIsBaseUi] = useState(false);
@@ -123,6 +127,9 @@ const Navdata = () => {
     if (iscurrentState !== "Landing") {
       setIsLanding(false);
     }
+    if (iscurrentState !== "Clientes") {
+      setIsCustomers(false);
+    }
   }, [
     history,
     iscurrentState,
@@ -138,6 +145,7 @@ const Navdata = () => {
     isIcons,
     isMaps,
     isMultiLevel,
+    isCustomers,
   ]);
 
   const menuItems = [
@@ -154,6 +162,51 @@ const Navdata = () => {
         e.preventDefault();
         setIscurrentState("Dashboard");
       },
+    },
+    {
+      id: "customers",
+      label: "Clientes",
+      icon: "ri-user-3-line",
+      link: "/#",
+      click: function (e) {
+        e.preventDefault();
+        setIsCustomers(!isCustomers);
+        setIscurrentState("Clientes");
+        updateIconSidebar(e);
+      },
+      stateVariables: isCustomers,
+      subItems: [
+        {
+          id: "view-customers",
+          label: "Ver clientes",
+          link: "/customers-list",
+          parentId: "customers",
+        },
+        {
+          id: "create-customer",
+          label: "Crear cliente",
+          link: "/customers-create",
+          parentId: "customers",
+        },
+        {
+          id: "customer-orders",
+          label: "Pedidos",
+          link: "/customer-orders",
+          parentId: "customers",
+        },
+        {
+          id: "customer-invoices",
+          label: "Facturas",
+          link: "/customer-invoices",
+          parentId: "customers",
+        },
+        {
+          id: "customer-shipments",
+          label: "Envíos",
+          link: "/customer-shipments",
+          parentId: "customers",
+        },
+      ],
     },
     {
       label: "Inventario",
