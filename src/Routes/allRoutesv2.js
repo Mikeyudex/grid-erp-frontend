@@ -22,6 +22,7 @@ import { SubCategoryProductState } from "../pages/GridErp/Subcategory/context/su
 import { CreateCustomer } from "../pages/GridErp/Customers/pages/CreateCustomer";
 import { ListCustomersView } from "../pages/GridErp/Customers/pages/ListCustomers";
 import { ListTypeCustomersView } from "../pages/GridErp/Customers/pages/ListTypesCustomer";
+import PurchaseOrderPage from "../pages/GridErp/PurchaseOrder/pages/CreatePurchaseOrder";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -70,6 +71,11 @@ const authProtectedRoutes = [
     { path: "/customers-create", component: <CreateCustomer />, },
     { path: "/customers-list", component: <ListCustomersView />, },
     { path: "/customers-types-list", component: <ListTypeCustomersView />, },
+
+    // Purchase Order
+    { path: "/purchase-orders", component: <PurchaseOrderPage /> },
+    { path: "/purchase-orders/create", component: <PurchaseOrderPage /> },
+    { path: "/purchase-orders/edit", component: <PurchaseOrderPage /> },
 ]
 
 const publicRoutes = [

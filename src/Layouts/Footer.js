@@ -8,11 +8,11 @@ const Footer = () => {
                 <Container fluid>
                     <Row>
                         <Col sm={6}>
-                            {new Date().getFullYear()} © Velzon.
+                            {new Date().getFullYear()} © QualityErp.
                         </Col>
                         <Col sm={6}>
                             <div className="text-sm-end d-none d-sm-block">
-                                Design & Develop by Themesbrand
+                                Desarrollado por <a href="https://mikeyudex.github.io/" target="_blank" rel="noreferrer">Yudex Labs</a>
                             </div>
                         </Col>
                     </Row>

@@ -423,13 +423,11 @@ export function CreateCustomer() {
                 <Container fluid>
                     <BreadCrumb title="Crear cliente" pageTitle="Clientes" />
                     <Row>
-                        <div className="card-body pt-2 mt-1">
+                        <div className="card-body">
                             <div style={styles.container}>
                                 <div style={styles.mainCard}>
-                                    <div style={styles.cardHeader}>
-                                        <h2 style={styles.headerTitle}>Crear Nuevo Cliente</h2>
-                                    </div>
-                                    <div style={{ padding: "1.5rem" }}>
+                                   
+                                    <div style={{ padding: "1rem" }}>
                                         <div style={{ position: "relative", marginBottom: "3rem" }}>
                                             <div style={styles.progressBar}>
                                                 <div

@@ -11,7 +11,7 @@ const Navdata = () => {
   const [isConfigurations, setIsConfigurations] = useState(false);
   const [isWoocommerce, setIsWoocommerce] = useState(false);
   const [isCustomers, setIsCustomers] = useState(false);
-
+  const [isPurchaseOrders, setIsPurchaseOrders] = useState(false);
 
 
   const [isAuth, setIsAuth] = useState(false);
@@ -130,6 +130,9 @@ const Navdata = () => {
     if (iscurrentState !== "Clientes") {
       setIsCustomers(false);
     }
+    if (iscurrentState !== "Pedidos") {
+      setIsPurchaseOrders(false);
+    }
   }, [
     history,
     iscurrentState,
@@ -211,6 +214,43 @@ const Navdata = () => {
           label: "Envíos",
           link: "/customer-shipments",
           parentId: "customers",
+        },
+      ],
+    },
+    {
+      label: "Pedidos",
+      isHeader: true,
+    },
+    {
+      id: "purchase-orders",
+      label: "Pedidos",
+      icon: "ri-shopping-cart-line",
+      link: "/#",
+      click: function (e) {
+        e.preventDefault();
+        setIsPurchaseOrders(!isPurchaseOrders);
+        setIscurrentState("Pedidos");
+        updateIconSidebar(e);
+      },
+      stateVariables: isPurchaseOrders,
+      subItems: [
+        {
+          id: "orders-list",
+          label: "Lista",
+          link: "/purchase-orders",
+          parentId: "purchase-orders",
+        },
+        {
+          id: "orders-create",
+          label: "Crear",
+          link: "/purchase-orders/create",
+          parentId: "purchase-orders",
+        },
+        {
+          id: "orders-edit",
+          label: "Editar",
+          link: "/purchase-orders/edit",
+          parentId: "purchase-orders",
         },
       ],
     },

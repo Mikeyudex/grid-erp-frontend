@@ -7,6 +7,9 @@ import logoSm from "../assets/images/logo-sm.png";
 import logoDark from "../assets/images/logo-dark.png";
 import logoLight from "../assets/images/logo-light.png";
 
+//Logo Quality
+import logoQuality from "../assets/images/quality.png";
+
 //import Components
 import SearchOption from '../Components/Common/SearchOption';
 import LanguageDropdown from '../Components/Common/LanguageDropdown';
@@ -27,7 +30,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
     const selectDashboardData = createSelector(
         (state) => state.Layout,
         (sidebarVisibilitytype) => sidebarVisibilitytype.sidebarVisibilitytype
-      );
+    );
     // Inside your component
     const sidebarVisibilitytype = useSelector(selectDashboardData);
 
@@ -79,19 +82,19 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
                             <div className="navbar-brand-box horizontal-logo">
                                 <Link to="/" className="logo logo-dark">
                                     <span className="logo-sm">
-                                        <img src={logoSm} alt="" height="22" />
+                                        <img src={logoQuality} alt="" height="22" />
                                     </span>
                                     <span className="logo-lg">
-                                        <img src={logoDark} alt="" height="17" />
+                                        <img src={logoQuality} alt="" height="17" />
                                     </span>
                                 </Link>
 
                                 <Link to="/" className="logo logo-light">
                                     <span className="logo-sm">
-                                        <img src={logoSm} alt="" height="22" />
+                                        <img src={logoQuality} alt="" height="22"/>
                                     </span>
                                     <span className="logo-lg">
-                                        <img src={logoLight} alt="" height="17" />
+                                        <img src={logoQuality} alt="" height="20" width="60" />
                                     </span>
                                 </Link>
                             </div>
@@ -109,7 +112,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
                             </button>
 
 
-                          {/*   <SearchOption /> */}
+                            {/*   <SearchOption /> */}
                         </div>
 
                         <div className="d-flex align-items-center">
@@ -133,19 +136,19 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
                             </Dropdown>
 
                             {/* LanguageDropdown */}
-                       {/*      <LanguageDropdown /> */}
+                            {/*      <LanguageDropdown /> */}
 
                             {/* WebAppsDropdown */}
                             {/* <WebAppsDropdown /> */}
 
                             {/* MyCartDropdwon */}
-                          {/*   <MyCartDropdown /> */}
+                            {/*   <MyCartDropdown /> */}
 
                             {/* FullScreenDropdown */}
                             <FullScreenDropdown />
 
                             {/* Dark/Light Mode set */}
-                           {/*  <LightDark
+                            {/*  <LightDark
                                 layoutMode={layoutModeType}
                                 onChangeLayoutMode={onChangeLayoutMode}
                             /> */}
