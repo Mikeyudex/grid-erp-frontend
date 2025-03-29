@@ -8,11 +8,17 @@ import { RiFileDownloadFill } from "react-icons/ri";
 import { TbFileExport } from "react-icons/tb";
 import './BtnOptions.css';
 import { viewsType } from '../utils/enums';
+import { CustomerContext } from '../context/customerContext';
 
 
 const DropdownOptions = ({ table, toggleDrawer, viewType }) => {
 
     const navigate = useNavigate();
+    const { updateCustomerData, customerData } = React.useContext(CustomerContext);
+
+    const handleOpenModalAddTypeCustomer = () => {
+        updateCustomerData({ ...customerData, openModalCreateTypeCustomer: true });
+    }
 
     return (
         <DropdownMenu.Root>
@@ -62,7 +68,7 @@ const DropdownOptions = ({ table, toggleDrawer, viewType }) => {
                 viewType === viewsType.listTypesCustomer && (
                     <DropdownMenu.Portal>
                         <DropdownMenu.Content className="DropdownMenuContent" sideOffset={5}>
-                            <DropdownMenu.Item className="DropdownMenuItem">
+                            <DropdownMenu.Item className="DropdownMenuItem" onClick={() => handleOpenModalAddTypeCustomer()}>
                                 <div className="LeftSlot"><CiSquarePlus /></div>
                                 <span style={{ marginLeft: '0.5em' }} >Nuevo tipo de cliente</span>
                             </DropdownMenu.Item>

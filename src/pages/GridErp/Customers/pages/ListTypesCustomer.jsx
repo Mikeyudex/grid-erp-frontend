@@ -11,25 +11,34 @@ import { optionsSnackbarDanger, optionsSnackbarSuccess } from "../../Products/he
 import BreadCrumb from "../../Products/components/BreadCrumb";
 import { CustomerHelper } from "../helper/customer-helper";
 import { TableListTypesCustomer } from "../partials/TableListTypesCustomer";
+import ModalAddTypeCustomer from "../components/ModalAddTypeCustomer";
+import { CustomerContext } from "../context/customerContext";
 
 const helper = new CustomerHelper();
 
 export const ListTypeCustomersView = (props) => {
     document.title = "Tipo de clientes | Innventa-G";
 
+    const { updateCustomerData, customerData } = React.useContext(CustomerContext);
     const [typesCustomerList, setTypesCustomerList] = useState([]);
     const [isLoadingTable, setIsLoadingTable] = useState(true);
     const [showProgressBarTable, setShowProgressBarTable] = useState(true);
     const [validationErrors, setValidationErrors] = useState({});
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
+    const [openModalAddTypeCustomer, setOpenModalAddTypeCustomer] = useState(false);
 
+    const handleCloseModalAddTypeCustomer = () => {
+        setOpenModalAddTypeCustomer(!openModalAddTypeCustomer);
+        updateCustomerData({ ...customerData, openModalCreateTypeCustomer: !customerData.openModalCreateTypeCustomer });
+    }
 
     useEffect(() => {
         helper.getTypesCustomer()
             .then(async (typesCustomers) => {
                 if (typesCustomers && Array.isArray(typesCustomers) && typesCustomers.length > 0) {
                     setTypesCustomerList(typesCustomers);
+                    updateCustomerData({ ...customerData, typeCustomerList: [...customerData.typeCustomerList, typesCustomers] });
                 }
                 return;
             })
@@ -41,7 +50,11 @@ export const ListTypeCustomersView = (props) => {
                 setIsLoadingTable(false);
                 setShowProgressBarTable(false);
             });
-    }, []);
+    }, [customerData.reloadTableTypeCustomer]);
+
+    useEffect(() => {
+        setOpenModalAddTypeCustomer(customerData.openModalCreateTypeCustomer);
+    }, [customerData.openModalCreateTypeCustomer]);
 
     const columns = useMemo(() =>
         [
@@ -95,7 +108,9 @@ export const ListTypeCustomersView = (props) => {
             <ToastContainer closeButton={false} limit={1} />
             <Container fluid>
                 <BreadCrumb title="Lista de tipo de clientes" pageTitle="Tipo de clientes" />
-
+                <ModalAddTypeCustomer
+                    isOpen={openModalAddTypeCustomer}
+                    closeModal={handleCloseModalAddTypeCustomer} />
                 <Row>
                     <div className="card-body pt-2 mt-1">
                         <TableListTypesCustomer
