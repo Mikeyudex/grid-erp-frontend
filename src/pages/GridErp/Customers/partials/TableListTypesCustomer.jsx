@@ -11,7 +11,7 @@ import './table.css'
 import { IconsTopToolbarAction } from '../../Products/partials/IconsTopToolbarAction';
 import { viewsType } from '../utils/enums';
 
-export function TableListCustomers({
+export function TableListTypesCustomer({
     columns,
     list,
     isLoadingTable,
@@ -140,7 +140,7 @@ export function TableListCustomers({
             <TopToolbarActions
                 table={table}
                 /* toggleDrawer={toggleDrawerCreateAdjustment} */
-                viewType={viewsType.listCustomers}
+                viewType={viewsType.listTypesCustomer}
             ></TopToolbarActions>
         ),
         icons: IconsTopToolbarAction

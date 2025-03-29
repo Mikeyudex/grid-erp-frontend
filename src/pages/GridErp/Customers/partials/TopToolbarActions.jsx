@@ -35,6 +35,7 @@ export function TopToolbarActions({
 
                 {
                     <DropdownOptions
+                        viewType={viewType}
                         toggleDrawer={toggleDrawer}
                         table={table} />
                 }

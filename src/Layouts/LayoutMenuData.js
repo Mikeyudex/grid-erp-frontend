@@ -189,6 +189,12 @@ const Navdata = () => {
           parentId: "customers",
         },
         {
+          id: "customer-types-list",
+          label: "Tipo de clientes",
+          link: "/customers-types-list",
+          parentId: "customers",
+        },
+        {
           id: "customer-orders",
           label: "Pedidos",
           link: "/customer-orders",

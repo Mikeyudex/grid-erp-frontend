@@ -475,7 +475,7 @@ export function CreateCustomer() {
                                             </div>
                                         </div>
 
-                                        <Form onSubmit={handleSubmit}>
+                                        <Form>
                                             <div style={styles.tabsContainer}>
                                                 {/* Tipo de Cliente */}
                                                 <div
@@ -1174,7 +1174,10 @@ export function CreateCustomer() {
                                                 </button>
 
                                                 {activeTab === "observaciones" ? (
-                                                    <button type="submit" style={{ ...styles.button, ...styles.successButton }}>
+                                                    <button
+                                                        onClick={handleSubmit}
+                                                        type="button"
+                                                        style={{ ...styles.button, ...styles.successButton }}>
                                                         <i className="ri-save-line mx-2"></i> Guardar Cliente
                                                     </button>
                                                 ) : (

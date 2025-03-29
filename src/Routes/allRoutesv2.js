@@ -21,6 +21,7 @@ import { ListSubCategories } from "../pages/GridErp/Subcategory/pages/ListSubcat
 import { SubCategoryProductState } from "../pages/GridErp/Subcategory/context/subcategoryState";
 import { CreateCustomer } from "../pages/GridErp/Customers/pages/CreateCustomer";
 import { ListCustomersView } from "../pages/GridErp/Customers/pages/ListCustomers";
+import { ListTypeCustomersView } from "../pages/GridErp/Customers/pages/ListTypesCustomer";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -68,6 +69,7 @@ const authProtectedRoutes = [
     // Customers
     { path: "/customers-create", component: <CreateCustomer />, },
     { path: "/customers-list", component: <ListCustomersView />, },
+    { path: "/customers-types-list", component: <ListTypeCustomersView />, },
 ]
 
 const publicRoutes = [
