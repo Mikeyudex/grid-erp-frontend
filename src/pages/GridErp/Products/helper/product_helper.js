@@ -13,10 +13,11 @@ export class ProductHelper {
     getAttrProduct = companyId => api.get(`${url.GET_ATTR_PRODUCT}/${companyId}`);
     addAttrProduct = payload => api.create(`${url.ADD_ATTR_PRODUCT}`, payload);
     importProducts = companyId => api.create(`${url.IMPORT_PRODUCTS}/${companyId}`);
-    
+
 
     addProduct = payload => api.create(`${url.ADD_PRODUCT}`, payload);
     getProducts = (page, limit) => api.get(`${url.GET_PRODUCTS}?page=${page}&limit=${limit}`);
+    getProductsLite = (page, limit) => api.get(`${url.GET_PRODUCTS_LITE}?page=${page}&limit=${limit}`);
     getCategoriesFullByProduct = companyId => api.get(`${url.GET_CATEGORIES_PRODUCT}?companyId=${companyId}`);
     getCategoriesFullByCompanySelect = companyId => api.get(`${url.GET_CATEGORIES_PRODUCT_SELECT}?companyId=${companyId}`);
     getLastSku = companyId => api.get(`${url.GET_LAST_SKU}/${companyId}`);
@@ -146,21 +147,21 @@ export const numberFormatPrice = (value = "") => {
 
 
 export const handleValidDate = (date) => {
-  const date1 = moment(new Date(date)).format("DD MMM Y");
-  return date1;
+    const date1 = moment(new Date(date)).format("DD MMM Y");
+    return date1;
 };
 
 export const handleValidTime = (time) => {
-  const time1 = new Date(time);
-  const getHour = time1.getUTCHours();
-  const getMin = time1.getUTCMinutes();
-  const getTime = `${getHour}:${getMin}`;
-  var meridiem = "";
-  if (getHour >= 12) {
-    meridiem = "PM";
-  } else {
-    meridiem = "AM";
-  }
-  const updateTime = moment(getTime, 'hh:mm').format('hh:mm') + " " + meridiem;
-  return updateTime;
+    const time1 = new Date(time);
+    const getHour = time1.getUTCHours();
+    const getMin = time1.getUTCMinutes();
+    const getTime = `${getHour}:${getMin}`;
+    var meridiem = "";
+    if (getHour >= 12) {
+        meridiem = "PM";
+    } else {
+        meridiem = "AM";
+    }
+    const updateTime = moment(getTime, 'hh:mm').format('hh:mm') + " " + meridiem;
+    return updateTime;
 };

@@ -16,6 +16,7 @@ export const SYNC_PRODUCT_WOOCOMMERCE_QUEUE= baseUrl + "/api-woocommerce/queue/s
 export const UPDATE_PRODUCT= baseUrl + "/products/update";
 export const DELETE_PRODUCT= baseUrl + "/products/delete";
 export const GET_PRODUCTS = baseUrl + "/products/getAllByCompany";
+export const GET_PRODUCTS_LITE = baseUrl + "/products/getAllByCompanyLite";
 export const GET_CATEGORIES_PRODUCT = baseUrl + "/products/category/getCategoriesFull";
 export const GET_CATEGORIES_PRODUCT_SELECT = baseUrl + "/products/category/getCategoriesFullSelect";
 export const GET_TYPES_PRODUCT = baseUrl + "/products/types-product/getAll";
