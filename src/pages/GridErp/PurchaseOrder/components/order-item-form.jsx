@@ -153,7 +153,7 @@ export default function OrderItemForm({
 
         // Calculate base price based on mat type and material type
         //const adjustedPrice = matMaterialPrices[formData.matType]?.[formData.materialType] || 0;
-        if (!productSelected) return;
+        if (!productSelected || !formData.productName) return;
         if (!formData.matType || !formData.materialType) return;
         if (formData.matType === "Selecciona una opción" || formData.materialType === "Selecciona una opción") return;
 
@@ -199,10 +199,11 @@ export default function OrderItemForm({
             ...formData,
             productName: "",
             productId: "",
+            basePrice: 0,
+            adjustedPrice: 0,
         })
         setShowProductDropdown(false)
     }
-
 
     const togglePiecesModal = () => {
         setPiecesModalOpen(!piecesModalOpen)
