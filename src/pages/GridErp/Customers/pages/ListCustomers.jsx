@@ -19,7 +19,7 @@ export const ListCustomersView = (props) => {
     document.title = "Clientes | Innventa-G";
 
     const [customerList, setCustomerList] = useState([]);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
     const [limit, setLimit] = useState(50);
     const [isLoadingTable, setIsLoadingTable] = useState(true);
     const [showProgressBarTable, setShowProgressBarTable] = useState(true);

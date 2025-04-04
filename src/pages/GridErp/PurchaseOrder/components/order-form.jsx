@@ -23,7 +23,12 @@ export default function OrderForm({
     onRemoveItem,
     selectedClient,
     onClientSelect,
-    products
+    products,
+    clients,
+    typeOfPieces,
+    matMaterialPrices,
+    matTypeOptions,
+    materialTypeOptions
 }) {
     const [isAdding, setIsAdding] = useState(false);
     const [editingIndex, setEditingIndex] = useState(null);
@@ -32,14 +37,14 @@ export default function OrderForm({
     const [filteredClients, setFilteredClients] = useState([]);
 
     // Sample client list - in a real app, this would come from an API
-    const clients = [
+    /* const clients = [
         { id: 1, name: "Juan Pérez", company: "Empresa A", email: "juan@empresaa.com" },
         { id: 2, name: "María López", company: "Empresa B", email: "maria@empresab.com" },
         { id: 3, name: "Carlos Rodríguez", company: "Empresa C", email: "carlos@empresac.com" },
         { id: 4, name: "Ana Martínez", company: "Empresa D", email: "ana@empresad.com" },
         { id: 5, name: "Pedro Sánchez", company: null, email: "pedro@gmail.com" },
         { id: 6, name: "Laura García", company: "Empresa E", email: "laura@empresae.com" },
-    ]
+    ] */
 
     const handleAddItem = (item) => {
         onAddItem(item)
@@ -221,6 +226,10 @@ export default function OrderForm({
                     isOpen={isAdding}
                     toggle={toggleAddItemForm}
                     products={products}
+                    typeOfPieces={typeOfPieces}
+                    matMaterialPrices={matMaterialPrices}
+                    matTypeOptions={matTypeOptions}
+                    materialTypeOptions={materialTypeOptions}
                 />
             )}
 
@@ -233,6 +242,10 @@ export default function OrderForm({
                     isOpen={editingIndex !== null}
                     toggle={toggleUpdateItemForm}
                     products={products}
+                    typeOfPieces={typeOfPieces}
+                    matMaterialPrices={matMaterialPrices}
+                    matTypeOptions={matTypeOptions}
+                    materialTypeOptions={materialTypeOptions}
                 />
             )}
         </div>

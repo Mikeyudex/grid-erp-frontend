@@ -6,6 +6,7 @@ import { ToastContainer } from "react-toastify"
 import { Col, Container, Row } from "reactstrap"
 import BreadCrumb from "../../Products/components/BreadCrumb";
 import { ProductHelper } from "../../Products/helper/product_helper"
+import { obtenerAtributosUnicos, transformarDatos } from "../utils/order"
 
 
 const productHelper = new ProductHelper();
@@ -15,6 +16,11 @@ export default function PurchaseOrderPage() {
     const [selectedClient, setSelectedClient] = useState(null);
     const [products, setProducts] = useState([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+    const [clients, setClients] = useState([]);
+    const [typeOfPieces, setTypeOfPieces] = useState([]);
+    const [matMaterialPrices, setMatMaterialPrices] = useState([]);
+    const [matTypeOptions, setMatTypeOptions] = useState([]);
+    const [materialTypeOptions, setMaterialTypeOptions] = useState([]);
 
     const handleGetProducts = async () => {
         try {
@@ -25,6 +31,36 @@ export default function PurchaseOrderPage() {
             return [];
         }
     };
+
+    const handleGetClients = async () => {
+        try {
+            let response = await productHelper.getClients(0, 100, ["_id", "name", "lastname", "commercialName", "email"]);
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    };
+
+    const handleGetTypeOfPieces = async () => {
+        try {
+            let response = await productHelper.getTypeOfPieces();
+            return response || [];
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    };
+
+    const handleGetMatMaterialPrices = async () => {
+        try {
+            let response = await productHelper.getMatMaterialPrices();
+            return response || [];
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    }
 
     const addOrderItem = (item) => {
         setOrderItems([...orderItems, item])
@@ -49,6 +85,41 @@ export default function PurchaseOrderPage() {
     const handleClientSelect = (client) => {
         setSelectedClient(client)
     };
+
+    useEffect(() => {
+        handleGetClients()
+            .then(async (data) => {
+                let clients = (data || [])
+                    .map((c) => ({ ...c, id: c._id, name: `${c.name} ${c.lastname}`, company: c.commercialName }));
+                setClients(clients);
+            })
+            .catch(e => console.log(e))
+    }, []);
+
+    useEffect(() => {
+        handleGetTypeOfPieces()
+            .then(async (data) => {
+                setTypeOfPieces(data);
+            })
+            .catch(e => console.log(e))
+    }, []);
+
+    useEffect(() => {
+        handleGetMatMaterialPrices()
+            .then(async (data) => {
+                //mapear los objetos que sean diferentes
+
+                let matTypeOptions = obtenerAtributosUnicos(data, "tipo_tapete");
+                let materialTypeOptions = obtenerAtributosUnicos(data, "tipo_material");
+                console.log(matTypeOptions);
+                console.log(materialTypeOptions);
+                setMatTypeOptions(matTypeOptions);
+                setMaterialTypeOptions(materialTypeOptions);
+                let transformedData = transformarDatos(data);
+                setMatMaterialPrices(transformedData);
+            })
+            .catch(e => console.log(e))
+    }, []);
 
     useEffect(() => {
         handleGetProducts()
@@ -100,6 +171,11 @@ export default function PurchaseOrderPage() {
                         selectedClient={selectedClient}
                         onClientSelect={handleClientSelect}
                         products={products}
+                        clients={clients}
+                        typeOfPieces={typeOfPieces}
+                        matMaterialPrices={matMaterialPrices}
+                        matTypeOptions={matTypeOptions}
+                        materialTypeOptions={materialTypeOptions}
                     />
 
                     <Row className="mt-4">

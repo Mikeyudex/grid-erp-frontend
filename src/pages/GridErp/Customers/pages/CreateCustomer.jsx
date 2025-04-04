@@ -258,7 +258,7 @@ export function CreateCustomer() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        let { name, lastname, email, phone, documento, address, city, postalCode } = formData.basics;
+        let { name, lastname, email, phone, documento, address, city, postalCode, commercialName } = formData.basics;
         let { billingName, billingLastname, billingPhone, billingEmail, billingDocumento, billingAddress, billingCity, billingPostalCode } = formData.billingData;
         let { shippingName, shippingLastname, shippingPhone, shippingEmail, shippingDocumento, shippingAddress, shippingCity, shippingPostalCode } = formData.shippingData;
         let { contacts, customFields, observations, typeCustomerId } = formData;
@@ -271,6 +271,7 @@ export function CreateCustomer() {
             address,
             city,
             postalCode,
+            commercialName,
             billingName,
             billingLastname,
             billingPhone,

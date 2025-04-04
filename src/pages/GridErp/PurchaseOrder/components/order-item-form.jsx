@@ -1,9 +1,26 @@
 "use client"
 
 import { useState, useEffect, Fragment } from "react"
-import { X } from "lucide-react"
+import { X, Plus, Check } from "lucide-react"
 import { OrderItem } from "../utils/order"
-import { Button, Col, Dropdown, DropdownItem, DropdownMenu, FormGroup, Input, Label, Row, Form, Modal, ModalHeader, ModalBody, InputGroup } from "reactstrap"
+import {
+    Form,
+    FormGroup,
+    Label,
+    Input,
+    Button,
+    Row,
+    Col,
+    InputGroup,
+    Modal,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    FormText,
+    ListGroup,
+    ListGroupItem,
+} from "reactstrap";
+import { ProductHelper } from "../../Products/helper/product_helper";
 
 // Pricing data based on the provided grid
 const pricingData = {
@@ -49,37 +66,77 @@ const pricingData = {
     },
 }
 
-// Sample product list
-/* const products = [
-    "Tapete Audi Q3",
-    "Tapete Audi Q5",
-    "Tapete Baic 205",
-    "Tapete Baic KENBO",
-    "Tapete BMW X5",
-    "Tapete BMW X6"
-] */
+const productHelper = new ProductHelper();
 
-export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpen, toggle, products }) {
+export default function OrderItemForm({
+    initialValues,
+    onSubmit,
+    onCancel,
+    isOpen,
+    toggle,
+    products,
+    typeOfPieces,
+    matMaterialPrices,
+    matTypeOptions,
+    materialTypeOptions
+}) {
     const defaultValues = {
         productName: "",
         productId: "",
-        pieces: 2,
-        matType: "BASIC",
-        materialType: "ST-CRONCH",
+        pieces: typeOfPieces.slice(0, 3).length || 0,
+        selectedPieces: typeOfPieces.slice(0, 3).map((p) => p._id) || [],
+        matType: "Selecciona una opción",
+        materialType: "Selecciona una opción",
         quantity: 1,
-        basePrice: 95000,
+        basePrice: 0,
         observations: "",
-        finalPrice: 80000,
-        adjustedPrice: 80000,
+        finalPrice: 0,
+        adjustedPrice: 0,
     };
-    const [formData, setFormData] = useState(initialValues || defaultValues);
+    const [formData, setFormData] = useState(() => {
+        if (initialValues) {
+            // Si hay valores iniciales pero no tiene selectedPieces, inicializamos un array vacío
+            if (!initialValues.selectedPieces) {
+                return {
+                    ...initialValues,
+                    selectedPieces: [],
+                }
+            }
+            return initialValues
+        }
+        return defaultValues
+    });
     const [filteredProducts, setFilteredProducts] = useState(products || []);
+    const [productSelected, setProductSelected] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [errors, setErrors] = useState({});
 
     const [showProductDropdown, setShowProductDropdown] = useState(false);
+    const [piecesModalOpen, setPiecesModalOpen] = useState(false)
+    const [selectedPiecesTemp, setSelectedPiecesTemp] = useState(typeOfPieces.slice(0, 3) || []);
 
+    const handleGetAdjustedPrice = async () => {
+        try {
+            if (!productSelected) return 0;
+            if (!formData.matType || !formData.materialType) return 0;
+            if (formData.matType === "Selecciona una opción" || formData.materialType === "Selecciona una opción") return 0;
+            const response = await productHelper.calcularPrecioFinalProducto(productSelected?.id, formData.matType, formData.materialType, 1);
+            if (response?.statusCode === 200) {
+                return response.data?.precioFinal || 0;
+            }
+            return 0;
+        } catch (error) {
+            console.log(error);
+            return 0;
+        }
+    }
 
+    useEffect(() => {
+        // Inicializar selectedPiecesTemp cuando se abre el modal
+        if (piecesModalOpen) {
+            setSelectedPiecesTemp([...formData.selectedPieces])
+        }
+    }, [piecesModalOpen, formData.selectedPieces])
 
     useEffect(() => {
         // Filter products based on search term
@@ -90,23 +147,27 @@ export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpe
             setFilteredProducts(products);
             setShowProductDropdown(false);
         }
-    }, [searchTerm])
+    }, [searchTerm]);
 
     useEffect(() => {
+
         // Calculate base price based on mat type and material type
-        const basePrice = pricingData[formData.matType]?.[formData.materialType] || 0
+        //const adjustedPrice = matMaterialPrices[formData.matType]?.[formData.materialType] || 0;
+        if (!productSelected) return;
+        if (!formData.matType || !formData.materialType) return;
+        if (formData.matType === "Selecciona una opción" || formData.materialType === "Selecciona una opción") return;
 
-        // Calculate final price (simplified version of the formula)
-        // The original formula: =SI.ERROR(REDOND.MULT(BUSCARV(E3;Info!$B$3:$J$10;COINCIDIR(F3;Info!$B$3:$J$3;0);FALSE)*(I3/Info!$C$5);1000);0)
-        // We're implementing a simplified version that multiplies the base price by the quantity
-        const finalPrice = basePrice * formData.quantity
-
-        setFormData((prev) => ({
-            ...prev,
-            basePrice,
-            finalPrice,
-        }))
-    }, [formData.matType, formData.materialType, formData.quantity])
+        handleGetAdjustedPrice()
+            .then(data => {
+                let adjustedPrice = data;
+                let finalPrice = adjustedPrice * formData.quantity;
+                setFormData((prev) => ({
+                    ...prev,
+                    adjustedPrice,
+                    finalPrice,
+                }))
+            })
+    }, [formData.matType, formData.materialType, formData.quantity, formData.productName])
 
     const handleChange = (e) => {
         const { name, value } = e.target
@@ -120,12 +181,14 @@ export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpe
         setSearchTerm(e.target.value)
     }
 
-    const handleProductSelect = (productName, productId) => {
+    const handleProductSelect = (productName, productId, product) => {
         setFormData({
             ...formData,
             productName: productName,
             productId: productId,
+            basePrice: product?.salePrice,
         })
+        setProductSelected(product);
         setSearchTerm("")
         setShowProductDropdown(false);
     }
@@ -138,6 +201,52 @@ export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpe
             productId: "",
         })
         setShowProductDropdown(false)
+    }
+
+
+    const togglePiecesModal = () => {
+        setPiecesModalOpen(!piecesModalOpen)
+    }
+
+    const handlePieceToggle = (pieceId) => {
+        if (selectedPiecesTemp.includes(pieceId)) {
+            setSelectedPiecesTemp(selectedPiecesTemp.filter((id) => id !== pieceId))
+        } else {
+            setSelectedPiecesTemp([...selectedPiecesTemp, pieceId])
+        }
+    }
+
+    const handleSelectAllPieces = () => {
+        if (selectedPiecesTemp.length === typeOfPieces.length) {
+            // Si todos están seleccionados, deseleccionar todos
+            setSelectedPiecesTemp([])
+        } else {
+            // Si no todos están seleccionados, seleccionar todos
+            setSelectedPiecesTemp(typeOfPieces.map((pieza) => pieza.id))
+        }
+    }
+
+    const savePiecesSelection = () => {
+        setFormData({
+            ...formData,
+            selectedPieces: selectedPiecesTemp,
+            pieces: selectedPiecesTemp.length,
+        })
+        togglePiecesModal()
+    }
+
+    const getSelectedPiecesText = () => {
+        if (formData.selectedPieces.length === 0) {
+            return "Ninguna pieza seleccionada"
+        }
+
+        const selectedNames = formData.selectedPieces
+            .map((id) => {
+                const pieza = typeOfPieces.find((p) => p._id === id)
+                return pieza ? pieza.name : ""
+            })
+            .filter(Boolean)
+        return selectedNames.join(", ")
     }
 
     const handleValidateInputs = () => {
@@ -186,6 +295,44 @@ export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpe
             <Modal isOpen={isOpen} toggle={toggle} size="lg">
                 <ModalHeader toggle={toggle}>Agregar Producto</ModalHeader>
                 <ModalBody>
+                    {/* Modal para seleccionar piezas */}
+                    <Modal isOpen={piecesModalOpen} toggle={togglePiecesModal}>
+                        <ModalHeader toggle={togglePiecesModal}>Seleccionar Piezas</ModalHeader>
+                        <ModalBody>
+                            <div className="mb-3">
+                                <Button color="secondary" outline size="sm" onClick={handleSelectAllPieces} className="w-100">
+                                    {selectedPiecesTemp.length === typeOfPieces.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
+                                </Button>
+                            </div>
+                            <ListGroup>
+                                {typeOfPieces.map((pieza) => (
+                                    <ListGroupItem
+                                        key={pieza?._id}
+                                        action
+                                        active={selectedPiecesTemp.includes(pieza?._id)}
+                                        onClick={() => handlePieceToggle(pieza?._id)}
+                                        className="d-flex justify-content-between align-items-center"
+                                    >
+                                        {pieza?.name}
+                                        {selectedPiecesTemp.includes(pieza?._id) && <Check size={18} />}
+                                    </ListGroupItem>
+                                ))}
+                            </ListGroup>
+                            <div className="mt-3 text-center">
+                                <FormText>
+                                    Piezas seleccionadas: {selectedPiecesTemp.length} de {typeOfPieces.length}
+                                </FormText>
+                            </div>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button color="secondary" onClick={togglePiecesModal}>
+                                Cancelar
+                            </Button>
+                            <Button color="primary" onClick={savePiecesSelection}>
+                                Guardar Selección
+                            </Button>
+                        </ModalFooter>
+                    </Modal>
                     <Form>
                         <Row>
                             {/* Product Name with Search */}
@@ -210,6 +357,7 @@ export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpe
                                                 }
                                             }}
                                             placeholder="Buscar producto..."
+                                            autoComplete="off"
                                             required
                                         />
                                         {(searchTerm || formData.productName) && (
@@ -228,7 +376,7 @@ export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpe
                                                     <div
                                                         key={index}
                                                         className="p-2 border-bottom"
-                                                        onClick={() => handleProductSelect(product?.name, product?.id)}
+                                                        onClick={() => handleProductSelect(product?.name, product?._id, product)}
                                                         style={{ cursor: "pointer" }}
                                                         onMouseOver={(e) => (e.target.style.backgroundColor = "#f8f9fa")}
                                                         onMouseOut={(e) => (e.target.style.backgroundColor = "")}
@@ -261,32 +409,22 @@ export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpe
                                             height: '3.1em'
                                         }}
                                     >
-                                        <button
-                                            type="button"
-                                            className="minus"
-                                            onClick={() => setFormData({ ...formData, pieces: formData.pieces - 1 })}
-                                        >
-                                            –
-                                        </button>
-                                        <Input
-                                            type="number"
-                                            className={`form-control`}
-                                            id="pieces"
-                                            name="pieces"
-                                            value={formData.pieces}
-                                            min={"0"}
-                                            max={"5000"}
-                                            readOnly
-                                            required
-                                        />
-                                        <button
-                                            type="button"
-                                            className="plus"
-                                            onClick={() => setFormData({ ...formData, pieces: formData.pieces + 1 })}
-                                        >
-                                            +
-                                        </button>
+
+                                        <InputGroup>
+                                            <Input
+                                                type="number"
+                                                id="pieces"
+                                                name="pieces"
+                                                value={formData.pieces}
+                                                readOnly
+                                                required
+                                                className="form-control" />
+                                            <Button color="primary" onClick={togglePiecesModal}>
+                                                <Plus size={16} />
+                                            </Button>
+                                        </InputGroup>
                                     </div>
+                                    <FormText>{getSelectedPiecesText()}</FormText>
                                     {errors.pieces && (<span className="form-product-input-error">{errors.pieces}</span>)}
                                 </FormGroup>
                             </Col>
@@ -298,10 +436,15 @@ export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpe
                                         Tipo de Tapete
                                     </Label>
                                     <Input type="select" id="matType" name="matType" value={formData.matType} onChange={handleChange} required>
-                                        <option value="BASIC">BASIC</option>
-                                        <option value="ESTÁNDAR A">ESTÁNDAR A</option>
-                                        <option value="ESTÁNDAR B">ESTÁNDAR B</option>
-                                        <option value="PREMIUM">PREMIUM</option>
+                                        <option value="0">Selecciona una opción</option>
+                                        {
+                                            matTypeOptions.map((mat, index) => {
+                                                return (
+                                                    <option key={index} value={mat}>{mat}</option>
+                                                )
+                                            }
+                                            )
+                                        }
                                     </Input>
                                     {errors.matType && (<span className="form-product-input-error">{errors.matType}</span>)}
                                 </FormGroup>
@@ -321,14 +464,14 @@ export default function OrderItemForm({ initialValues, onSubmit, onCancel, isOpe
                                         onChange={handleChange}
                                         required
                                     >
-                                        <option value="ST-CRONCH">ST-CRONCH</option>
-                                        <option value="ST-DIAMANTE">ST-DIAMANTE</option>
-                                        <option value="ST-KUBIK">ST-KUBIK</option>
-                                        <option value="ST-KANT LISO">ST-KANT LISO</option>
-                                        <option value="PR-KANT ADH">PR-KANT ADH</option>
-                                        <option value="PR-BEIGE LISO">PR-BEIGE LISO</option>
-                                        <option value="PR-BEIGE ADH">PR-BEIGE ADH</option>
-                                        <option value="PR-ALFOMBRA">PR-ALFOMBRA</option>
+                                        <option value="0">Selecciona una opción</option>
+                                        {
+                                            materialTypeOptions.map((matType, index) => {
+                                                return (
+                                                    <option key={index} value={matType}>{matType}</option>
+                                                )
+                                            })
+                                        }
                                     </Input>
                                     {errors.materialType && (<span className="form-product-input-error">{errors.materialType}</span>)}
                                 </FormGroup>

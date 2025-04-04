@@ -41,6 +41,13 @@ export class ProductHelper {
     //Impuestos
     getAllTaxes = () => api.get(`${url.GET_TAXES_BYCOMPANY}`);
 
+    getClients = (page, limit, fields) => api.get(`${url.GET_CLIENTS_BY_FIELDS}?page=${page}&limit=${limit}&fields=${[fields]}`);
+
+    getTypeOfPieces = () => api.get(`${url.GET_TYPE_OF_PIECES}`);
+
+    getMatMaterialPrices = () => api.get(`${url.GET_MAT_MATERIAL_PRICES}`);
+
+    calcularPrecioFinalProducto = (productId, tipoTapete, material, cantidad) => api.get(`${url.CALCULATE_FINAL_PRICE}/${productId}/${tipoTapete}/${material}/${cantidad}`);
 
     validateForm = (setErrors, formData) => {
         const newErrors = {};
