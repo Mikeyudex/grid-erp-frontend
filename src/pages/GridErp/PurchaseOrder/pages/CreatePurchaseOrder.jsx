@@ -7,6 +7,7 @@ import { Col, Container, Row } from "reactstrap"
 import BreadCrumb from "../../Products/components/BreadCrumb";
 import { ProductHelper } from "../../Products/helper/product_helper"
 import { obtenerAtributosUnicos, transformarDatos } from "../utils/order"
+import OrderGrid from "../components/order-item-grid"
 
 
 const productHelper = new ProductHelper();
@@ -111,11 +112,10 @@ export default function PurchaseOrderPage() {
 
                 let matTypeOptions = obtenerAtributosUnicos(data, "tipo_tapete");
                 let materialTypeOptions = obtenerAtributosUnicos(data, "tipo_material");
-                console.log(matTypeOptions);
-                console.log(materialTypeOptions);
                 setMatTypeOptions(matTypeOptions);
                 setMaterialTypeOptions(materialTypeOptions);
                 let transformedData = transformarDatos(data);
+                console.log(transformedData);
                 setMatMaterialPrices(transformedData);
             })
             .catch(e => console.log(e))
@@ -155,15 +155,15 @@ export default function PurchaseOrderPage() {
                 <Container fluid>
                     <BreadCrumb title="Crear Orden de Pedido" pageTitle="Pedidos" />
 
-                    {selectedClient && (
+                    {/* {selectedClient && (
                         <div className="mt-2 p-2 bg-light rounded mb-4">
                             <span className="fw-medium">Cliente: </span>
                             <span>{selectedClient.name}</span>
                             {selectedClient.company && <span className="ms-2 text-muted">({selectedClient.company})</span>}
                         </div>
-                    )}
+                    )} */}
 
-                    <OrderForm
+                    {/* <OrderForm
                         onAddItem={addOrderItem}
                         orderItems={orderItems}
                         onUpdateItem={updateOrderItem}
@@ -176,9 +176,9 @@ export default function PurchaseOrderPage() {
                         matMaterialPrices={matMaterialPrices}
                         matTypeOptions={matTypeOptions}
                         materialTypeOptions={materialTypeOptions}
-                    />
+                    /> */}
 
-                    <Row className="mt-4">
+                    {/*    <Row className="mt-4">
                         <Col>
                             <div className="bg-light p-3 rounded shadow-sm">
                                 <div className="d-flex justify-content-between align-items-center">
@@ -193,7 +193,18 @@ export default function PurchaseOrderPage() {
                                 </div>
                             </div>
                         </Col>
-                    </Row>
+                    </Row> */}
+
+                    <OrderGrid
+                        selectedClient={selectedClient}
+                        onClientSelect={handleClientSelect}
+                        clients={clients}
+                        products={products}
+                        typeOfPieces={typeOfPieces}
+                        matMaterialPrices={matMaterialPrices}
+                        matTypeOptions={matTypeOptions}
+                        materialTypeOptions={materialTypeOptions}
+                    />
                 </Container>
             </div>
         )

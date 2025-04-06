@@ -554,6 +554,7 @@ export default function OrderItemForm({
                                         id="adjustedPrice"
                                         value={`$${formData.adjustedPrice?.toLocaleString()}`}
                                         className="bg-light"
+                                        readOnly={false}
                                     />
                                     {errors.adjustedPrice && (<span className="form-product-input-error">{errors.adjustedPrice}</span>)}
                                 </FormGroup>

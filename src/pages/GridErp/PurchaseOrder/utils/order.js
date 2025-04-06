@@ -23,6 +23,7 @@ export function transformarDatos(arreglo) {
         const tipoMaterial = item.tipo_material;
         const precioBase = item.precioBase;
 
+        //agregar el id al objeto
         if (resultado[tipoTapete]) {
             resultado[tipoTapete][tipoMaterial] = precioBase;
         }
