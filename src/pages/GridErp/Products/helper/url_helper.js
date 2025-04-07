@@ -35,3 +35,4 @@ export const GET_CLIENTS_BY_FIELDS = baseUrl + "/customers/getAllByFields";
 export const GET_TYPE_OF_PIECES = baseUrl + "/type-of-piece";
 export const GET_MAT_MATERIAL_PRICES = baseUrl + "/precios-tapete-material";
 export const CALCULATE_FINAL_PRICE = baseUrl + "/precios-tapete-material/calcular-precio-final";
+export const CREATE_PURCHASE_ORDER = baseUrl + "/purchase-order/create";

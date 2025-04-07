@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, Fragment } from "react"
 import {
     Table,
     Button,
@@ -19,96 +19,10 @@ import {
 import { PlusCircle, Trash2, Edit2, User, Search, Check, Save, X } from "lucide-react"
 import { ProductHelper } from "../../Products/helper/product_helper"
 import DropdownPortal from "./DropdownPortal"
+import { CREATE_PURCHASE_ORDER } from "../../Products/helper/url_helper"
+import { validatePayload } from "../utils/purchase-order.utils";
+import "./index.css";
 
-// Pricing data based on the provided grid
-const pricingData = {
-    BASIC: {
-        "ST-CRONCH": 80000,
-        "ST-DIAMANTE": 90000,
-        "ST-KUBIK": 90000,
-        "ST-KANT LISO": 90000,
-        "PR-KANT ADH": 105000,
-        "PR-BEIGE LISO": 120000,
-        "PR-BEIGE ADH": 130000,
-        "PR-ALFOMBRA": 105000,
-    },
-    "ESTÁNDAR A": {
-        "ST-CRONCH": 95000,
-        "ST-DIAMANTE": 95000,
-        "ST-KUBIK": 95000,
-        "ST-KANT LISO": 95000,
-        "PR-KANT ADH": 105000,
-        "PR-BEIGE LISO": 120000,
-        "PR-BEIGE ADH": 130000,
-        "PR-ALFOMBRA": 105000,
-    },
-    "ESTÁNDAR B": {
-        "ST-CRONCH": 99000,
-        "ST-DIAMANTE": 99000,
-        "ST-KUBIK": 99000,
-        "ST-KANT LISO": 99000,
-        "PR-KANT ADH": 105000,
-        "PR-BEIGE LISO": 120000,
-        "PR-BEIGE ADH": 130000,
-        "PR-ALFOMBRA": 105000,
-    },
-    PREMIUM: {
-        "ST-CRONCH": 105000,
-        "ST-DIAMANTE": 105000,
-        "ST-KUBIK": 105000,
-        "ST-KANT LISO": 105000,
-        "PR-KANT ADH": 105000,
-        "PR-BEIGE LISO": 120000,
-        "PR-BEIGE ADH": 130000,
-        "PR-ALFOMBRA": 105000,
-    },
-}
-
-// Sample product list
-const products = [
-    "Tapete para Sala",
-    "Tapete para Comedor",
-    "Tapete para Habitación",
-    "Tapete para Oficina",
-    "Tapete para Baño",
-    "Tapete para Cocina",
-    "Tapete para Exterior",
-    "Tapete Personalizado",
-]
-
-// Tipos de piezas disponibles
-const tiposPiezas = [
-    { id: 1, nombre: "Conductor" },
-    { id: 2, nombre: "Copiloto" },
-    { id: 3, nombre: "Segunda Fila" },
-    { id: 4, nombre: "Tercera Fila" },
-    { id: 5, nombre: "Baúl" },
-]
-
-// Sample client list - in a real app, this would come from an API
-const clients = [
-    { id: 1, name: "Juan Pérez", company: "Empresa A", email: "juan@empresaa.com" },
-    { id: 2, name: "María López", company: "Empresa B", email: "maria@empresab.com" },
-    { id: 3, name: "Carlos Rodríguez", company: "Empresa C", email: "carlos@empresac.com" },
-    { id: 4, name: "Ana Martínez", company: "Empresa D", email: "ana@empresad.com" },
-    { id: 5, name: "Pedro Sánchez", company: null, email: "pedro@gmail.com" },
-    { id: 6, name: "Laura García", company: "Empresa E", email: "laura@empresae.com" },
-]
-
-// Tipos de tapete
-const tiposTapete = ["BASIC", "ESTÁNDAR A", "ESTÁNDAR B", "PREMIUM"]
-
-// Tipos de material
-const tiposMaterial = [
-    "ST-CRONCH",
-    "ST-DIAMANTE",
-    "ST-KUBIK",
-    "ST-KANT LISO",
-    "PR-KANT ADH",
-    "PR-BEIGE LISO",
-    "PR-BEIGE ADH",
-    "PR-ALFOMBRA",
-]
 
 const productHelper = new ProductHelper()
 
@@ -133,7 +47,6 @@ export default function OrderGrid({
     const [editingRowIndex, setEditingRowIndex] = useState(null)
 
     // Estados para edición en línea
-    const [productDropdownOpen, setProductDropdownOpen] = useState(false)
     const [productSearchTerm, setProductSearchTerm] = useState("")
     const [filteredProducts, setFilteredProducts] = useState(products || []);
     const [productSelected, setProductSelected] = useState(null);
@@ -142,6 +55,8 @@ export default function OrderGrid({
     const [currentObservations, setCurrentObservations] = useState("")
     const [errors, setErrors] = useState({});
     const inputRef = useRef(null);
+    const rowRefs = useRef([]);
+    const [rowError, setRowError] = useState({ rowIndex: null, message: "" });
 
     // Crear una nueva fila vacía
     const createEmptyRow = () => {
@@ -334,7 +249,6 @@ export default function OrderGrid({
         }
         setOrderItems(newItems);
         setProductSelected(null);
-        setProductDropdownOpen(false);
     }
 
     // Funciones para búsqueda de productos
@@ -369,7 +283,84 @@ export default function OrderGrid({
 
     // Calcular total del pedido
     const calculateTotal = () => {
-        return orderItems.reduce((total, item) => total + (item.finalPrice || 0), 0)
+        return orderItems.reduce((total, item) => total + (item.adjustedPrice || 0), 0)
+    }
+
+    //Limpiar los datos de la tabla y dejar una fila en blanco
+    const handleCleanTable = () => {
+        setOrderItems([]);
+        setProductSelected(null);
+        setEditingRowIndex(null);
+    }
+
+    //crear un nuevo pedido
+    const handleSubmit = async () => {
+        try {
+            let payload = {
+                clientId: selectedClient._id,
+                itemsQuantity: orderItems.length,
+                totalOrder: calculateTotal(),
+                tax: 0,
+                discount: 0,
+                status: "pendiente",
+                details: orderItems.map((item) => {
+                    return {
+                        matType: item.matType,
+                        materialType: item.materialType,
+                        productId: item.productId,
+                        pieces: item.pieces,
+                        piecesNames: item.selectedPieces.map((p) => {
+                            return typeOfPieces.find((t) => t._id === p)?.name;
+                        }),
+                        priceItem: item.adjustedPrice / item.quantity,
+                        quantityItem: item.quantity,
+                        totalItem: item.adjustedPrice,
+                        observations: item.observations,
+                    }
+                }),
+                createdBy: "66d4ed2f825f2d54204555c1"
+            }
+
+            const validation = validatePayload(payload);
+
+            if (!validation.valid) {
+                setRowError({ rowIndex: validation.rowIndex, message: validation.message });
+
+                if (typeof validation.rowIndex === "number" && rowRefs.current[validation.rowIndex]) {
+                    rowRefs.current[validation.rowIndex].scrollIntoView({ behavior: "smooth", block: "center" });
+                    rowRefs.current[validation.rowIndex].classList.add("border", "border-danger");
+
+                    setTimeout(() => {
+                        rowRefs.current[validation.rowIndex]?.classList.remove("border", "border-danger");
+                    }, 3000);
+                }
+
+                // Auto-limpiar mensaje de error a los 5 segundos
+                setTimeout(() => {
+                    setRowError({ rowIndex: null, message: "" });
+                }, 5000);
+
+                return;
+            }
+
+            setRowError({ rowIndex: null, message: "" }); // ✅ limpiamos errores anteriores
+
+            let response = await fetch(CREATE_PURCHASE_ORDER, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+            if (response && response.status === 201) {
+                let data = await response.json();
+                handleCleanTable();
+                alert(data?.message);
+            }
+        } catch (error) {
+            console.log(error);
+            alert("Ocurrió un error :(, intenta más tarde.");
+        }
     }
 
     return (
@@ -416,7 +407,7 @@ export default function OrderGrid({
                 <ModalBody>
                     <div className="mb-3">
                         <Button color="secondary" outline size="sm" onClick={handleSelectAllPieces} className="w-100">
-                            {selectedPiecesTemp.length === tiposPiezas.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
+                            {selectedPiecesTemp.length === typeOfPieces.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
                         </Button>
                     </div>
                     <ListGroup>
@@ -500,224 +491,233 @@ export default function OrderGrid({
                                 <th style={{ width: "15%" }}>Tipo Tapete</th>
                                 <th style={{ width: "15%" }}>Material</th>
                                 <th style={{ width: "8%" }}>Cantidad</th>
-                               {/*  <th style={{ width: "10%" }}>Precio Base</th> */}
+                                {/*  <th style={{ width: "10%" }}>Precio Base</th> */}
                                 <th style={{ width: "10%" }}>Precio</th>
                                 <th style={{ width: "7%" }}>Acciones</th>
                             </tr>
                         </thead>
-                        <tbody style={{backgroundColor: "#faf9fb"}}>
+                        <tbody style={{ backgroundColor: "#faf9fb" }}>
                             {orderItems.map((item, index) => (
-                                <tr key={index}>
-                                    {/* Producto */}
-                                    <td>
-                                        <div
-                                            className="p-2 cursor-pointer"
-                                            onClick={() => setEditingCell({ row: index, field: "productName" })}
-                                        >
-                                            {editingCell?.row === index && editingCell?.field === "productName" ? (
-                                                <div className="position-relative">
-                                                    <InputGroup>
-                                                        <Input
-                                                            innerRef={inputRef}
-                                                            size={"sm"}
-                                                            type="text"
-                                                            value={productSearchTerm || item.productName}
-                                                            onChange={(e) => setProductSearchTerm(e.target.value)}
-                                                            onFocus={() => {
-                                                                setProductSearchTerm("")
-                                                            }}
-                                                            onBlur={() => {
-                                                                setTimeout(() => {
-                                                                    setEditingCell(null)
+                                <Fragment key={index}>
+                                    <tr key={index} ref={el => rowRefs.current[index] = el}>
+                                        {/* Producto */}
+                                        <td>
+                                            <div
+                                                className="p-2 cursor-pointer"
+                                                onClick={() => setEditingCell({ row: index, field: "productName" })}
+                                            >
+                                                {editingCell?.row === index && editingCell?.field === "productName" ? (
+                                                    <div className="position-relative">
+                                                        <InputGroup>
+                                                            <Input
+                                                                innerRef={inputRef}
+                                                                size={"sm"}
+                                                                type="text"
+                                                                value={productSearchTerm || item.productName}
+                                                                onChange={(e) => setProductSearchTerm(e.target.value)}
+                                                                onFocus={() => {
                                                                     setProductSearchTerm("")
-                                                                }, 200)
-                                                            }}
-                                                            autoFocus
-                                                            autoComplete="off"
-                                                            required
-                                                            placeholder="Buscar producto..."
-                                                            className="form-control"
-                                                        />
-                                                        {(productSearchTerm || item.productName) && (
-                                                            <Button
-                                                                size="sm"
-                                                                color="secondary"
-                                                                onMouseDown={(e) => e.preventDefault()}
-                                                                onClick={() => clearProductSelection(index)}
-                                                            >
-                                                                <X size={8} />
-                                                            </Button>
-                                                        )}
-                                                    </InputGroup>
-
-                                                    {productSearchTerm && inputRef.current && (
-                                                        <DropdownPortal
-                                                            targetRef={inputRef}
-                                                            onClickOutside={() => {
-                                                                setEditingCell(null);
-                                                                setProductSearchTerm("");
-                                                            }}
-                                                        >
-                                                            {filteredProducts.map((product, idx) => (
-                                                                <div
-                                                                    key={idx}
-                                                                    className="p-2 border-bottom"
-                                                                    onClick={() => {
-                                                                        updateCellValue(index, "productName", product?.name, product);
-                                                                        setProductSearchTerm("");
-                                                                        setEditingCell(null);
-                                                                        setProductSelected(product);
-                                                                    }}
-                                                                    style={{ cursor: "pointer" }}
+                                                                }}
+                                                                onBlur={() => {
+                                                                    setTimeout(() => {
+                                                                        setEditingCell(null)
+                                                                        setProductSearchTerm("")
+                                                                    }, 200)
+                                                                }}
+                                                                autoFocus
+                                                                autoComplete="off"
+                                                                required
+                                                                placeholder="Buscar producto..."
+                                                                className="form-control"
+                                                            />
+                                                            {(productSearchTerm || item.productName) && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    color="secondary"
+                                                                    onMouseDown={(e) => e.preventDefault()}
+                                                                    onClick={() => clearProductSelection(index)}
                                                                 >
-                                                                    {product?.name}
-                                                                </div>
-                                                            ))}
-                                                        </DropdownPortal>
-                                                    )}
-                                                </div>
-                                            ) : (
-                                                item.productName || <span className="text-muted">Seleccionar producto</span>
-                                            )}
-                                        </div>
-                                    </td>
+                                                                    <X size={8} />
+                                                                </Button>
+                                                            )}
+                                                        </InputGroup>
 
-                                    {/* Piezas */}
-                                    <td>
-                                        <div
-                                            className="p-2 cursor-pointer d-flex justify-content-between align-items-center"
-                                            onClick={() => openPiecesModal(index)}
-                                            style={{ cursor: "pointer" }}
-                                        >
-                                            <span>{item.pieces}</span>
-                                            <Button color="link" size="sm" className="p-0">
-                                                <Edit2 size={14} />
-                                            </Button>
-                                        </div>
-                                        <small className="text-muted d-block" style={{ fontSize: "0.75rem" }}>
-                                            {getSelectedPiecesText(item.selectedPieces)}
-                                        </small>
-                                    </td>
+                                                        {productSearchTerm && inputRef.current && (
+                                                            <DropdownPortal
+                                                                targetRef={inputRef}
+                                                                onClickOutside={() => {
+                                                                    setEditingCell(null);
+                                                                    setProductSearchTerm("");
+                                                                }}
+                                                            >
+                                                                {filteredProducts.map((product, idx) => (
+                                                                    <div
+                                                                        key={idx}
+                                                                        className="p-2 border-bottom"
+                                                                        onClick={() => {
+                                                                            updateCellValue(index, "productName", product?.name, product);
+                                                                            setProductSearchTerm("");
+                                                                            setEditingCell(null);
+                                                                            setProductSelected(product);
+                                                                        }}
+                                                                        style={{ cursor: "pointer" }}
+                                                                    >
+                                                                        {product?.name}
+                                                                    </div>
+                                                                ))}
+                                                            </DropdownPortal>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    item.productName || <span className="text-muted">Seleccionar producto</span>
+                                                )}
+                                            </div>
+                                        </td>
 
-                                    {/* Tipo Tapete */}
-                                    <td>
-                                        <div
-                                            className="p-2"
-                                            onClick={() => setEditingCell({ row: index, field: "matType" })}
-                                            style={{ cursor: "pointer" }}
-                                        >
-                                            {editingCell?.row === index && editingCell?.field === "matType" ? (
-                                                <Input
-                                                    type="select"
-                                                    value={item.matType}
-                                                    onChange={(e) => {
-                                                        updateCellValue(index, "matType", e.target.value)
-                                                        setEditingCell(null)
-                                                    }}
-                                                    onBlur={() => setEditingCell(null)}
-                                                    autoFocus
-                                                >
-                                                    <option value="0">Selecciona una opción</option>
-                                                    {matTypeOptions.map((mat, idx) => (
-                                                        <option key={idx} value={mat}>
-                                                            {mat}
-                                                        </option>
-                                                    ))}
-                                                </Input>
+                                        {/* Piezas */}
+                                        <td>
+                                            <div
+                                                className="p-2 cursor-pointer d-flex justify-content-between align-items-center"
+                                                onClick={() => openPiecesModal(index)}
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                <span>{item.pieces}</span>
+                                                <Button color="link" size="sm" className="p-0">
+                                                    <Edit2 size={14} />
+                                                </Button>
+                                            </div>
+                                            <small className="text-muted d-block" style={{ fontSize: "0.75rem" }}>
+                                                {getSelectedPiecesText(item.selectedPieces)}
+                                            </small>
+                                        </td>
 
-                                            ) : (
-                                                item.matType
-                                            )}
-                                        </div>
-                                    </td>
+                                        {/* Tipo Tapete */}
+                                        <td>
+                                            <div
+                                                className="p-2"
+                                                onClick={() => setEditingCell({ row: index, field: "matType" })}
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                {editingCell?.row === index && editingCell?.field === "matType" ? (
+                                                    <Input
+                                                        type="select"
+                                                        value={item.matType}
+                                                        onChange={(e) => {
+                                                            updateCellValue(index, "matType", e.target.value)
+                                                            setEditingCell(null)
+                                                        }}
+                                                        onBlur={() => setEditingCell(null)}
+                                                        autoFocus
+                                                    >
+                                                        <option value="0">Selecciona una opción</option>
+                                                        {matTypeOptions.map((mat, idx) => (
+                                                            <option key={idx} value={mat}>
+                                                                {mat}
+                                                            </option>
+                                                        ))}
+                                                    </Input>
 
-                                    {/* Material */}
-                                    <td>
-                                        <div
-                                            className="p-2"
-                                            onClick={() => setEditingCell({ row: index, field: "materialType" })}
-                                            style={{ cursor: "pointer" }}
-                                        >
-                                            {editingCell?.row === index && editingCell?.field === "materialType" ? (
-                                                <Input
-                                                    type="select"
-                                                    value={item.materialType}
-                                                    onChange={(e) => {
-                                                        updateCellValue(index, "materialType", e.target.value)
-                                                        setEditingCell(null)
-                                                    }}
-                                                    onBlur={() => setEditingCell(null)}
-                                                    autoFocus
-                                                >
-                                                    <option value="0">Selecciona una opción</option>
-                                                    {materialTypeOptions.map((matType, index) => (
-                                                        <option key={index} value={matType}>
-                                                            {matType}
-                                                        </option>
-                                                    ))}
-                                                </Input>
-                                            ) : (
-                                                item.materialType
-                                            )}
-                                        </div>
-                                    </td>
+                                                ) : (
+                                                    item.matType
+                                                )}
+                                            </div>
+                                        </td>
 
-                                    {/* Cantidad */}
-                                    <td>
-                                        <div
-                                            className="p-2"
-                                            onClick={() => setEditingCell({ row: index, field: "quantity" })}
-                                            style={{ cursor: "pointer" }}
-                                        >
-                                            {editingCell?.row === index && editingCell?.field === "quantity" ? (
-                                                <Input
-                                                    type="number"
-                                                    min="1"
-                                                    value={item.quantity}
-                                                    onChange={(e) => {
-                                                        updateCellValue(index, "quantity", Number.parseInt(e.target.value) || 1)
-                                                    }}
-                                                    onBlur={() => setEditingCell(null)}
-                                                    autoFocus
-                                                />
-                                            ) : (
-                                                item.quantity
-                                            )}
-                                        </div>
-                                    </td>
+                                        {/* Material */}
+                                        <td>
+                                            <div
+                                                className="p-2"
+                                                onClick={() => setEditingCell({ row: index, field: "materialType" })}
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                {editingCell?.row === index && editingCell?.field === "materialType" ? (
+                                                    <Input
+                                                        type="select"
+                                                        value={item.materialType}
+                                                        onChange={(e) => {
+                                                            updateCellValue(index, "materialType", e.target.value)
+                                                            setEditingCell(null)
+                                                        }}
+                                                        onBlur={() => setEditingCell(null)}
+                                                        autoFocus
+                                                    >
+                                                        <option value="0">Selecciona una opción</option>
+                                                        {materialTypeOptions.map((matType, index) => (
+                                                            <option key={index} value={matType}>
+                                                                {matType}
+                                                            </option>
+                                                        ))}
+                                                    </Input>
+                                                ) : (
+                                                    item.materialType
+                                                )}
+                                            </div>
+                                        </td>
 
-                                    {/* Precio Base */}
-                                 {/*    <td className="text-end">
+                                        {/* Cantidad */}
+                                        <td>
+                                            <div
+                                                className="p-2"
+                                                onClick={() => setEditingCell({ row: index, field: "quantity" })}
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                {editingCell?.row === index && editingCell?.field === "quantity" ? (
+                                                    <Input
+                                                        type="number"
+                                                        min="1"
+                                                        value={item.quantity}
+                                                        onChange={(e) => {
+                                                            updateCellValue(index, "quantity", Number.parseInt(e.target.value) || 1)
+                                                        }}
+                                                        onBlur={() => setEditingCell(null)}
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    item.quantity
+                                                )}
+                                            </div>
+                                        </td>
+
+                                        {/* Precio Base */}
+                                        {/*    <td className="text-end">
                                         <div className="p-2">${item.basePrice?.toLocaleString()}</div>
                                     </td>
  */}
-                                    {/* Precio ajustado */}
-                                    <td className="text-end">
-                                        <div className="p-2 fw-bold">${item.adjustedPrice?.toLocaleString()}</div>
-                                    </td>
+                                        {/* Precio ajustado */}
+                                        <td className="text-end">
+                                            <div className="p-2 fw-bold">${item.adjustedPrice?.toLocaleString()}</div>
+                                        </td>
 
-                                    {/* Acciones */}
-                                    <td>
-                                        <div className="d-flex justify-content-center gap-1">
-                                            <Button
-                                                color="link"
-                                                className="p-1 text-primary"
-                                                onClick={() => openObservationsModal(index)}
-                                                title="Observaciones"
-                                            >
-                                                <Edit2 size={16} />
-                                            </Button>
-                                            <Button
-                                                color="link"
-                                                className="p-1 text-danger"
-                                                onClick={() => removeRow(index)}
-                                                title="Eliminar"
-                                            >
-                                                <Trash2 size={16} />
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        {/* Acciones */}
+                                        <td>
+                                            <div className="d-flex justify-content-center gap-1">
+                                                <Button
+                                                    color="link"
+                                                    className="p-1 text-primary"
+                                                    onClick={() => openObservationsModal(index)}
+                                                    title="Observaciones"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </Button>
+                                                <Button
+                                                    color="link"
+                                                    className="p-1 text-danger"
+                                                    onClick={() => removeRow(index)}
+                                                    title="Eliminar"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {rowError.rowIndex === index && (
+                                        <tr>
+                                            <td colSpan={10} className="text-danger p-2 bg-light border-bottom">
+                                                <div className="inline-error">{rowError.message}</div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </Fragment>
                             ))}
                         </tbody>
                     </Table>
@@ -745,7 +745,11 @@ export default function OrderGrid({
                             {selectedClient.company && <span className="ms-2 text-muted">({selectedClient.company})</span>}
                         </div>
 
-                        <Button color="success" className="d-flex align-items-center gap-2">
+                        <Button
+                            color="success"
+                            className="d-flex align-items-center gap-2"
+                            onClick={handleSubmit}
+                        >
                             <Save size={18} />
                             Finalizar Pedido
                         </Button>

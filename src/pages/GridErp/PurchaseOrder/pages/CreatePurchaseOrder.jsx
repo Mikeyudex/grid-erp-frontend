@@ -109,13 +109,11 @@ export default function PurchaseOrderPage() {
         handleGetMatMaterialPrices()
             .then(async (data) => {
                 //mapear los objetos que sean diferentes
-
                 let matTypeOptions = obtenerAtributosUnicos(data, "tipo_tapete");
                 let materialTypeOptions = obtenerAtributosUnicos(data, "tipo_material");
                 setMatTypeOptions(matTypeOptions);
                 setMaterialTypeOptions(materialTypeOptions);
                 let transformedData = transformarDatos(data);
-                console.log(transformedData);
                 setMatMaterialPrices(transformedData);
             })
             .catch(e => console.log(e))
