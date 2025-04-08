@@ -47,7 +47,7 @@ export class ProductHelper {
 
     getMatMaterialPrices = () => api.get(`${url.GET_MAT_MATERIAL_PRICES}`);
 
-    calcularPrecioFinalProducto = (productId, tipoTapete, material, cantidad) => api.get(`${url.CALCULATE_FINAL_PRICE}/${productId}/${tipoTapete}/${material}/${cantidad}`);
+    calcularPrecioFinalProducto = (productId, tipoTapete, material, cantidad, typeCustomerId) => api.get(`${url.CALCULATE_FINAL_PRICE}/${productId}/${tipoTapete}/${material}/${cantidad}/${typeCustomerId}`);
 
     validateForm = (setErrors, formData) => {
         const newErrors = {};

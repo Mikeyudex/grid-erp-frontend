@@ -16,6 +16,7 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
         description: '',
         shortCode: '',
         active: true,
+        percentDiscount: 0,
     });
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -34,6 +35,7 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
             description: '',
             shortCode: '',
             active: true,
+            percentDiscount: 0,
         });
         setErrors({});
     }
@@ -84,7 +86,9 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
         if (!formData.active) {
             errors.active = 'Requerido';
         }
-
+        if (formData.percentDiscount < 0 || formData.percentDiscount > 100) {
+            errors.percentDiscount = 'Debe ser un valor entre 0 y 100';
+        }
         setErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -93,11 +97,11 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
     return (
         <Modal
             isOpen={isOpen}
-            toggle={closeModal}
+            toggle={handleCloseModal}
             className={"modal-dialog-centered"}
             size='lg'
         >
-            <ModalHeader toggle={closeModal}>{'Crear nuevo tipo de cliente'}</ModalHeader>
+            <ModalHeader toggle={handleCloseModal}>{'Crear nuevo tipo de cliente'}</ModalHeader>
             <ModalBody>
                 {"Ingresa los datos del nuevo tipo de cliente"}
 
@@ -152,6 +156,23 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
                                 required={true}
                             />
                             {errors.shortCode && (<span className="form-product-input-error">{errors.shortCode}</span>)}
+                        </div>
+                    </div>
+
+                    <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
+                        <div style={styles.formGroup}>
+                            <label className='form-label' htmlFor="quantity">% Descuento:</label>
+                            <input
+                                name={'percentDiscount'}
+                                onChange={handleInputChange}
+                                placeholder={'Porcentaje de descuento'}
+                                value={formData.percentDiscount}
+                                type={"number"}
+                                className={"input-box"}
+                                id={'percentDiscount'}
+                                required={true}
+                            />
+                            {errors.percentDiscount && (<span className="form-product-input-error">{errors.percentDiscount}</span>)}
                         </div>
                     </div>
 

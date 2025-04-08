@@ -80,13 +80,13 @@ export const ListTypeCustomersView = (props) => {
                 },
             },
             {
-                header: "Short Code",
-                accessorKey: "shortCode",
+                header: "% Descuento",
+                accessorKey: "percentDiscount",
                 enableColumnFilter: true,
                 enableEditing: false,
                 size: 40,
                 Cell: ({ cell }) => {
-                    return (<h6>{cell.row.original.shortCode}</h6>)
+                    return (<h6>{cell.row.original.percentDiscount ?? 0}</h6>)
                 },
             },
             {

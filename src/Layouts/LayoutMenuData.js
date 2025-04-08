@@ -197,24 +197,6 @@ const Navdata = () => {
           link: "/customers-types-list",
           parentId: "customers",
         },
-        {
-          id: "customer-orders",
-          label: "Pedidos",
-          link: "/customer-orders",
-          parentId: "customers",
-        },
-        {
-          id: "customer-invoices",
-          label: "Facturas",
-          link: "/customer-invoices",
-          parentId: "customers",
-        },
-        {
-          id: "customer-shipments",
-          label: "Envíos",
-          link: "/customer-shipments",
-          parentId: "customers",
-        },
       ],
     },
     {

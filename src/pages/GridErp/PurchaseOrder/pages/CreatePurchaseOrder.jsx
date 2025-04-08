@@ -35,7 +35,7 @@ export default function PurchaseOrderPage() {
 
     const handleGetClients = async () => {
         try {
-            let response = await productHelper.getClients(0, 100, ["_id", "name", "lastname", "commercialName", "email"]);
+            let response = await productHelper.getClients(0, 100, ["_id", "name", "lastname", "commercialName", "email", "typeCustomerId"]);
             return response.data;
         } catch (error) {
             console.log(error);
@@ -91,7 +91,7 @@ export default function PurchaseOrderPage() {
         handleGetClients()
             .then(async (data) => {
                 let clients = (data || [])
-                    .map((c) => ({ ...c, id: c._id, name: `${c.name} ${c.lastname}`, company: c.commercialName }));
+                    .map((c) => ({ ...c, id: c._id, name: `${c.name} ${c.lastname}`, company: c.commercialName, typeCustomerId: c.typeCustomerId }));
                 setClients(clients);
             })
             .catch(e => console.log(e))

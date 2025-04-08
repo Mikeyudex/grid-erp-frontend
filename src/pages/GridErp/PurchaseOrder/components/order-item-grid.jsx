@@ -15,9 +15,12 @@ import {
     ListGroup,
     ListGroupItem,
     Alert,
-} from "reactstrap"
-import { PlusCircle, Trash2, Edit2, User, Search, Check, Save, X } from "lucide-react"
-import { ProductHelper } from "../../Products/helper/product_helper"
+    Label,
+    FormGroup,
+} from "reactstrap";
+import { useSnackbar } from 'react-simple-snackbar';
+import { PlusCircle, Trash2, Edit2, User, Search, Check, Save, X, CheckSquare, Square, Edit } from "lucide-react"
+import { optionsSnackbarDanger, optionsSnackbarSuccess, ProductHelper } from "../../Products/helper/product_helper"
 import DropdownPortal from "./DropdownPortal"
 import { CREATE_PURCHASE_ORDER } from "../../Products/helper/url_helper"
 import { validatePayload } from "../utils/purchase-order.utils";
@@ -58,6 +61,17 @@ export default function OrderGrid({
     const rowRefs = useRef([]);
     const [rowError, setRowError] = useState({ rowIndex: null, message: "" });
 
+    // Estados para selección de filas
+    const [selectedRows, setSelectedRows] = useState([])
+    const [bulkEditModalOpen, setBulkEditModalOpen] = useState(false)
+    const [bulkEditData, setBulkEditData] = useState({
+        matType: "",
+        materialType: "",
+    });
+
+    const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
+    const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
+
     // Crear una nueva fila vacía
     const createEmptyRow = () => {
         return {
@@ -89,15 +103,22 @@ export default function OrderGrid({
     const removeRow = (index) => {
         const newItems = [...orderItems]
         newItems.splice(index, 1)
-        setOrderItems(newItems)
+        setOrderItems(newItems);
+
+        // Actualizar selección de filas
+        setSelectedRows(
+            selectedRows
+                .filter((rowIndex) => rowIndex !== index)
+                .map((rowIndex) => (rowIndex > index ? rowIndex - 1 : rowIndex)),
+        )
     }
 
-    const handleGetAdjustedPrice = async (productId, matType, materialType, quantity) => {
+    const handleGetAdjustedPrice = async (productId, matType, materialType, quantity, typeCustomerId) => {
         try {
-            if (!productId || !matType || !materialType || !quantity) {
+            if (!productId || !matType || !materialType || !quantity || !typeCustomerId) {
                 return 0;
             }
-            const response = await productHelper.calcularPrecioFinalProducto(productId, matType, materialType, quantity);
+            const response = await productHelper.calcularPrecioFinalProducto(productId, matType, materialType, quantity, typeCustomerId);
             if (response?.statusCode === 200) {
                 return response.data?.precioFinal || 0;
             }
@@ -129,7 +150,7 @@ export default function OrderGrid({
         if (field === "matType" || field === "materialType" || field === "quantity") {
             const item = newItems[rowIndex]
 
-            handleGetAdjustedPrice(productSelected?.id, item.matType, item.materialType, item.quantity)
+            handleGetAdjustedPrice(productSelected?.id, item.matType, item.materialType, item.quantity, selectedClient?.typeCustomerId)
                 .then(data => {
                     let adjustedPrice = data;
                     let finalPrice = adjustedPrice * item.quantity;
@@ -284,6 +305,79 @@ export default function OrderGrid({
     // Calcular total del pedido
     const calculateTotal = () => {
         return orderItems.reduce((total, item) => total + (item.adjustedPrice || 0), 0)
+    };
+
+    // Funciones para selección de filas
+    const toggleRowSelection = (index) => {
+        if (selectedRows.includes(index)) {
+            setSelectedRows(selectedRows.filter((rowIndex) => rowIndex !== index))
+        } else {
+            setSelectedRows([...selectedRows, index])
+        }
+    }
+
+    const toggleSelectAllRows = () => {
+        if (selectedRows.length === orderItems.length) {
+            setSelectedRows([])
+        } else {
+            setSelectedRows(orderItems.map((_, index) => index))
+        }
+    }
+
+    const openBulkEditModal = () => {
+        setBulkEditData({
+            matType: "",
+            materialType: "",
+        })
+        setBulkEditModalOpen(true)
+    }
+
+    const handleBulkEditChange = (field, value) => {
+        setBulkEditData({
+            ...bulkEditData,
+            [field]: value,
+        })
+    }
+
+    const applyBulkEdit = () => {
+        const newItems = [...orderItems]
+
+        selectedRows.forEach((rowIndex) => {
+            if (bulkEditData.matType) {
+                newItems[rowIndex].matType = bulkEditData.matType
+            }
+
+            if (bulkEditData.materialType) {
+                newItems[rowIndex].materialType = bulkEditData.materialType
+            }
+
+            // Recalcular precio base y final
+            if (bulkEditData.matType || bulkEditData.materialType) {
+                /* const basePrice = pricingData[newItems[rowIndex].matType]?.[newItems[rowIndex].materialType] || 0
+                const finalPrice = basePrice * newItems[rowIndex].quantity
+
+                newItems[rowIndex].basePrice = basePrice
+                newItems[rowIndex].finalPrice = finalPrice */
+
+                handleGetAdjustedPrice(
+                    newItems[rowIndex].productId,
+                    newItems[rowIndex].matType,
+                    newItems[rowIndex].materialType,
+                    newItems[rowIndex].quantity,
+                    selectedClient?.typeCustomerId
+                )
+                    .then(data => {
+                        let adjustedPrice = data;
+                        let finalPrice = adjustedPrice * newItems[rowIndex].quantity;
+                        newItems[rowIndex].adjustedPrice = adjustedPrice
+                        newItems[rowIndex].finalPrice = finalPrice
+
+                        setOrderItems(newItems);
+                        setBulkEditModalOpen(false)
+                    });
+            }
+        })
+
     }
 
     //Limpiar los datos de la tabla y dejar una fila en blanco
@@ -343,7 +437,7 @@ export default function OrderGrid({
                 return;
             }
 
-            setRowError({ rowIndex: null, message: "" }); // ✅ limpiamos errores anteriores
+            setRowError({ rowIndex: null, message: "" }); // limpiar errores anteriores
 
             let response = await fetch(CREATE_PURCHASE_ORDER, {
                 method: "POST",
@@ -355,11 +449,11 @@ export default function OrderGrid({
             if (response && response.status === 201) {
                 let data = await response.json();
                 handleCleanTable();
-                alert(data?.message);
+                openSnackbarSuccess(data?.message)
             }
         } catch (error) {
             console.log(error);
-            alert("Ocurrió un error :(, intenta más tarde.");
+            openSnackbarDanger('Ocurrió un error :(, intenta más tarde.');
         }
     }
 
@@ -462,6 +556,62 @@ export default function OrderGrid({
                 </ModalFooter>
             </Modal>
 
+            {/* Modal de Edición Masiva */}
+            <Modal isOpen={bulkEditModalOpen} toggle={() => setBulkEditModalOpen(false)}>
+                <ModalHeader toggle={() => setBulkEditModalOpen(false)}>
+                    Editar {selectedRows.length} productos seleccionados
+                </ModalHeader>
+                <ModalBody>
+                    <FormGroup>
+                        <Label for="bulkMatType" className="fw-medium">
+                            Tipo de Tapete
+                        </Label>
+                        <Input
+                            type="select"
+                            id="bulkMatType"
+                            value={bulkEditData.matType}
+                            onChange={(e) => handleBulkEditChange("matType", e.target.value)}
+                        >
+                            <option value="">-- Sin cambios --</option>
+                            {matTypeOptions.map((mat, idx) => (
+                                <option key={idx} value={mat}>
+                                    {mat}
+                                </option>
+                            ))}
+                        </Input>
+                        <FormText>Deje en blanco para mantener los valores actuales.</FormText>
+                    </FormGroup>
+
+                    <FormGroup>
+                        <Label for="bulkMaterialType" className="fw-medium">
+                            Tipo de Material
+                        </Label>
+                        <Input
+                            type="select"
+                            id="bulkMaterialType"
+                            value={bulkEditData.materialType}
+                            onChange={(e) => handleBulkEditChange("materialType", e.target.value)}
+                        >
+                            <option value="">-- Sin cambios --</option>
+                            {materialTypeOptions.map((matType, idx) => (
+                                <option key={idx} value={matType}>
+                                    {matType}
+                                </option>
+                            ))}
+                        </Input>
+                        <FormText>Deje en blanco para mantener los valores actuales.</FormText>
+                    </FormGroup>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setBulkEditModalOpen(false)}>
+                        Cancelar
+                    </Button>
+                    <Button color="primary" onClick={applyBulkEdit}>
+                        Aplicar Cambios
+                    </Button>
+                </ModalFooter>
+            </Modal>
+
             {/* Botones de Acción */}
             <div className="d-flex gap-2 mb-4">
                 <Button color="secondary" onClick={toggleClientModal} className="d-flex align-items-center gap-2">
@@ -478,6 +628,13 @@ export default function OrderGrid({
                     <PlusCircle size={18} />
                     Añadir Producto
                 </Button>
+
+                {selectedRows.length > 0 && (
+                    <Button color="info" onClick={openBulkEditModal} className="d-flex align-items-center gap-2 ms-auto">
+                        <Edit size={18} />
+                        Editar {selectedRows.length} seleccionados
+                    </Button>
+                )}
             </div>
 
             {/* Tabla de Productos */}
@@ -486,6 +643,19 @@ export default function OrderGrid({
                     <Table bordered hover>
                         <thead>
                             <tr className="text-center bg-light">
+                                <th style={{ width: "40px" }}>
+                                    <div
+                                        onClick={toggleSelectAllRows}
+                                        style={{ cursor: "pointer" }}
+                                        className="d-flex justify-content-center"
+                                    >
+                                        {selectedRows.length === orderItems.length && orderItems.length > 0 ? (
+                                            <CheckSquare size={18} />
+                                        ) : (
+                                            <Square size={18} />
+                                        )}
+                                    </div>
+                                </th>
                                 <th style={{ width: "25%" }}>Producto</th>
                                 <th style={{ width: "20%" }}>Piezas</th>
                                 <th style={{ width: "15%" }}>Tipo Tapete</th>
@@ -499,7 +669,20 @@ export default function OrderGrid({
                         <tbody style={{ backgroundColor: "#faf9fb" }}>
                             {orderItems.map((item, index) => (
                                 <Fragment key={index}>
-                                    <tr key={index} ref={el => rowRefs.current[index] = el}>
+                                    <tr
+                                        key={index}
+                                        ref={el => rowRefs.current[index] = el}
+                                        className={selectedRows.includes(index) ? "bg-light" : ""}>
+                                        {/* Checkbox de selección */}
+                                        <td className="text-center align-middle">
+                                            <div
+                                                onClick={() => toggleRowSelection(index)}
+                                                style={{ cursor: "pointer" }}
+                                                className="d-flex justify-content-center"
+                                            >
+                                                {selectedRows.includes(index) ? <CheckSquare size={18} /> : <Square size={18} />}
+                                            </div>
+                                        </td>
                                         {/* Producto */}
                                         <td>
                                             <div
