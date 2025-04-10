@@ -15,7 +15,7 @@ import {
     ListGroupItem,
 } from "reactstrap"
 import { ArrowLeft, Printer, FileText, Edit, Clock } from "lucide-react";
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { ProductHelper } from "../../Products/helper/product_helper";
 import { ToastContainer } from "react-toastify";
 import BreadCrumb from "../../Products/components/BreadCrumb";
@@ -118,6 +118,7 @@ const helper = new ProductHelper();
 
 export default function ViewDetailPurchaseOrder() {
 
+    const navigate = useNavigate()
     const [pedido, setPedido] = useState(null)
     const [loading, setLoading] = useState(true)
     let { id } = useParams();
@@ -128,8 +129,8 @@ export default function ViewDetailPurchaseOrder() {
         helper.getPurchaseOrderById(id)
             .then(async (response) => {
                 let data = response.data;
-                console.log(data);
                 let mappingData = {
+                    orderNumber: data?.orderNumber,
                     id: data._id,
                     fecha: new Date(data?.createdAt).toLocaleDateString("es-ES"),
                     estado: data?.status,
@@ -152,15 +153,21 @@ export default function ViewDetailPurchaseOrder() {
                             quantity: item?.quantityItem,
                             basePrice: item?.priceItem,
                             observations: item?.observations,
-                            finalPrice: item?.priceItem,
+                            finalPrice: item?.priceItem * item?.quantityItem,
                             totalItem: item?.totalItem,
                         }
                     }),
                     subtotal: data?.totalOrder,
                     impuestos: data?.tax,
                     total: data?.totalOrder,
-                    historial: [],
-                    fechaEntrega: new Date(data?.createdAt).toLocaleDateString("es-ES"),
+                    historial: data?.history.map((item) => {
+                        return {
+                            fecha: new Date(item?.createdAt).toLocaleDateString("es-ES"),
+                            accion: item?.action,
+                            usuario: item?.userName,
+                        }
+                    }),
+                    fechaEntrega: new Date(data?.deliveryDate),
                 }
                 if (mappingData) {
                     setPedido(mappingData);
@@ -174,7 +181,7 @@ export default function ViewDetailPurchaseOrder() {
     }, [id]);
 
     const handleVolver = () => {
-        window.location.href = "/purchase-orders"
+        return navigate("/purchase-orders")
     }
 
     const handleImprimir = () => {
@@ -291,7 +298,7 @@ export default function ViewDetailPurchaseOrder() {
                                         <ArrowLeft size={18} />
                                     </Button>
                                     <div>
-                                        <h1 className="mb-0">Pedido #{pedido.id}</h1>
+                                        <h1 className="mb-0">Pedido #{pedido.orderNumber}</h1>
                                         <div className="text-muted">
                                             Creado el {formatDate(pedido.fecha)} ·
                                             <Badge color={getEstadoBadgeColor(pedido.estado)} className="ms-2">
@@ -314,8 +321,8 @@ export default function ViewDetailPurchaseOrder() {
                                 {/* Información del Cliente y Detalles del Pedido */}
                                 <Col md={4} className="mb-4">
                                     <Card className="shadow-sm h-100">
-                                        <CardHeader className="bg-light">
-                                            <h5 className="mb-0">Información del Cliente</h5>
+                                        <CardHeader style={{backgroundColor: "#1b3460"}}>
+                                            <h5 className="mb-0" style={{color: "white"}}>Información del Cliente</h5>
                                         </CardHeader>
                                         <CardBody>
                                             <h6 className="fw-bold">{pedido.cliente.nombre}</h6>
@@ -335,8 +342,8 @@ export default function ViewDetailPurchaseOrder() {
 
                                 <Col md={4} className="mb-4">
                                     <Card className="shadow-sm h-100">
-                                        <CardHeader className="bg-light">
-                                            <h5 className="mb-0">Detalles del Pedido</h5>
+                                        <CardHeader style={{backgroundColor: "#1b3460"}}>
+                                            <h5 className="mb-0" style={{color: "white"}}>Detalles del Pedido</h5>
                                         </CardHeader>
                                         <CardBody>
                                             <p className="mb-1">
@@ -368,8 +375,8 @@ export default function ViewDetailPurchaseOrder() {
 
                                 <Col md={4} className="mb-4">
                                     <Card className="shadow-sm h-100">
-                                        <CardHeader className="bg-light">
-                                            <h5 className="mb-0">Historial del Pedido</h5>
+                                        <CardHeader style={{backgroundColor: "#1b3460"}}>
+                                            <h5 className="mb-0" style={{color: "white"}}>Historial del Pedido</h5>
                                         </CardHeader>
                                         <CardBody className="p-0">
                                             <ListGroup flush>
@@ -396,8 +403,8 @@ export default function ViewDetailPurchaseOrder() {
 
                             {/* Productos del Pedido */}
                             <Card className="shadow-sm mb-4">
-                                <CardHeader className="bg-light">
-                                    <h5 className="mb-0">Productos ({pedido.productos.length})</h5>
+                                <CardHeader style={{backgroundColor: "#1b3460"}}>
+                                    <h5 className="mb-0" style={{color: "white"}}>Productos ({pedido.productos.length})</h5>
                                 </CardHeader>
                                 <div className="table-responsive">
                                     <Table hover className="mb-0">

@@ -351,13 +351,21 @@ export default function OrderGrid({
                 newItems[rowIndex].materialType = bulkEditData.materialType
             }
 
-            // Recalcular precio base y final
-            if (bulkEditData.matType || bulkEditData.materialType) {
-                /* const basePrice = pricingData[newItems[rowIndex].matType]?.[newItems[rowIndex].materialType] || 0
-                const finalPrice = basePrice * newItems[rowIndex].quantity
+            if (bulkEditData.quantity) {
+                newItems[rowIndex].quantity = bulkEditData.quantity
+            }
 
-                newItems[rowIndex].basePrice = basePrice
-                newItems[rowIndex].finalPrice = finalPrice */
+            // Recalcular precio base y final
+            if (bulkEditData.matType || bulkEditData.materialType || bulkEditData.quantity) {
+
+                if (newItems[rowIndex].matType == "" ||
+                    newItems[rowIndex].matType == "Selecciona una opción" ||
+                    newItems[rowIndex].materialType == "" ||
+                    newItems[rowIndex].materialType == "Selecciona una opción" ||
+                    newItems[rowIndex].quantity == 0) {
+                    setBulkEditModalOpen(false);
+                    return;
+                }
 
                 handleGetAdjustedPrice(
                     newItems[rowIndex].productId,
@@ -368,12 +376,10 @@ export default function OrderGrid({
                 )
                     .then(data => {
                         let adjustedPrice = data;
-                        let finalPrice = adjustedPrice * newItems[rowIndex].quantity;
-                        newItems[rowIndex].adjustedPrice = adjustedPrice
-                        newItems[rowIndex].finalPrice = finalPrice
-
+                        newItems[rowIndex].adjustedPrice = adjustedPrice;
+                        newItems[rowIndex].finalPrice = adjustedPrice;
                         setOrderItems(newItems);
-                        setBulkEditModalOpen(false)
+                        setBulkEditModalOpen(false);
                     });
             }
         })
@@ -449,7 +455,9 @@ export default function OrderGrid({
             if (response && response.status === 201) {
                 let data = await response.json();
                 handleCleanTable();
-                openSnackbarSuccess(data?.message)
+                openSnackbarSuccess(data?.message);
+                setSelectedRows([]);
+                setEditingRowIndex(null);
             }
         } catch (error) {
             console.log(error);
@@ -601,6 +609,23 @@ export default function OrderGrid({
                         </Input>
                         <FormText>Deje en blanco para mantener los valores actuales.</FormText>
                     </FormGroup>
+
+                    <FormGroup>
+                        <Label for="bulkQuantity" className="fw-medium">
+                            Cantidad
+                        </Label>
+                        <Input
+                            id="bulkQuantity"
+                            type="number"
+                            min="1"
+                            value={bulkEditData.quantity}
+                            onChange={(e) => handleBulkEditChange("quantity", e.target.value)}
+                            autoFocus
+                        />
+                        <FormText>Deje en blanco para mantener los valores actuales.</FormText>
+                    </FormGroup>
+
+
                 </ModalBody>
                 <ModalFooter>
                     <Button color="secondary" onClick={() => setBulkEditModalOpen(false)}>

@@ -80,8 +80,8 @@ const authProtectedRoutes = [
 
 const publicRoutes = [
     // Authentication Page
-    { path: "/logout", component: <Logout /> },
-    { path: "/login", component: <Login /> }]
+    { path: "/logout", component: <h1>Logout</h1> },
+    { path: "/login", component: <h1>Login</h1> },]
 
 
 export { authProtectedRoutes, publicRoutes };
