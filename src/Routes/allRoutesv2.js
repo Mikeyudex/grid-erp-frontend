@@ -3,9 +3,6 @@ import { Navigate } from "react-router-dom";
 import DashboardEcommerce from "../pages/DashboardEcommerce";
 import { ImportProductState } from '../pages/GridErp/Products/context/imports/importProductState';
 
-//login
-import Login from "../pages/Authentication/Login";
-import Logout from "../pages/Authentication/Logout";
 import { ListProducts } from "../pages/GridErp/Products/pages/ListProducts";
 import LayoutCreateProduct from "../pages/GridErp/Products/components/LayoutCreateProduct";
 import { SuccessProductCreateView } from "../pages/GridErp/Products/components/SuccessProductCreateView";
