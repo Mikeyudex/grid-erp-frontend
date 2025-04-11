@@ -13,6 +13,7 @@ import OrderGrid from "../components/order-item-grid"
 const productHelper = new ProductHelper();
 
 export default function PurchaseOrderPage() {
+    document.title = "Crear pedido | Quality";
     const [orderItems, setOrderItems] = useState([]);
     const [selectedClient, setSelectedClient] = useState(null);
     const [products, setProducts] = useState([]);

@@ -9,7 +9,8 @@ import VerticalLayout from "../Layouts/index";
 import { authProtectedRoutes, publicRoutes } from "./allRoutesv2";
 import { AuthProtected } from './AuthProtected';
 import { CustomerState } from '../pages/GridErp/Customers/context/customerState';
-import {PurchaseOrderState} from '../pages/GridErp/PurchaseOrder/context/purchaseOrderState';
+import { PurchaseOrderState } from '../pages/GridErp/PurchaseOrder/context/purchaseOrderState';
+import { MatMaterialPriceState } from '../pages/GridErp/MatMaterialPrice/context/State';
 
 
 const Index = () => {
@@ -17,36 +18,38 @@ const Index = () => {
         <React.Fragment>
             <CustomerState>
                 <PurchaseOrderState >
-                    <Routes>
-                        <Route>
-                            {publicRoutes.map((route, idx) => (
-                                <Route
-                                    path={route.path}
-                                    element={
-                                        <NonAuthLayout>
-                                            {route.component}
-                                        </NonAuthLayout>
-                                    }
-                                    key={idx}
-                                    exact={true}
-                                />
-                            ))}
-                        </Route>
+                    <MatMaterialPriceState>
+                        <Routes>
+                            <Route>
+                                {publicRoutes.map((route, idx) => (
+                                    <Route
+                                        path={route.path}
+                                        element={
+                                            <NonAuthLayout>
+                                                {route.component}
+                                            </NonAuthLayout>
+                                        }
+                                        key={idx}
+                                        exact={true}
+                                    />
+                                ))}
+                            </Route>
 
-                        <Route>
-                            {authProtectedRoutes.map((route, idx) => (
-                                <Route
-                                    path={route.path}
-                                    element={
-                                        <AuthProtected>
-                                            <VerticalLayout>{route.component}</VerticalLayout>
-                                        </AuthProtected>}
-                                    key={idx}
-                                    exact={true}
-                                />
-                            ))}
-                        </Route>
-                    </Routes>
+                            <Route>
+                                {authProtectedRoutes.map((route, idx) => (
+                                    <Route
+                                        path={route.path}
+                                        element={
+                                            <AuthProtected>
+                                                <VerticalLayout>{route.component}</VerticalLayout>
+                                            </AuthProtected>}
+                                        key={idx}
+                                        exact={true}
+                                    />
+                                ))}
+                            </Route>
+                        </Routes>
+                    </MatMaterialPriceState>
                 </PurchaseOrderState>
             </CustomerState>
         </React.Fragment>

@@ -227,13 +227,7 @@ const Navdata = () => {
           label: "Crear",
           link: "/purchase-orders/create",
           parentId: "purchase-orders",
-        },
-        {
-          id: "orders-edit",
-          label: "Editar",
-          link: "/purchase-orders/edit",
-          parentId: "purchase-orders",
-        },
+        }
       ],
     },
     {
@@ -275,6 +269,12 @@ const Navdata = () => {
           id: "subcategory",
           label: "SubCategorías",
           link: "/subcategory",
+          parentId: "products",
+        },
+        {
+          id: "mat-material-price",
+          label: "Tipo - Material",
+          link: "/mat-material-price",
           parentId: "products",
         },
       ],

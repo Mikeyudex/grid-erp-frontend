@@ -118,6 +118,7 @@ const helper = new ProductHelper();
 
 export default function ViewDetailPurchaseOrder() {
 
+    document.title = "Detalle de pedido | Quality";
     const navigate = useNavigate()
     const [pedido, setPedido] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -132,7 +133,7 @@ export default function ViewDetailPurchaseOrder() {
                 let mappingData = {
                     orderNumber: data?.orderNumber,
                     id: data._id,
-                    fecha: new Date(data?.createdAt).toLocaleDateString("es-ES"),
+                    fecha: new Date(data?.createdAt),
                     estado: data?.status,
                     cliente: {
                         id: data?.clientId?._id,

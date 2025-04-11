@@ -47,6 +47,8 @@ export class ProductHelper {
 
     getMatMaterialPrices = () => api.get(`${url.GET_MAT_MATERIAL_PRICES}`);
 
+    addMaterialPrice = payload => api.create(`${url.ADD_MATERIAL_PRICE}`, payload);
+
     calcularPrecioFinalProducto = (productId, tipoTapete, material, cantidad, typeCustomerId) => api.get(`${url.CALCULATE_FINAL_PRICE}/${productId}/${tipoTapete}/${material}/${cantidad}/${typeCustomerId}`);
 
     getPurchaseOrders = (page, limit, fields) => api.get(`${url.GET_PURCHASE_ORDERS}?page=${page}&limit=${limit}&fields=${[fields]}`);

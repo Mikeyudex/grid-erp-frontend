@@ -22,6 +22,7 @@ import { ListTypeCustomersView } from "../pages/GridErp/Customers/pages/ListType
 import PurchaseOrderPage from "../pages/GridErp/PurchaseOrder/pages/CreatePurchaseOrder";
 import { ListPurchaseOrder } from "../pages/GridErp/PurchaseOrder/pages/ListPurchaseOrder";
 import  ViewDetailPurchaseOrder from "../pages/GridErp/PurchaseOrder/pages/ViewDetailPurchaseOrder";
+import { ListMatMaterialPrice } from "../pages/GridErp/MatMaterialPrice/pages/ListMatMaterialPrice";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -76,6 +77,9 @@ const authProtectedRoutes = [
     { path: "/purchase-orders/create", component: <PurchaseOrderPage /> },
     { path: "/purchase-orders/edit", component: <PurchaseOrderPage /> },
     { path: "/purchase-orders/view-detail/:id", component: <ViewDetailPurchaseOrder /> },
+
+    // Mat Material Price
+    { path: "/mat-material-price", component: <ListMatMaterialPrice /> },
 ]
 
 const publicRoutes = [
