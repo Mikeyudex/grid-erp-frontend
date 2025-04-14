@@ -129,6 +129,22 @@ export default function OrderGrid({
         }
     }
 
+    const handleGetAdjustedPriceFromBasePrice = async (basePrice, matType, materialType, quantity, typeCustomerId) => {
+        try {
+            if (!basePrice || !matType || !materialType || !quantity || !typeCustomerId) {
+                return 0;
+            }
+            const response = await productHelper.calcularPrecioFinalProductoDesdePrecioBase(basePrice, matType, materialType, quantity, typeCustomerId);
+            if (response?.statusCode === 200) {
+                return response.data?.precioFinal || 0;
+            }
+            return 0;
+        } catch (error) {
+            console.log(error);
+            return 0;
+        }
+    }
+
     // Actualizar un valor en una celda
     const updateCellValue = (rowIndex, field, value, product = null) => {
         const newItems = [...orderItems]
@@ -150,7 +166,7 @@ export default function OrderGrid({
         if (field === "matType" || field === "materialType" || field === "quantity") {
             const item = newItems[rowIndex]
 
-            handleGetAdjustedPrice(productSelected?.id, item.matType, item.materialType, item.quantity, selectedClient?.typeCustomerId)
+            handleGetAdjustedPriceFromBasePrice(item.basePrice, item.matType, item.materialType, item.quantity, selectedClient?.typeCustomerId)
                 .then(data => {
                     let adjustedPrice = data;
                     let finalPrice = adjustedPrice * item.quantity;
@@ -168,8 +184,31 @@ export default function OrderGrid({
 
             return;
         }
-
         setOrderItems(newItems)
+    }
+
+    const handleOnChangeBasePrice = (rowIndex, value) => {
+        const newItems = [...orderItems];
+        const item = newItems[rowIndex];
+
+        handleGetAdjustedPriceFromBasePrice(value, item.matType, item.materialType, item.quantity, selectedClient?.typeCustomerId)
+            .then(data => {
+                let adjustedPrice = data;
+                let finalPrice = adjustedPrice * item.quantity;
+
+                // Asegurarse de volver a copiar y actualizar
+                const updatedItems = [...newItems];
+                updatedItems[rowIndex] = {
+                    ...updatedItems[rowIndex],
+                    adjustedPrice: adjustedPrice,
+                    finalPrice: finalPrice,
+                };
+
+                setOrderItems(updatedItems); // ✅ Actualizamos después del cálculo
+                setEditingCell(null);
+            });
+
+        return;
     }
 
     // Abrir modal de piezas para una fila específica
@@ -668,7 +707,7 @@ export default function OrderGrid({
                     <Table bordered hover>
                         <thead>
                             <tr className="text-center bg-light">
-                                <th style={{ width: "40px" }}>
+                                <th style={{ width: "3%" }}>
                                     <div
                                         onClick={toggleSelectAllRows}
                                         style={{ cursor: "pointer" }}
@@ -682,12 +721,12 @@ export default function OrderGrid({
                                     </div>
                                 </th>
                                 <th style={{ width: "25%" }}>Producto</th>
-                                <th style={{ width: "20%" }}>Piezas</th>
+                                <th style={{ width: "5%" }}>Piezas</th>
                                 <th style={{ width: "15%" }}>Tipo Tapete</th>
                                 <th style={{ width: "15%" }}>Material</th>
-                                <th style={{ width: "8%" }}>Cantidad</th>
-                                {/*  <th style={{ width: "10%" }}>Precio Base</th> */}
-                                <th style={{ width: "10%" }}>Precio</th>
+                                <th style={{ width: "5%" }}>Cantidad</th>
+                                <th style={{ width: "10%" }}>Precio Unitario</th>
+                                <th style={{ width: "10%" }}>Precio Final</th>
                                 <th style={{ width: "7%" }}>Acciones</th>
                             </tr>
                         </thead>
@@ -794,9 +833,9 @@ export default function OrderGrid({
                                                     <Edit2 size={14} />
                                                 </Button>
                                             </div>
-                                            <small className="text-muted d-block" style={{ fontSize: "0.75rem" }}>
+                                            {/*   <small className="text-muted d-block" style={{ fontSize: "0.75rem" }}>
                                                 {getSelectedPiecesText(item.selectedPieces)}
-                                            </small>
+                                            </small> */}
                                         </td>
 
                                         {/* Tipo Tapete */}
@@ -887,10 +926,33 @@ export default function OrderGrid({
                                         </td>
 
                                         {/* Precio Base */}
-                                        {/*    <td className="text-end">
-                                        <div className="p-2">${item.basePrice?.toLocaleString()}</div>
-                                    </td>
- */}
+                                        <td className="text-end">
+                                            {/*  <div className="p-2">${item.basePrice?.toLocaleString()}</div> */}
+                                            <div
+                                                className="p-2"
+                                                onClick={() => setEditingCell({ row: index, field: "basePrice" })}
+                                                style={{ cursor: "pointer" }}
+                                            >
+                                                {editingCell?.row === index && editingCell?.field === "basePrice" ? (
+                                                    <Input
+                                                        type="number"
+                                                        value={item.basePrice}
+                                                        onChange={(e) => {
+                                                            updateCellValue(index, "basePrice", Number.parseInt(e.target.value) || 1)
+                                                        }}
+                                                        onBlur={() => handleOnChangeBasePrice(index, item.basePrice)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === "Enter") {
+                                                                handleOnChangeBasePrice(index, item.basePrice);
+                                                            }
+                                                        }}
+                                                        autoFocus
+                                                    />
+                                                ) : (
+                                                    <div>${item.basePrice?.toLocaleString()}</div>
+                                                )}
+                                            </div>
+                                        </td>
                                         {/* Precio ajustado */}
                                         <td className="text-end">
                                             <div className="p-2 fw-bold">${item.adjustedPrice?.toLocaleString()}</div>

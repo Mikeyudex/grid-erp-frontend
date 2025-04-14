@@ -51,6 +51,8 @@ export class ProductHelper {
 
     calcularPrecioFinalProducto = (productId, tipoTapete, material, cantidad, typeCustomerId) => api.get(`${url.CALCULATE_FINAL_PRICE}/${productId}/${tipoTapete}/${material}/${cantidad}/${typeCustomerId}`);
 
+    calcularPrecioFinalProductoDesdePrecioBase = (precioBase, tipoTapete, material, cantidad, typeCustomerId) => api.get(`${url.CALCULATE_FINAL_PRICE_FROM_BASE_PRICE}/${precioBase}/${tipoTapete}/${material}/${cantidad}/${typeCustomerId}`);
+
     getPurchaseOrders = (page, limit, fields) => api.get(`${url.GET_PURCHASE_ORDERS}?page=${page}&limit=${limit}&fields=${[fields]}`);
 
     getPurchaseOrderById = (id) => api.get(`${url.GET_PURCHASE_ORDER_BY_ID}/${id}`);

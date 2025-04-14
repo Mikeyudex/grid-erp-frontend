@@ -35,6 +35,7 @@ export const GET_TYPE_OF_PIECES = baseUrl + "/type-of-piece";
 export const GET_MAT_MATERIAL_PRICES = baseUrl + "/precios-tapete-material";
 export const ADD_MATERIAL_PRICE = baseUrl + "/precios-tapete-material";
 export const CALCULATE_FINAL_PRICE = baseUrl + "/precios-tapete-material/calcular-precio-final";
+export const CALCULATE_FINAL_PRICE_FROM_BASE_PRICE = baseUrl + "/precios-tapete-material/calcular-precio-final-from-baseprice";
 export const CREATE_PURCHASE_ORDER = baseUrl + "/purchase-order/create";
 export const GET_PURCHASE_ORDERS = baseUrl + "/purchase-order/findAll";
 export const GET_PURCHASE_ORDER_BY_ID = baseUrl + "/purchase-order/getById";

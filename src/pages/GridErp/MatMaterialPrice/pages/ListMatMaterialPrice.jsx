@@ -90,7 +90,7 @@ export const ListMatMaterialPrice = (props) => {
             {
                 header: "Material",
                 accessorKey: "tipo_material",
-                enableColumnFilter: false,
+                enableColumnFilter: true,
                 enableEditing: false,
                 size: 30,
                 Cell: ({ cell }) => {
