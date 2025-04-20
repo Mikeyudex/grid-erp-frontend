@@ -64,7 +64,7 @@ export default function PurchaseOrderPage() {
         }
     }
 
-    const addOrderItem = (item) => {
+    /* const addOrderItem = (item) => {
         setOrderItems([...orderItems, item])
     }
 
@@ -72,17 +72,17 @@ export default function PurchaseOrderPage() {
         const newItems = [...orderItems]
         newItems[index] = item
         setOrderItems(newItems)
-    }
+    } */
 
-    const removeOrderItem = (index) => {
+    /* const removeOrderItem = (index) => {
         const newItems = [...orderItems]
         newItems.splice(index, 1)
         setOrderItems(newItems)
-    }
+    } */
 
-    const calculateTotal = () => {
+    /* const calculateTotal = () => {
         return orderItems.reduce((total, item) => total + (item.finalPrice || 0), 0)
-    };
+    }; */
 
     const handleClientSelect = (client) => {
         setSelectedClient(client)
@@ -98,13 +98,13 @@ export default function PurchaseOrderPage() {
             .catch(e => console.log(e))
     }, []);
 
-    useEffect(() => {
+    /* useEffect(() => {
         handleGetTypeOfPieces()
             .then(async (data) => {
                 setTypeOfPieces(data);
             })
             .catch(e => console.log(e))
-    }, []);
+    }, []); */
 
     useEffect(() => {
         handleGetMatMaterialPrices()
@@ -124,6 +124,7 @@ export default function PurchaseOrderPage() {
         handleGetProducts()
             .then(async (data) => {
                 let products = data;
+                console.log(products); 
                 setProducts(products);
             })
             .catch(e => console.log(e))
@@ -199,7 +200,7 @@ export default function PurchaseOrderPage() {
                         onClientSelect={handleClientSelect}
                         clients={clients}
                         products={products}
-                        typeOfPieces={typeOfPieces}
+                        /* typeOfPieces={typeOfPieces} */
                         matMaterialPrices={matMaterialPrices}
                         matTypeOptions={matTypeOptions}
                         materialTypeOptions={materialTypeOptions}

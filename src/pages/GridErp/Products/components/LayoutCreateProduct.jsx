@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useState } from "react";
 import { Col, Container, Input, Row } from "reactstrap";
+import Select from 'react-select';
 import BreadCrumb from "./BreadCrumb";
 import * as url from "../helper/url_helper";
 import { FilePond, registerPlugin } from 'react-filepond';
@@ -31,7 +32,7 @@ registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 const acceptedFileTypes = ['image/jpeg', 'image/png', 'image/gif'];
 const helper = new ProductHelper();
 const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
-
+const typeOfPiecesDefault = ['Conductor', 'Copiloto'];
 
 export default function LayoutCreateProduct(props) {
 
@@ -45,6 +46,7 @@ export default function LayoutCreateProduct(props) {
     const [units, setUnits] = useState([]);
     const [taxes, setTaxes] = useState([]);
     const [typesProduct, setTypesProduct] = useState([]);
+    const [typeOfPieces, setTypeOfPieces] = useState([]);
     const [lastSku, setLastSku] = useState("0");
     const [formData, setFormData] = useState({
         companyId: companyId,
@@ -61,7 +63,8 @@ export default function LayoutCreateProduct(props) {
         taxId: '',
         costPrice: '',
         salePrice: '',
-        attributes: []
+        attributes: [],
+        typeOfPieces: []
     });
     const [additionalConfigs, setAdditionalConfigs] = useState({
         hasBarcode: false
@@ -81,6 +84,7 @@ export default function LayoutCreateProduct(props) {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+
         // Si el nombre del campo coincide con un campo fijo (name, sku, price)
         if (Object.keys(formData).includes(name)) {
             setFormData((prevFormData) => ({
@@ -271,6 +275,7 @@ export default function LayoutCreateProduct(props) {
                 let taxes = await helper.getAllTaxes();
                 let typesProduct = await helper.getTypesProduct();
 
+
                 await handleSetLastSku();
                 let categories = respCategoriesFull.data;
                 let warehouses = respWarehouses.data;
@@ -292,13 +297,32 @@ export default function LayoutCreateProduct(props) {
 
                 setFormData(prevFormData => ({
                     ...prevFormData,
-                    attributes: initialAttributes,
+                    attributes: initialAttributes
                 }));
             })
             .catch(error => {
                 console.error('Error fetching attribute configs:', error);
             });
     }, []);
+
+    useEffect(() => {
+        helper.getTypeOfPieces()
+            .then(async (respTypeOfPieces) => {
+                setTypeOfPieces(respTypeOfPieces);
+                let typeOfPiecesFiltered = respTypeOfPieces
+                    .filter((item) => typeOfPiecesDefault.includes(item?.name))
+                    .map((p) => p?._id);
+                    
+                setFormData(prevFormData => ({
+                    ...prevFormData,
+                    typeOfPieces: typeOfPiecesFiltered,
+                }));
+            })
+            .catch(error => {
+                console.error('Error fetching type of pieces:', error);
+            });
+    }, []);
+
 
     return (
         <Fragment>
@@ -479,6 +503,33 @@ export default function LayoutCreateProduct(props) {
                                                 </Input>
                                             </div>
                                             {errors.id_sub_category && (<span className="form-product-input-error">{errors.id_sub_category}</span>)}
+                                        </div>
+                                    }
+                                    item3={
+                                        <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
+                                            <label className='form-label' htmlFor="typeOfPieces">*Tipo(s) de pieza:</label>
+                                            <Select
+                                                id="typeOfPieces"
+                                                name="typeOfPieces"
+                                                isMulti
+                                                options={typeOfPieces.map(piece => ({
+                                                    value: piece._id,
+                                                    label: piece.name
+                                                }))}
+                                                value={typeOfPieces
+                                                    .filter(piece => formData.typeOfPieces.includes(piece._id))
+                                                    .map(piece => ({ value: piece._id, label: piece.name }))
+                                                }
+                                                onChange={(selectedOptions) => {
+                                                    const values = selectedOptions.map(opt => opt.value);
+                                                    handleInputChange({ target: { name: "typeOfPieces", value: values } });
+                                                }}
+                                                classNamePrefix="react-select"
+                                                placeholder="Selecciona uno o más tipos"
+                                            />
+                                            {errors.typeOfPieces && (
+                                                <span className="form-product-input-error">{errors.typeOfPieces}</span>
+                                            )}
                                         </div>
                                     }
                                 />

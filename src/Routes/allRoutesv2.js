@@ -21,8 +21,9 @@ import { ListCustomersView } from "../pages/GridErp/Customers/pages/ListCustomer
 import { ListTypeCustomersView } from "../pages/GridErp/Customers/pages/ListTypesCustomer";
 import PurchaseOrderPage from "../pages/GridErp/PurchaseOrder/pages/CreatePurchaseOrder";
 import { ListPurchaseOrder } from "../pages/GridErp/PurchaseOrder/pages/ListPurchaseOrder";
-import  ViewDetailPurchaseOrder from "../pages/GridErp/PurchaseOrder/pages/ViewDetailPurchaseOrder";
+import ViewDetailPurchaseOrder from "../pages/GridErp/PurchaseOrder/pages/ViewDetailPurchaseOrder";
 import { ListMatMaterialPrice } from "../pages/GridErp/MatMaterialPrice/pages/ListMatMaterialPrice";
+import ProductionListPage from "../pages/GridErp/Production/pages/ProductionList";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -80,6 +81,12 @@ const authProtectedRoutes = [
 
     // Mat Material Price
     { path: "/mat-material-price", component: <ListMatMaterialPrice /> },
+
+    // Production
+    { path: "/production", component: <ProductionListPage /> },
+    { path: "/production/create", component: <ProductionListPage /> },
+    { path: "/production/edit", component: <ProductionListPage /> },
+    { path: "/production/view-detail/:id", component: <ProductionListPage /> },
 ]
 
 const publicRoutes = [

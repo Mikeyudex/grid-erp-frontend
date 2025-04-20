@@ -39,3 +39,4 @@ export const CALCULATE_FINAL_PRICE_FROM_BASE_PRICE = baseUrl + "/precios-tapete-
 export const CREATE_PURCHASE_ORDER = baseUrl + "/purchase-order/create";
 export const GET_PURCHASE_ORDERS = baseUrl + "/purchase-order/findAll";
 export const GET_PURCHASE_ORDER_BY_ID = baseUrl + "/purchase-order/getById";
+export const GET_PURCHASE_ORDERS_FROM_VIEW_PRODUCTION = baseUrl + "/purchase-order/findAllFromViewProduction";

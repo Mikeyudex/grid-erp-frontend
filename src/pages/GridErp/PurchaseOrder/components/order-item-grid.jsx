@@ -34,7 +34,6 @@ export default function OrderGrid({
     onClientSelect,
     clients,
     products,
-    typeOfPieces,
     matMaterialPrices,
     matTypeOptions,
     materialTypeOptions
@@ -47,6 +46,7 @@ export default function OrderGrid({
     // Estado para el modal de piezas
     const [piecesModalOpen, setPiecesModalOpen] = useState(false)
     const [selectedPiecesTemp, setSelectedPiecesTemp] = useState([])
+    const [typeOfPiecesRow, setTypeOfPiecesRow] = useState([])
     const [editingRowIndex, setEditingRowIndex] = useState(null)
 
     // Estados para edición en línea
@@ -77,8 +77,8 @@ export default function OrderGrid({
         return {
             productName: "",
             productId: "",
-            pieces: typeOfPieces.slice(0, 3).length || 0,
-            selectedPieces: typeOfPieces.slice(0, 3).map((p) => p._id) || [],
+            pieces: /* typeOfPieces.slice(0, 3).length || */ 0,
+            selectedPieces: /* typeOfPieces.slice(0, 3).map((p) => p._id) || */ [],
             matType: "Selecciona una opción",
             materialType: "Selecciona una opción",
             quantity: 1,
@@ -159,7 +159,10 @@ export default function OrderGrid({
                 productName: product.name,
                 productId: product.id,
                 basePrice: product.salePrice || 0,
+                selectedPieces: product?.typeOfPieces.slice(0, 3).map((p) => p._id),
+                pieces: product?.typeOfPieces.slice(0, 3).length || 0,  
             }
+            setTypeOfPiecesRow(product?.typeOfPieces)
         }
 
         // Actualizar precio base y final si cambia el tipo de tapete o material
@@ -244,10 +247,10 @@ export default function OrderGrid({
 
     // Seleccionar/deseleccionar todas las piezas
     const handleSelectAllPieces = () => {
-        if (selectedPiecesTemp.length === typeOfPieces.length) {
+        if (selectedPiecesTemp.length === typeOfPiecesRow.length) {
             setSelectedPiecesTemp([])
         } else {
-            setSelectedPiecesTemp(typeOfPieces.map((pieza) => pieza.id))
+            setSelectedPiecesTemp(typeOfPiecesRow.map((pieza) => pieza.id))
         }
     }
 
@@ -259,7 +262,7 @@ export default function OrderGrid({
 
         const selectedNames = selectedPieces
             .map((id) => {
-                const pieza = typeOfPieces.find((p) => p._id === id)
+                const pieza = typeOfPiecesRow.find((p) => p._id === id)
                 return pieza ? pieza.name : ""
             })
             .filter(Boolean)
@@ -449,7 +452,7 @@ export default function OrderGrid({
                         productId: item.productId,
                         pieces: item.pieces,
                         piecesNames: item.selectedPieces.map((p) => {
-                            return typeOfPieces.find((t) => t._id === p)?.name;
+                            return typeOfPiecesRow.find((t) => t._id === p)?.name;
                         }),
                         priceItem: item.adjustedPrice / item.quantity,
                         quantityItem: item.quantity,
@@ -548,11 +551,11 @@ export default function OrderGrid({
                 <ModalBody>
                     <div className="mb-3">
                         <Button color="secondary" outline size="sm" onClick={handleSelectAllPieces} className="w-100">
-                            {selectedPiecesTemp.length === typeOfPieces.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
+                            {selectedPiecesTemp.length === typeOfPiecesRow.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
                         </Button>
                     </div>
                     <ListGroup>
-                        {typeOfPieces.map((pieza) => (
+                        {typeOfPiecesRow.map((pieza) => (
                             <ListGroupItem
                                 key={pieza._id}
                                 action
@@ -567,7 +570,7 @@ export default function OrderGrid({
                     </ListGroup>
                     <div className="mt-3 text-center">
                         <FormText>
-                            Piezas seleccionadas: {selectedPiecesTemp.length} de {typeOfPieces.length}
+                            Piezas seleccionadas: {selectedPiecesTemp.length} de {typeOfPiecesRow.length}
                         </FormText>
                     </div>
                 </ModalBody>
@@ -736,7 +739,8 @@ export default function OrderGrid({
                                     <tr
                                         key={index}
                                         ref={el => rowRefs.current[index] = el}
-                                        className={selectedRows.includes(index) ? "bg-light" : ""}>
+                                        className={selectedRows.includes(index) ? "row-selected-to-editing" : ""}
+                                        >
                                         {/* Checkbox de selección */}
                                         <td className="text-center align-middle">
                                             <div
@@ -750,7 +754,7 @@ export default function OrderGrid({
                                         {/* Producto */}
                                         <td>
                                             <div
-                                                className="p-2 cursor-pointer"
+                                                className="p-1 cursor-pointer"
                                                 onClick={() => setEditingCell({ row: index, field: "productName" })}
                                             >
                                                 {editingCell?.row === index && editingCell?.field === "productName" ? (
@@ -800,7 +804,7 @@ export default function OrderGrid({
                                                                 {filteredProducts.map((product, idx) => (
                                                                     <div
                                                                         key={idx}
-                                                                        className="p-2 border-bottom"
+                                                                        className="p-1 border-bottom"
                                                                         onClick={() => {
                                                                             updateCellValue(index, "productName", product?.name, product);
                                                                             setProductSearchTerm("");
@@ -824,7 +828,7 @@ export default function OrderGrid({
                                         {/* Piezas */}
                                         <td>
                                             <div
-                                                className="p-2 cursor-pointer d-flex justify-content-between align-items-center"
+                                                className="p-1 cursor-pointer d-flex justify-content-between align-items-center"
                                                 onClick={() => openPiecesModal(index)}
                                                 style={{ cursor: "pointer" }}
                                             >
@@ -841,7 +845,7 @@ export default function OrderGrid({
                                         {/* Tipo Tapete */}
                                         <td>
                                             <div
-                                                className="p-2"
+                                                className="p-1"
                                                 onClick={() => setEditingCell({ row: index, field: "matType" })}
                                                 style={{ cursor: "pointer" }}
                                             >
@@ -873,7 +877,7 @@ export default function OrderGrid({
                                         {/* Material */}
                                         <td>
                                             <div
-                                                className="p-2"
+                                                className="p-1"
                                                 onClick={() => setEditingCell({ row: index, field: "materialType" })}
                                                 style={{ cursor: "pointer" }}
                                             >
@@ -904,7 +908,7 @@ export default function OrderGrid({
                                         {/* Cantidad */}
                                         <td>
                                             <div
-                                                className="p-2"
+                                                className="p-1"
                                                 onClick={() => setEditingCell({ row: index, field: "quantity" })}
                                                 style={{ cursor: "pointer" }}
                                             >
@@ -929,7 +933,7 @@ export default function OrderGrid({
                                         <td className="text-end">
                                             {/*  <div className="p-2">${item.basePrice?.toLocaleString()}</div> */}
                                             <div
-                                                className="p-2"
+                                                className="p-1"
                                                 onClick={() => setEditingCell({ row: index, field: "basePrice" })}
                                                 style={{ cursor: "pointer" }}
                                             >
@@ -955,7 +959,7 @@ export default function OrderGrid({
                                         </td>
                                         {/* Precio ajustado */}
                                         <td className="text-end">
-                                            <div className="p-2 fw-bold">${item.adjustedPrice?.toLocaleString()}</div>
+                                            <div className="p-1 fw-bold">${item.adjustedPrice?.toLocaleString()}</div>
                                         </td>
 
                                         {/* Acciones */}
@@ -982,7 +986,7 @@ export default function OrderGrid({
                                     </tr>
                                     {rowError.rowIndex === index && (
                                         <tr>
-                                            <td colSpan={10} className="text-danger p-2 bg-light border-bottom">
+                                            <td colSpan={10} className="text-danger p-1 bg-light border-bottom">
                                                 <div className="inline-error">{rowError.message}</div>
                                             </td>
                                         </tr>

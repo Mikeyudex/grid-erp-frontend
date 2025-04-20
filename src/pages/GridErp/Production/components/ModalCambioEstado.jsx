@@ -1,0 +1,72 @@
+import { AlertCircle } from "lucide-react";
+import { Fragment } from "react";
+import { Alert, Badge, Button, Input, Modal, ModalBody, ModalFooter, ModalHeader } from "reactstrap";
+
+export default function ModalCambioEstado({
+    cambioEstadoModalOpen,
+    setCambioEstadoModalOpen,
+    productosSeleccionadosInfo,
+    nuevoEstado,
+    handleCambiarEstado,
+    selectedProducts,
+    setNuevoEstado,
+}) {
+
+    return (
+        <Fragment>
+            <Modal isOpen={cambioEstadoModalOpen} toggle={() => setCambioEstadoModalOpen(false)}>
+                <ModalHeader toggle={() => setCambioEstadoModalOpen(false)}>
+                    Cambiar Estado de {selectedProducts.length} Productos
+                </ModalHeader>
+                <ModalBody>
+                    <div className="mb-4">
+                        <h6 className="fw-bold mb-2">Productos seleccionados:</h6>
+                        <ul className="list-group">
+                            {productosSeleccionadosInfo.pedidosInfo.map((info) => (
+                                <li key={info.id} className="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span className="fw-medium">Pedido #{info.id}</span>
+                                        <span className="text-muted ms-2">({info.cliente})</span>
+                                    </div>
+                                    <Badge color="primary" pill>
+                                        {info.count} productos
+                                    </Badge>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    <div className="mb-3">
+                        <label htmlFor="estadoSelect" className="form-label fw-bold">
+                            Seleccionar Nuevo Estado:
+                        </label>
+                        <Input type="select" id="estadoSelect" value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
+                            <option value="">-- Seleccionar Estado --</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="en_produccion">En Producción</option>
+                            <option value="completado">Completado</option>
+                        </Input>
+                    </div>
+
+                    <Alert color="warning" className="d-flex align-items-center">
+                        <AlertCircle size={18} className="me-2" />
+                        {nuevoEstado === "pendiente" &&
+                            "Los productos volverán a estado 'Pendiente' y se eliminará su asignación actual."}
+                        {nuevoEstado === "en_produccion" &&
+                            "Los productos pasarán a estado 'En Producción' pero mantendrán su asignación actual."}
+                        {nuevoEstado === "completado" &&
+                            "Los productos se marcarán como 'Completados' y mantendrán su asignación actual."}
+                    </Alert>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setCambioEstadoModalOpen(false)}>
+                        Cancelar
+                    </Button>
+                    <Button color="primary" onClick={handleCambiarEstado}>
+                        Cambiar Estado
+                    </Button>
+                </ModalFooter>
+            </Modal>
+        </Fragment>
+    )
+}

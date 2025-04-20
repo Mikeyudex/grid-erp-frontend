@@ -26,7 +26,7 @@ const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
 const marketplaces = { woocommerce: 'woocommerce', meli: 'meli' };
 
 export const ListProducts = (props) => {
-  document.title = "Productos | Innventa-G";
+  document.title = "Productos | Quality";
   const [productList, setProductList] = useState([]);
   const [isLoadingTable, setIsLoadingTable] = useState(true);
   const [showProgressBarTable, setShowProgressBarTable] = useState(false);

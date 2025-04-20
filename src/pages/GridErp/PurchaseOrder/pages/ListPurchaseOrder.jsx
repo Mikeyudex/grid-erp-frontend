@@ -26,7 +26,7 @@ export const ListPurchaseOrder = (props) => {
     const [validationErrors, setValidationErrors] = useState({});
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(50);
 
 

@@ -7,6 +7,9 @@
     border-radius: 4px;
 }
 
+.row-selected-to-editing {
+    background-color: #9cb6cce4 !important;
+}
 
 @keyframes shake {
     0% {
