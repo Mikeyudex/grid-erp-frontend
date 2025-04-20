@@ -45,6 +45,7 @@ import { ProductHelper } from "../../Products/helper/product_helper"
 import { UserHelper } from "../../Users/helpers/user_helper"
 import moment from "moment"
 import { footerStyle } from "./footerStyle"
+import { PurchaseHelper } from "../../PurchaseOrder/helper/purchase_helper"
 
 const productHelper = new ProductHelper();
 const userHelper = new UserHelper();
@@ -69,7 +70,15 @@ export default function ProductionListPage() {
     const [tipoFecha, setTipoFecha] = useState("creacion")
     const [fechaInicio, setFechaInicio] = useState("")
     const [fechaFin, setFechaFin] = useState("")
-    const [filtroFechaActivo, setFiltroFechaActivo] = useState(false)
+    const [filtroFechaActivo, setFiltroFechaActivo] = useState(false);
+
+    // Añadir estados de carga para las operaciones asíncronas
+    const [isLoading, setIsLoading] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
+    const [successMessage, setSuccessMessage] = useState("")
+
+    // Crear una instancia del helper
+    const purchaseHelper = new PurchaseHelper()
 
     const handleGetPurchaseOrders = async () => {
         try {
