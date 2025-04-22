@@ -10,6 +10,9 @@ export default function ModalCambioEstado({
     handleCambiarEstado,
     selectedProducts,
     setNuevoEstado,
+    isLoading,
+    errorMessage,
+    successMessage,
 }) {
 
     return (
@@ -42,28 +45,46 @@ export default function ModalCambioEstado({
                         </label>
                         <Input type="select" id="estadoSelect" value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
                             <option value="">-- Seleccionar Estado --</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="en_produccion">En Producción</option>
-                            <option value="completado">Completado</option>
+                            {/* <option value="pendiente">Pendiente</option> */}
+                            <option value="fabricacion">Fabricación</option>
+                            <option value="inventario">Inventario</option>
+                            <option value="finalizado">Finalizado</option>
                         </Input>
                     </div>
 
                     <Alert color="warning" className="d-flex align-items-center">
                         <AlertCircle size={18} className="me-2" />
-                        {nuevoEstado === "pendiente" &&
-                            "Los productos volverán a estado 'Pendiente' y se eliminará su asignación actual."}
-                        {nuevoEstado === "en_produccion" &&
-                            "Los productos pasarán a estado 'En Producción' pero mantendrán su asignación actual."}
-                        {nuevoEstado === "completado" &&
-                            "Los productos se marcarán como 'Completados' y mantendrán su asignación actual."}
+                        {nuevoEstado === "fabricacion" &&
+                            "Los productos pasarán a estado 'Fabricación' pero mantendrán su asignación actual."}
+                        {nuevoEstado === "inventario" &&
+                            "Los productos se marcarán como 'Inventario' y mantendrán su asignación actual."}
+                        {nuevoEstado === "finalizado" &&
+                            "Los productos se marcarán como 'Finalizados' y mantendrán su asignación actual."}
                     </Alert>
                 </ModalBody>
                 <ModalFooter>
-                    <Button color="secondary" onClick={() => setCambioEstadoModalOpen(false)}>
+                    {errorMessage && (
+                        <Alert color="danger" className="w-100 mb-3">
+                            {errorMessage}
+                        </Alert>
+                    )}
+                    {successMessage && (
+                        <Alert color="success" className="w-100 mb-3">
+                            {successMessage}
+                        </Alert>
+                    )}
+                    <Button color="secondary" onClick={() => setCambioEstadoModalOpen(false)} disabled={isLoading}>
                         Cancelar
                     </Button>
-                    <Button color="primary" onClick={handleCambiarEstado}>
-                        Cambiar Estado
+                    <Button color="primary" onClick={handleCambiarEstado} disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Procesando...
+                            </>
+                        ) : (
+                            "Cambiar Estado"
+                        )}
                     </Button>
                 </ModalFooter>
             </Modal>

@@ -54,8 +54,8 @@ export const ListPurchaseOrder = (props) => {
     const columns = useMemo(() =>
         [
             {
-                header: "Id",
-                accessorKey: "id",
+                header: "#",
+                accessorKey: "orderNumber",
                 enableColumnFilter: true,
                 enableEditing: false,
                 grow: true,
@@ -63,9 +63,39 @@ export const ListPurchaseOrder = (props) => {
                 Cell: ({ cell }) => {
                     return (
                         <Link to={`/purchase-orders/view-detail/${cell.row.original._id}`}>
-                            <h6>{cell.row.original._id}</h6>
+                            <h6>{cell.row.original.orderNumber}</h6>
                         </Link>
                     )
+                }
+            },
+            {
+                header: "Cliente",
+                accessorKey: "clientId.name",
+                enableColumnFilter: true,
+                enableEditing: false,
+                grow: true,
+                size: 30,
+                Cell: ({ cell }) => {
+                    return (
+                        <>
+                            <h6>
+                                {cell.row.original.clientId.name + " " + cell.row.original.clientId.lastname}</h6>
+                            {cell.row.original.clientId.commercialName && <small className="text-muted text-truncate d-block mb-0">
+                                {cell.row.original.clientId.commercialName}
+                            </small>}
+                        </>
+                    )
+                }
+            },
+            {
+                header: "Ciudad",
+                accessorKey: "clientId.billingCity",
+                enableColumnFilter: true,
+                enableEditing: false,
+                grow: true,
+                size: 30,
+                Cell: ({ cell }) => {
+                    return (<h6>{cell.row.original.clientId.billingCity}</h6>)
                 }
             },
             {

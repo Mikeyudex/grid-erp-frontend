@@ -12,6 +12,9 @@ export default function ModalAsignacion({
     handleAsignarProductos,
     setSelectedAgent,
     selectedAgent,
+    isLoading,
+    errorMessage,
+    successMessage,
 }) {
 
     return (
@@ -67,11 +70,28 @@ export default function ModalAsignacion({
                     </Alert>
                 </ModalBody>
                 <ModalFooter>
-                    <Button color="secondary" onClick={() => setAsignacionModalOpen(false)}>
+                    {errorMessage && (
+                        <Alert color="danger" className="w-100 mb-3">
+                            {errorMessage}
+                        </Alert>
+                    )}
+                    {successMessage && (
+                        <Alert color="success" className="w-100 mb-3">
+                            {successMessage}
+                        </Alert>
+                    )}
+                    <Button color="secondary" onClick={() => setAsignacionModalOpen(false)} disabled={isLoading}>
                         Cancelar
                     </Button>
-                    <Button color="primary" onClick={handleAsignarProductos}>
-                        Asignar Productos
+                    <Button color="primary" onClick={handleAsignarProductos} disabled={isLoading}>
+                        {isLoading ? (
+                            <>
+                                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                Asignando...
+                            </>
+                        ) : (
+                            "Asignar Productos"
+                        )}
                     </Button>
                 </ModalFooter>
             </Modal >

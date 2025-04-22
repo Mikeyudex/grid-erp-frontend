@@ -8,7 +8,7 @@ import logoDark from "../assets/images/logo-dark.png";
 import logoLight from "../assets/images/logo-light.png";
 
 //Logo Quality
-import logoQuality from "../assets/images/quality.png";
+import logoQuality from "../assets/images/logo-quality.jpeg";
 
 //import Components
 import SearchOption from '../Components/Common/SearchOption';

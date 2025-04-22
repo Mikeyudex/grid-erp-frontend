@@ -22,6 +22,7 @@ import {
     DropdownToggle,
     DropdownMenu,
     DropdownItem,
+    UncontrolledTooltip,
 } from "reactstrap"
 import {
     Search,
@@ -38,6 +39,7 @@ import {
     ChevronRightIcon,
     Calendar,
     Filter,
+    InfoIcon,
 } from "lucide-react"
 import ModalAsignacion from "../components/ModalAsignacion"
 import ModalCambioEstado from "../components/ModalCambioEstado"
@@ -65,6 +67,7 @@ export default function ProductionListPage() {
     const [itemsPerPage, setItemsPerPage] = useState(5)
     const [cambioEstadoModalOpen, setCambioEstadoModalOpen] = useState(false)
     const [nuevoEstado, setNuevoEstado] = useState("");
+    const [reloadTable, setReloadTable] = useState(false);
 
     // Nuevos estados para el filtro de fechas
     const [tipoFecha, setTipoFecha] = useState("creacion")
@@ -119,6 +122,8 @@ export default function ProductionListPage() {
     }, []);
 
     useEffect(() => {
+        if (!agentesProduccion || agentesProduccion.length === 0) return;
+
         handleGetPurchaseOrders()
             .then(async (data) => {
                 let purchaseOrders = data;
@@ -139,7 +144,11 @@ export default function ProductionListPage() {
                                 piecesNames: item.piecesNames,
                                 cantidad: item.quantityItem,
                                 estado: item.itemStatus,
-                                asignado: item.assignedId,
+                                asignado: {
+                                    id: item?.assignedId || null,
+                                    nombre: agentesProduccion.find((a) => a.id === item.assignedId)?.nombre || null,
+                                    fecha: item?.assignedAt || null,
+                                },
                             }
                         }),
                         estado: po.status,
@@ -150,7 +159,7 @@ export default function ProductionListPage() {
                 setFilteredPedidos(parsedPurchaseOrders);
             })
             .catch(e => console.log(e))
-    }, [])
+    }, [reloadTable, agentesProduccion]);
 
     // Aplicar filtros
     useEffect(() => {
@@ -195,6 +204,10 @@ export default function ProductionListPage() {
         // La búsqueda ya se aplica en el useEffect
     }
 
+    const handleRefresh = () => {
+        setReloadTable(!reloadTable);
+    }
+
     const toggleProductSelection = (productId) => {
         if (selectedProducts.includes(productId)) {
             setSelectedProducts(selectedProducts.filter((id) => id !== productId))
@@ -237,82 +250,154 @@ export default function ProductionListPage() {
         setAsignacionModalOpen(true)
     }
 
-    const handleAsignarProductos = () => {
+    const handleAsignarProductos = async () => {
         if (!selectedAgent) {
-            alert("Por favor, seleccione un operario de producción")
+            alert("Por favor, seleccione un agente de producción")
             return
         }
 
-        const agente = agentesProduccion.find((a) => a.id.toString() === selectedAgent)
-        if (!agente) return
+        setIsLoading(true)
+        setErrorMessage("")
+        setSuccessMessage("")
 
-        // Actualizar el estado de los productos seleccionados
-        const updatedPedidos = [...pedidos]
+        try {
+            // Procesar cada producto seleccionado
+            const agente = agentesProduccion.find((a) => a.id.toString() === selectedAgent)
+            if (!agente) {
+                throw new Error("Agente no encontrado")
+            }
 
-        updatedPedidos.forEach((pedido) => {
-            pedido.productos.forEach((producto) => {
-                if (selectedProducts.includes(producto.id)) {
-                    producto.estado = "fabricacion"
-                    producto.asignado = {
-                        id: agente.id,
-                        nombre: agente.nombre,
-                        fecha: moment().format("YYYY-MM-DD"),
+            // Crear un array de promesas para todas las asignaciones
+            const asignacionPromises = []
+            const updatedPedidos = [...pedidos]
+
+            // Preparar las actualizaciones y las promesas
+            selectedProducts.forEach((productId) => {
+                // Encontrar el pedido y producto correspondiente
+                for (const pedido of updatedPedidos) {
+                    const producto = pedido.productos.find((p) => p.id === productId)
+                    if (producto) {
+                        // Añadir la promesa para este producto
+                        asignacionPromises.push(
+                            purchaseHelper.assignItemToProductionOperator(pedido._id, productId, agente.id).then(() => {
+                                // Actualizar el estado local del producto
+                                producto.estado = "fabricacion"
+                                producto.asignado = {
+                                    id: agente.id,
+                                    nombre: agente.nombre,
+                                    fecha: new Date().toISOString().split("T")[0],
+                                }
+                            }),
+                        )
+                        break // Salir del bucle una vez encontrado
                     }
                 }
             })
-        })
 
-        setPedidos(updatedPedidos)
-        setFilteredPedidos(
-            filteredPedidos.map((pedido) => {
-                const updatedPedido = updatedPedidos.find((p) => p.id === pedido.id)
-                return updatedPedido || pedido
-            }),
-        )
+            // Ejecutar todas las asignaciones en paralelo
+            await Promise.all(asignacionPromises)
 
-        // Cerrar modal y limpiar selección
-        setAsignacionModalOpen(false)
-        setSelectedProducts([])
-        setSelectedAgent("")
+            // Actualizar el estado local con los cambios
+            setPedidos(updatedPedidos)
+            setFilteredPedidos(
+                filteredPedidos.map((pedido) => {
+                    const updatedPedido = updatedPedidos.find((p) => p._id === pedido._id)
+                    return updatedPedido || pedido
+                }),
+            )
+
+            setSuccessMessage(`${selectedProducts.length} productos asignados correctamente a ${agente.nombre}`)
+            setReloadTable(!reloadTable);
+            // Cerrar modal y limpiar selección
+            setTimeout(() => {
+                setAsignacionModalOpen(false)
+                setSelectedProducts([])
+                setSelectedAgent("")
+                setSuccessMessage("")
+            }, 1500)
+        } catch (error) {
+            console.error("Error al asignar productos:", error)
+            setErrorMessage("Ocurrió un error al asignar los productos. Por favor, inténtelo de nuevo.")
+        } finally {
+            setIsLoading(false);
+        }
     }
 
-    const handleCambiarEstado = () => {
+    const handleCambiarEstado = async () => {
         if (!nuevoEstado) {
             alert("Por favor, seleccione un nuevo estado")
             return
         }
 
-        // Actualizar el estado de los productos seleccionados
-        const updatedPedidos = [...pedidos]
+        setIsLoading(true)
+        setErrorMessage("")
+        setSuccessMessage("")
 
-        updatedPedidos.forEach((pedido) => {
-            pedido.productos.forEach((producto) => {
-                if (selectedProducts.includes(producto.id)) {
-                    producto.estado = nuevoEstado
+        try {
+            // Procesar cada producto seleccionado
+            const cambioEstadoPromises = []
+            const updatedPedidos = [...pedidos]
 
-                    // Si el estado es "completado", mantener la asignación
-                    // Si es "pendiente", eliminar la asignación
-                    if (nuevoEstado === "pendiente") {
-                        producto.asignado = null
+            // Preparar las actualizaciones y las promesas
+            selectedProducts.forEach((productId) => {
+                // Encontrar el pedido y producto correspondiente
+                for (const pedido of updatedPedidos) {
+                    const producto = pedido.productos.find((p) => p.id === productId)
+                    if (producto) {
+                        // Datos para el cambio de estado
+                        const data = {
+                            estado: nuevoEstado
+                        }
+
+                        // Añadir la promesa para este producto
+                        const userId = localStorage.getItem("userId") || "66d4ed2f825f2d54204555c1";
+
+                        cambioEstadoPromises.push(
+                            purchaseHelper.changeStatusPurchaseOrder(pedido._id, productId, userId, data).then(() => {
+                                // Actualizar el estado local del producto
+                                producto.estado = nuevoEstado
+
+                                // Si el estado es "pendiente", eliminar la asignación
+                                if (nuevoEstado === "pendiente") {
+                                    producto.asignado = null
+                                }
+                            }),
+                        )
+                        break // Salir del bucle una vez encontrado
                     }
                 }
             })
-        })
 
-        setPedidos(updatedPedidos)
-        setFilteredPedidos(
-            filteredPedidos.map((pedido) => {
-                const updatedPedido = updatedPedidos.find((p) => p.id === pedido.id)
-                return updatedPedido || pedido
-            }),
-        )
+            // Ejecutar todos los cambios de estado en paralelo
+            await Promise.all(cambioEstadoPromises)
 
-        // Cerrar modal y limpiar selección
-        setCambioEstadoModalOpen(false)
-        setSelectedProducts([])
-        setNuevoEstado("")
+            // Actualizar el estado local con los cambios
+            setPedidos(updatedPedidos)
+            setFilteredPedidos(
+                filteredPedidos.map((pedido) => {
+                    const updatedPedido = updatedPedidos.find((p) => p._id === pedido._id)
+                    return updatedPedido || pedido
+                }),
+            )
+
+            setSuccessMessage(
+                `Estado de ${selectedProducts.length} productos cambiado correctamente a "${getEstadoText(nuevoEstado)}"`,
+            );
+            setReloadTable(!reloadTable);
+            // Cerrar modal y limpiar selección
+            setTimeout(() => {
+                setCambioEstadoModalOpen(false)
+                setSelectedProducts([])
+                setNuevoEstado("")
+                setSuccessMessage("")
+            }, 1500)
+        } catch (error) {
+            console.error("Error al cambiar el estado de los productos:", error)
+            setErrorMessage("Ocurrió un error al cambiar el estado. Por favor, inténtelo de nuevo.")
+        } finally {
+            setIsLoading(false)
+        }
     }
-
     const getProductosSeleccionadosInfo = () => {
         let count = 0
         const pedidosInfo = {}
@@ -433,7 +518,7 @@ export default function ProductionListPage() {
                 <div className="d-flex justify-content-between align-items-center mb-2">
                     <h1>Panel de Producción</h1>
                     <div className="d-flex gap-2">
-                        <Button title="Actualizar" color="light" className="d-flex align-items-center gap-2">
+                        <Button title="Actualizar" color="light" className="d-flex align-items-center gap-2" onClick={handleRefresh}>
                             <RefreshCw size={18} /> Actualizar
                         </Button>
                         {selectedProducts.length > 0 && (
@@ -459,6 +544,9 @@ export default function ProductionListPage() {
                     handleAsignarProductos={handleAsignarProductos}
                     setSelectedAgent={setSelectedAgent}
                     selectedAgent={selectedAgent}
+                    isLoading={isLoading}
+                    errorMessage={errorMessage}
+                    successMessage={successMessage}
                 />
 
                 {/* Modal de Cambio de Estado */}
@@ -470,6 +558,9 @@ export default function ProductionListPage() {
                     handleCambiarEstado={handleCambiarEstado}
                     selectedProducts={selectedProducts}
                     setNuevoEstado={setNuevoEstado}
+                    isLoading={isLoading}
+                    errorMessage={errorMessage}
+                    successMessage={successMessage}
                 />
 
                 {/* Card de busqueda */}
@@ -626,7 +717,7 @@ export default function ProductionListPage() {
                                                 color="info"
                                                 pill
                                                 className="position-absolute"
-                                                style={{ top: "-5px", right: "-5px", fontSize: "8px" }}
+                                                style={{ top: "1px", right: "2px", fontSize: "8px" }}
                                             >
                                                 •
                                             </Badge>
@@ -646,16 +737,16 @@ export default function ProductionListPage() {
                                                     Pendiente
                                                 </DropdownItem>
                                                 <DropdownItem
-                                                    onClick={() => setFilterEstado("en_proceso")}
-                                                    active={filterEstado === "en_proceso"}
+                                                    onClick={() => setFilterEstado("fabricacion")}
+                                                    active={filterEstado === "fabricacion"}
                                                 >
-                                                    En Proceso
+                                                    Fabricación
                                                 </DropdownItem>
                                                 <DropdownItem
-                                                    onClick={() => setFilterEstado("completado")}
-                                                    active={filterEstado === "completado"}
+                                                    onClick={() => setFilterEstado("finalizado")}
+                                                    active={filterEstado === "finalizado"}
                                                 >
-                                                    Completado
+                                                    Finalizado
                                                 </DropdownItem>
                                             </DropdownMenu>
                                         </UncontrolledDropdown>
@@ -758,7 +849,19 @@ export default function ProductionListPage() {
                                                                                 <div>{producto.tipo}</div>
                                                                                 <small className="text-muted">{producto.material}</small>
                                                                             </td>
-                                                                            <td className="p-1">{producto.piezas}</td>
+                                                                            <td className="p-1">
+                                                                                {producto.piezas}
+                                                                                {/* Tooltip Piezas */}
+                                                                                <UncontrolledTooltip placement="top" target="piezas">
+                                                                                    <div className="d-flex flex-column">
+                                                                                        <div className="fw-bold">Piezas:</div>
+                                                                                        <div className="text-muted">
+                                                                                            {producto.piecesNames.join(", ")}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </UncontrolledTooltip>
+                                                                                <InfoIcon id="piezas" size={16} className="ms-1 cursor-pointer" />
+                                                                            </td>
                                                                             <td className="p-1">{producto.cantidad}</td>
                                                                             <td className="p-1">
                                                                                 <Badge color={getEstadoBadgeColor(producto.estado)}>
@@ -766,7 +869,7 @@ export default function ProductionListPage() {
                                                                                 </Badge>
                                                                             </td>
                                                                             <td className="p-1">
-                                                                                {producto.asignado ? (
+                                                                                {producto.asignado?.id ? (
                                                                                     <div>
                                                                                         <div className="fw-medium">{producto.asignado.nombre}</div>
                                                                                         <small className="text-muted d-flex align-items-center">

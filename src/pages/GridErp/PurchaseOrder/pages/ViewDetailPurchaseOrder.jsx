@@ -204,10 +204,12 @@ export default function ViewDetailPurchaseOrder() {
         switch (estado) {
             case "pendiente":
                 return "warning"
-            case "en_proceso":
+            case "fabricacion":
                 return "primary"
-            case "completado":
+            case "finalizado":
                 return "success"
+            case "inventario":
+                return "info"
             case "cancelado":
                 return "danger"
             default:
@@ -220,10 +222,12 @@ export default function ViewDetailPurchaseOrder() {
         switch (estado) {
             case "pendiente":
                 return "Pendiente"
-            case "en_proceso":
-                return "En Proceso"
-            case "completado":
-                return "Completado"
+            case "fabricacion":
+                return "Fabricación"
+            case "finalizado":
+                return "Finalizado"
+            case "inventario":
+                return "Inventario"
             case "cancelado":
                 return "Cancelado"
             default:
