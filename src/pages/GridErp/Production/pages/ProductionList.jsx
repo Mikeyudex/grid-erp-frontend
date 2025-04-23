@@ -75,13 +75,25 @@ export default function ProductionListPage() {
     const [fechaFin, setFechaFin] = useState("")
     const [filtroFechaActivo, setFiltroFechaActivo] = useState(false);
 
-    // Añadir estados de carga para las operaciones asíncronas
+    // estados de carga para las operaciones asíncronas
     const [isLoading, setIsLoading] = useState(false)
     const [errorMessage, setErrorMessage] = useState("")
     const [successMessage, setSuccessMessage] = useState("")
 
-    // Crear una instancia del helper
-    const purchaseHelper = new PurchaseHelper()
+    // estados para el ordenamiento después de los estados existentes
+    const [sortField, setSortField] = useState(null)
+    const [sortDirection, setSortDirection] = useState("asc") // "asc" o "desc"
+
+    const purchaseHelper = new PurchaseHelper();
+
+    const handleSort = (field) => {
+        if (sortField === field) {
+            setSortDirection(sortDirection === "asc" ? "desc" : "asc")
+        } else {
+            setSortField(field)
+            setSortDirection("asc")
+        }
+    }
 
     const handleGetPurchaseOrders = async () => {
         try {
@@ -186,11 +198,27 @@ export default function ProductionListPage() {
                 return fechaPedido >= fechaInicioObj && fechaPedido <= fechaFinObj
             })
         }
+        if (sortField) {
+            filtered.sort((a, b) => {
+                let valueA, valueB
 
-        setFilteredPedidos(filtered)
-        console.log(fechaInicio);
+                // Determinar los valores a comparar según el campo
+                if (sortField === "estado") {
+                    valueA = a.estado
+                    valueB = b.estado
+                }
+                // Aquí se pueden añadir más campos para ordenar en el futuro
 
-    }, [searchTerm, filterEstado, filtroFechaActivo, fechaInicio, fechaFin, tipoFecha])
+                if (sortDirection === "asc") {
+                    return valueA.localeCompare(valueB)
+                } else {
+                    return valueB.localeCompare(valueA)
+                }
+            })
+        }
+        setFilteredPedidos(filtered);
+
+    }, [searchTerm, filterEstado, filtroFechaActivo, fechaInicio, fechaFin, tipoFecha, sortField, sortDirection])
 
     const toggleRowExpand = (id) => {
         setExpandedRows({
@@ -346,7 +374,7 @@ export default function ProductionListPage() {
                     if (producto) {
                         // Datos para el cambio de estado
                         const data = {
-                            estado: nuevoEstado
+                            status: nuevoEstado
                         }
 
                         // Añadir la promesa para este producto
@@ -469,7 +497,7 @@ export default function ProductionListPage() {
                 return "Pendiente"
             case "fabricacion":
                 return "Fabricación"
-            case "completado":
+            case "finalizado":
                 return "Finalizado"
             case "inventario":
                 return "Inventario"
@@ -724,7 +752,15 @@ export default function ProductionListPage() {
                                         )}
                                     </th>
                                     <th style={{ width: "10%" }}>
+                                        <div
+                                            className="d-inline-block ms-1"
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() => handleSort("estado")}
+                                        >
+                                      
                                         Estado
+                                        </div>
+                                        {sortField === "estado" && <span className="ms-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                         <UncontrolledDropdown className="d-inline-block ms-1">
                                             <DropdownToggle color="link" size="sm" className="p-0 text-muted">
                                                 {filterEstado ? <Filter size={12} className="text-primary" /> : <Filter size={12} />}
@@ -733,7 +769,10 @@ export default function ProductionListPage() {
                                                 <DropdownItem onClick={() => setFilterEstado("")} active={filterEstado === ""}>
                                                     Todos los estados
                                                 </DropdownItem>
-                                                <DropdownItem onClick={() => setFilterEstado("pendiente")} active={filterEstado === "pendiente"}>
+                                                <DropdownItem
+                                                    onClick={() => setFilterEstado("pendiente")}
+                                                    active={filterEstado === "pendiente"}
+                                                >
                                                     Pendiente
                                                 </DropdownItem>
                                                 <DropdownItem
@@ -760,6 +799,7 @@ export default function ProductionListPage() {
                                                 •
                                             </Badge>
                                         )}
+
                                     </th>
                                     <th style={{ width: "15%" }}>Productos</th>
                                 </tr>
