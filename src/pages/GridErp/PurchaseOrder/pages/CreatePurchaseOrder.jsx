@@ -200,8 +200,6 @@ export default function PurchaseOrderPage() {
                         onClientSelect={handleClientSelect}
                         clients={clients}
                         products={products}
-                        /* typeOfPieces={typeOfPieces} */
-                        matMaterialPrices={matMaterialPrices}
                         matTypeOptions={matTypeOptions}
                         materialTypeOptions={materialTypeOptions}
                     />

@@ -1,5 +1,6 @@
 import axios from "axios";
 import { api } from "../config";
+import { GET_RESORCES_BY_ROLE } from "../pages/GridErp/Auth/helpers/url_helper";
 
 // default
 axios.defaults.baseURL = api.API_URL;
@@ -100,6 +101,23 @@ const getLoggedinUser = () => {
     return null;
   } else {
     return JSON.parse(user);
+  }
+};
+
+export const getResourcesByRole = async (roleId) => {
+  try {
+    let token = getToken();
+    const response = await fetch(`${URL_BASE_API}${GET_RESORCES_BY_ROLE}/${roleId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+    });
+    const data = await response.json();
+    return data?.data;
+  } catch (error) {
+    return null;
   }
 };
 

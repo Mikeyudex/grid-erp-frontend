@@ -19,6 +19,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ProductHelper } from "../../Products/helper/product_helper";
 import { ToastContainer } from "react-toastify";
 import BreadCrumb from "../../Products/components/BreadCrumb";
+import "../styles/purchase-order.css";
 
 // En un caso real, estos datos vendrían de una API o base de datos
 // Aquí usamos datos de ejemplo para la demostración
@@ -185,6 +186,10 @@ export default function ViewDetailPurchaseOrder() {
         return navigate("/purchase-orders")
     }
 
+    const handleEditarPedido = (id, pedido) => {
+        return navigate(`/purchase-orders/edit/${id}`, { state: { pedido } });
+      }
+
     const handleImprimir = () => {
         window.print()
     }
@@ -316,17 +321,17 @@ export default function ViewDetailPurchaseOrder() {
                                     <Button color="light" onClick={handleImprimir}>
                                         <Printer size={18} className="me-2" /> Imprimir
                                     </Button>
-                                    <Button color="primary">
+                                    <Button color="primary" onClick={() => handleEditarPedido(pedido.id, pedido)}>
                                         <Edit size={18} className="me-2" /> Editar Pedido
                                     </Button>
                                 </div>
                             </div>
 
-                            <Row>
+                            <Row className="overflow-auto">
                                 {/* Información del Cliente y Detalles del Pedido */}
-                                <Col md={4} className="mb-4">
+                                <Col md={4} className="mb-4"  style={{maxHeight: "300px"}}>
                                     <Card className="shadow-sm h-100">
-                                        <CardHeader style={{backgroundColor: "#1b3460"}}>
+                                        <CardHeader className="sticky-top card-header-custom">
                                             <h5 className="mb-0" style={{color: "white"}}>Información del Cliente</h5>
                                         </CardHeader>
                                         <CardBody>
@@ -345,9 +350,9 @@ export default function ViewDetailPurchaseOrder() {
                                     </Card>
                                 </Col>
 
-                                <Col md={4} className="mb-4">
+                                <Col md={4} className="mb-4"  style={{maxHeight: "300px"}}>
                                     <Card className="shadow-sm h-100">
-                                        <CardHeader style={{backgroundColor: "#1b3460"}}>
+                                        <CardHeader className="sticky-top card-header-custom">
                                             <h5 className="mb-0" style={{color: "white"}}>Detalles del Pedido</h5>
                                         </CardHeader>
                                         <CardBody>
@@ -378,9 +383,9 @@ export default function ViewDetailPurchaseOrder() {
                                     </Card>
                                 </Col>
 
-                                <Col md={4} className="mb-4">
-                                    <Card className="shadow-sm h-100">
-                                        <CardHeader style={{backgroundColor: "#1b3460"}}>
+                                <Col md={4} className="mb-4" style={{maxHeight: "300px"}}>
+                                    <Card className="shadow-sm h-100 overflow-auto">
+                                        <CardHeader className="sticky-top card-header-custom" >
                                             <h5 className="mb-0" style={{color: "white"}}>Historial del Pedido</h5>
                                         </CardHeader>
                                         <CardBody className="p-0">
@@ -408,7 +413,7 @@ export default function ViewDetailPurchaseOrder() {
 
                             {/* Productos del Pedido */}
                             <Card className="shadow-sm mb-4">
-                                <CardHeader style={{backgroundColor: "#1b3460"}}>
+                                <CardHeader className="card-header-custom">
                                     <h5 className="mb-0" style={{color: "white"}}>Productos ({pedido.productos.length})</h5>
                                 </CardHeader>
                                 <div className="table-responsive">

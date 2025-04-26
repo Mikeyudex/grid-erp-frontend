@@ -140,7 +140,7 @@ export default function LayoutCreateProduct(props) {
     }
 
     const handleFilterSubcategories = (categoryId) => {
-        let categoryFiltered = categories.filter((category) => category?.uuid === categoryId)[0];
+        let categoryFiltered = categories.filter((category) => category?._id === categoryId)[0];
         setSubcategories(categoryFiltered?.subcategories ?? []);
     };
 
@@ -464,7 +464,7 @@ export default function LayoutCreateProduct(props) {
                                                     <option value="0">Selecciona una opción</option>
                                                     {
                                                         categories.map((category) => {
-                                                            return (<option key={category?._id} label={category?.name} value={category?.uuid}></option>)
+                                                            return (<option key={category?._id} label={category?.name} value={category?._id}></option>)
                                                         })
                                                     }
                                                 </Input>
@@ -497,7 +497,7 @@ export default function LayoutCreateProduct(props) {
                                                     <option value="0">Selecciona una opción</option>
                                                     {
                                                         subcategories.map((subcategory) => {
-                                                            return (<option key={subcategory?._id} label={subcategory?.name} value={subcategory?.uuid}></option>)
+                                                            return (<option key={subcategory?._id} label={subcategory?.name} value={subcategory?._id}></option>)
                                                         })
                                                     }
                                                 </Input>

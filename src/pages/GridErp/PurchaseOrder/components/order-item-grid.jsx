@@ -34,11 +34,16 @@ export default function OrderGrid({
     onClientSelect,
     clients,
     products,
-    matMaterialPrices,
     matTypeOptions,
-    materialTypeOptions
+    materialTypeOptions,
+    // Nuevos props para modo edición
+    orderItems: initialOrderItems = [],
+    onAddItem = null,
+    onUpdateItem = null,
+    onRemoveItem = null,
+    isEditMode = false,
 }) {
-    const [orderItems, setOrderItems] = useState([])
+    const [orderItems, setOrderItems] = useState(initialOrderItems)
     const [clientModalOpen, setClientModalOpen] = useState(false)
     const [clientSearchTerm, setClientSearchTerm] = useState("")
     const [filteredClients, setFilteredClients] = useState(clients)
@@ -72,13 +77,20 @@ export default function OrderGrid({
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
 
+    // Actualizar orderItems cuando cambian los initialOrderItems en modo edición
+    useEffect(() => {
+        if (isEditMode && initialOrderItems.length > 0) {
+            setOrderItems(initialOrderItems)
+        }
+    }, [initialOrderItems, isEditMode])
+
     // Crear una nueva fila vacía
     const createEmptyRow = () => {
         return {
             productName: "",
             productId: "",
             pieces: /* typeOfPieces.slice(0, 3).length || */ 0,
-            selectedPieces: /* typeOfPieces.slice(0, 3).map((p) => p._id) || */ [],
+            selectedPieces: /* typeOfPieces.slice(0, 3).map((p) => p._id) || */[],
             matType: "Selecciona una opción",
             materialType: "Selecciona una opción",
             quantity: 1,
@@ -95,16 +107,30 @@ export default function OrderGrid({
             alert("Por favor, seleccione un cliente primero")
             return
         }
-        setOrderItems([...orderItems, createEmptyRow()])
+        //setOrderItems([...orderItems, createEmptyRow()])
         setProductSelected(null);
+        const newRow = createEmptyRow()
+
+        if (isEditMode && onAddItem) {
+            // En modo edición, notificar al componente padre
+            onAddItem(newRow)
+        } else {
+            // En modo creación, manejar internamente
+            setOrderItems([...orderItems, newRow])
+        }
     }
 
     // Eliminar una fila
     const removeRow = (index) => {
-        const newItems = [...orderItems]
-        newItems.splice(index, 1)
-        setOrderItems(newItems);
-
+        if (isEditMode && onRemoveItem) {
+            // En modo edición, notificar al componente padre
+            onRemoveItem(index)
+        } else {
+            // En modo creación, manejar internamente
+            const newItems = [...orderItems]
+            newItems.splice(index, 1)
+            setOrderItems(newItems)
+        }
         // Actualizar selección de filas
         setSelectedRows(
             selectedRows
@@ -160,7 +186,7 @@ export default function OrderGrid({
                 productId: product.id,
                 basePrice: product.salePrice || 0,
                 selectedPieces: product?.typeOfPieces.slice(0, 3).map((p) => p._id),
-                pieces: product?.typeOfPieces.slice(0, 3).length || 0,  
+                pieces: product?.typeOfPieces.slice(0, 3).length || 0,
             }
             setTypeOfPiecesRow(product?.typeOfPieces)
         }
@@ -187,7 +213,14 @@ export default function OrderGrid({
 
             return;
         }
-        setOrderItems(newItems)
+
+        if (isEditMode && onUpdateItem) {
+            // En modo edición, notificar al componente padre
+            onUpdateItem(rowIndex, newItems[rowIndex])
+        } else {
+            // En modo creación, manejar internamente
+            setOrderItems(newItems)
+        }
     }
 
     const handleOnChangeBasePrice = (rowIndex, value) => {
@@ -224,13 +257,22 @@ export default function OrderGrid({
     // Guardar selección de piezas
     const savePiecesSelection = () => {
         if (editingRowIndex !== null) {
-            const newItems = [...orderItems]
-            newItems[editingRowIndex] = {
-                ...newItems[editingRowIndex],
+            const updatedItem = {
+                ...orderItems[editingRowIndex],
                 selectedPieces: selectedPiecesTemp,
                 pieces: selectedPiecesTemp.length,
             }
-            setOrderItems(newItems)
+
+            if (isEditMode && onUpdateItem) {
+                // En modo edición, notificar al componente padre
+                onUpdateItem(editingRowIndex, updatedItem)
+            } else {
+                // En modo creación, manejar internamente
+                const newItems = [...orderItems]
+                newItems[editingRowIndex] = updatedItem
+                setOrderItems(newItems)
+            }
+
             setPiecesModalOpen(false)
             setEditingRowIndex(null)
         }
@@ -333,12 +375,21 @@ export default function OrderGrid({
     // Guardar observaciones
     const saveObservations = () => {
         if (editingRowIndex !== null) {
-            const newItems = [...orderItems]
-            newItems[editingRowIndex] = {
-                ...newItems[editingRowIndex],
+            const updatedItem = {
+                ...orderItems[editingRowIndex],
                 observations: currentObservations,
             }
-            setOrderItems(newItems)
+
+            if (isEditMode && onUpdateItem) {
+                // En modo edición, notificar al componente padre
+                onUpdateItem(editingRowIndex, updatedItem)
+            } else {
+                // En modo creación, manejar internamente
+                const newItems = [...orderItems]
+                newItems[editingRowIndex] = updatedItem
+                setOrderItems(newItems)
+            }
+
             setObservationsModalOpen(false)
             setEditingRowIndex(null)
         }
@@ -420,12 +471,20 @@ export default function OrderGrid({
                         let adjustedPrice = data;
                         newItems[rowIndex].adjustedPrice = adjustedPrice;
                         newItems[rowIndex].finalPrice = adjustedPrice;
-                        setOrderItems(newItems);
-                        setBulkEditModalOpen(false);
+
+                        if (isEditMode && onUpdateItem) {
+                            // En modo edición, notificar al componente padre para cada fila modificada
+                            selectedRows.forEach((rowIndex) => {
+                                onUpdateItem(rowIndex, newItems[rowIndex])
+                            })
+                        } else {
+                            // En modo creación, manejar internamente
+                            setOrderItems(newItems);
+                            setBulkEditModalOpen(false);
+                        }
                     });
             }
         })
-
     }
 
     //Limpiar los datos de la tabla y dejar una fila en blanco
@@ -521,7 +580,7 @@ export default function OrderGrid({
                     </InputGroup>
 
                     <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-                        {filteredClients.length > 0 ? (
+                        {(filteredClients && filteredClients.length > 0) ? (
                             filteredClients.map((client) => (
                                 <div
                                     key={client.id}
@@ -623,7 +682,7 @@ export default function OrderGrid({
                             onChange={(e) => handleBulkEditChange("matType", e.target.value)}
                         >
                             <option value="">-- Sin cambios --</option>
-                            {matTypeOptions.map((mat, idx) => (
+                            {(matTypeOptions ?? []).map((mat, idx) => (
                                 <option key={idx} value={mat}>
                                     {mat}
                                 </option>
@@ -643,7 +702,7 @@ export default function OrderGrid({
                             onChange={(e) => handleBulkEditChange("materialType", e.target.value)}
                         >
                             <option value="">-- Sin cambios --</option>
-                            {materialTypeOptions.map((matType, idx) => (
+                            {(materialTypeOptions ?? []).map((matType, idx) => (
                                 <option key={idx} value={matType}>
                                     {matType}
                                 </option>
@@ -740,7 +799,7 @@ export default function OrderGrid({
                                         key={index}
                                         ref={el => rowRefs.current[index] = el}
                                         className={selectedRows.includes(index) ? "row-selected-to-editing" : ""}
-                                        >
+                                    >
                                         {/* Checkbox de selección */}
                                         <td className="text-center align-middle">
                                             <div
@@ -1005,7 +1064,7 @@ export default function OrderGrid({
             )}
 
             {/* Total del Pedido */}
-            {orderItems.length > 0 && (
+            {orderItems.length > 0 && !isEditMode && (
                 <div className="bg-light p-3 rounded shadow-sm mb-4" style={{ position: "sticky", bottom: '25px', height: '110px' }}>
                     <div className="d-flex justify-content-between align-items-center">
                         <h2 className="h5 fw-semibold mb-0">Total del Pedido:</h2>

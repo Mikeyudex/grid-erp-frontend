@@ -24,6 +24,9 @@ import { ListPurchaseOrder } from "../pages/GridErp/PurchaseOrder/pages/ListPurc
 import ViewDetailPurchaseOrder from "../pages/GridErp/PurchaseOrder/pages/ViewDetailPurchaseOrder";
 import { ListMatMaterialPrice } from "../pages/GridErp/MatMaterialPrice/pages/ListMatMaterialPrice";
 import ProductionListPage from "../pages/GridErp/Production/pages/ProductionList";
+import EditPurchaseOrder from "../pages/GridErp/PurchaseOrder/pages/EditPurchaseOrder";
+import SignUp from "../pages/GridErp/Auth/pages/SignUp";
+import SignIn from "../pages/GridErp/Auth/pages/SignIn";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -76,7 +79,7 @@ const authProtectedRoutes = [
     // Purchase Order
     { path: "/purchase-orders", component: <ListPurchaseOrder /> },
     { path: "/purchase-orders/create", component: <PurchaseOrderPage /> },
-    { path: "/purchase-orders/edit", component: <PurchaseOrderPage /> },
+    { path: "/purchase-orders/edit/:id", component: <EditPurchaseOrder /> },
     { path: "/purchase-orders/view-detail/:id", component: <ViewDetailPurchaseOrder /> },
 
     // Mat Material Price
@@ -90,9 +93,10 @@ const authProtectedRoutes = [
 ]
 
 const publicRoutes = [
-    // Authentication Page
-    { path: "/logout", component: <h1>Logout</h1> },
-    { path: "/login", component: <h1>Login</h1> },]
+    //Backoffice pages Auth
+    { path: "/auth-signup", component: <SignUp /> },
+    { path: "/auth-signin", component: <SignIn /> },
+]
 
 
 export { authProtectedRoutes, publicRoutes };

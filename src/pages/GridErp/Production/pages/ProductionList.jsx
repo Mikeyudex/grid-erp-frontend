@@ -40,6 +40,7 @@ import {
     Calendar,
     Filter,
     InfoIcon,
+    Check,
 } from "lucide-react"
 import ModalAsignacion from "../components/ModalAsignacion"
 import ModalCambioEstado from "../components/ModalCambioEstado"
@@ -161,6 +162,8 @@ export default function ProductionListPage() {
                                     nombre: agentesProduccion.find((a) => a.id === item.assignedId)?.nombre || null,
                                     fecha: item?.assignedAt || null,
                                 },
+                                marca: item?.marca,
+                                linea: item?.linea,
                             }
                         }),
                         estado: po.status,
@@ -178,15 +181,15 @@ export default function ProductionListPage() {
         const term = searchTerm.toLowerCase()
         let filtered = pedidos.filter(
             (pedido) =>
-                (String(pedido.id).includes(term) ||
-                    pedido.cliente.nombre.toLowerCase().includes(term) ||
-                    (pedido.cliente.empresa && pedido.cliente.empresa.toLowerCase().includes(term))) &&
+                (String(pedido?.id).includes(term) ||
+                    pedido?.cliente?.nombre.toLowerCase().includes(term) ||
+                    (pedido?.cliente?.ciudad && pedido?.cliente.ciudad.toLowerCase().includes(term)) ||
+                    (pedido.cliente?.empresa && pedido?.cliente.empresa.toLowerCase().includes(term))) &&
                 (filterEstado === "" || pedido.estado === filterEstado),
         );
         // Aplicar filtro de fechas si está activo
         if (filtroFechaActivo && fechaInicio && fechaFin) {
             //set utc to fechaFinObj substract 5 hours
-
             const fechaInicioObj = new Date(fechaInicio)
             const fechaFinObj = new Date(fechaFin);
             fechaFinObj.setHours(23, 59, 59, 999);
@@ -547,16 +550,16 @@ export default function ProductionListPage() {
                     <h1>Panel de Producción</h1>
                     <div className="d-flex gap-2">
                         <Button title="Actualizar" color="light" className="d-flex align-items-center gap-2" onClick={handleRefresh}>
-                            <RefreshCw size={18} /> Actualizar
+                            <RefreshCw size={18} />
                         </Button>
                         {selectedProducts.length > 0 && (
                             <Fragment>
-                                <Button title="Asignar productos" color="primary" onClick={openAsignacionModal} className="d-flex align-items-center gap-2">
-                                    <User size={18} /> Asignar Seleccionados ({selectedProducts.length})
+                                <Button title="Asignar productos seleccionados" color="light" onClick={openAsignacionModal} className="d-flex align-items-center gap-2">
+                                    <User size={18} />  ({selectedProducts.length})
                                 </Button>
 
-                                <Button title="Cambiar estado" color="secondary" size="sm" onClick={openCambioEstadoModal}>
-                                    Cambiar Estado
+                                <Button title="Cambiar estado" color="light" size="sm" onClick={openCambioEstadoModal}>
+                                    <Check size={18} />
                                 </Button>
                             </Fragment>
                         )}
@@ -599,7 +602,7 @@ export default function ProductionListPage() {
                                 <Form onSubmit={handleSearch}>
                                     <InputGroup>
                                         <Input
-                                            placeholder="Buscar por ID, cliente o empresa..."
+                                            placeholder="Buscar por ID, ciudad, cliente o empresa..."
                                             value={searchTerm}
                                             onChange={(e) => setSearchTerm(e.target.value)}
                                         />
@@ -613,8 +616,9 @@ export default function ProductionListPage() {
                                 <Input type="select" value={filterEstado} onChange={(e) => setFilterEstado(e.target.value)}>
                                     <option value="">Todos los estados</option>
                                     <option value="pendiente">Pendiente</option>
-                                    <option value="en_proceso">En Proceso</option>
-                                    <option value="completado">Completado</option>
+                                    <option value="fabricacion">Fabricación</option>
+                                    <option value="invenrario">Inventario</option>
+                                    <option value="finalizado">Finalizado</option>
                                 </Input>
                             </Col>
                         </Row>
@@ -626,8 +630,9 @@ export default function ProductionListPage() {
                         <Table hover>
                             <thead>
                                 <tr>
-                                    <th style={{ width: "5%" }}></th>
+                                    <th style={{ width: "3%" }}></th>
                                     <th style={{ width: "10%" }}>#</th>
+                                    <th style={{ width: "15%" }}>Ciudad</th>
                                     <th style={{ width: "15%" }} className="position-relative">
                                         Fecha
                                         <UncontrolledDropdown className="d-inline-block ms-1">
@@ -757,8 +762,7 @@ export default function ProductionListPage() {
                                             style={{ cursor: "pointer" }}
                                             onClick={() => handleSort("estado")}
                                         >
-                                      
-                                        Estado
+                                            Estado
                                         </div>
                                         {sortField === "estado" && <span className="ms-1">{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                         <UncontrolledDropdown className="d-inline-block ms-1">
@@ -780,6 +784,12 @@ export default function ProductionListPage() {
                                                     active={filterEstado === "fabricacion"}
                                                 >
                                                     Fabricación
+                                                </DropdownItem>
+                                                <DropdownItem
+                                                    onClick={() => setFilterEstado("inventario")}
+                                                    active={filterEstado === "inventario"}
+                                                >
+                                                    Inventario
                                                 </DropdownItem>
                                                 <DropdownItem
                                                     onClick={() => setFilterEstado("finalizado")}
@@ -820,6 +830,7 @@ export default function ProductionListPage() {
                                                     </Button>
                                                 </td>
                                                 <td>#{pedido.id}</td>
+                                                <td>{pedido?.cliente?.ciudad || "Sin ciudad"}</td>
                                                 <td>{formatDate(pedido.fecha)}</td>
                                                 <td>
                                                     <div className="fw-medium">{pedido.cliente.nombre}</div>
@@ -884,7 +895,11 @@ export default function ProductionListPage() {
                                                                                 </div>
 
                                                                             </td>
-                                                                            <td className="p-1">{producto.nombre}</td>
+                                                                            <td className="p-1">
+                                                                                <div><strong>{producto.nombre}</strong>  </div>
+                                                                                <span>Marca:</span><small className="text-muted"> {producto?.marca}</small> | {" "}
+                                                                                <span>Linea:</span><small className="text-muted"> {producto?.linea}</small>
+                                                                            </td>
                                                                             <td>
                                                                                 <div>{producto.tipo}</div>
                                                                                 <small className="text-muted">{producto.material}</small>
