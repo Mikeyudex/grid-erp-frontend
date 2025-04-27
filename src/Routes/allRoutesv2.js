@@ -27,6 +27,8 @@ import ProductionListPage from "../pages/GridErp/Production/pages/ProductionList
 import EditPurchaseOrder from "../pages/GridErp/PurchaseOrder/pages/EditPurchaseOrder";
 import SignUp from "../pages/GridErp/Auth/pages/SignUp";
 import SignIn from "../pages/GridErp/Auth/pages/SignIn";
+import ActivateOtp from "../pages/GridErp/Auth/pages/ActivateOtp";
+import PasswordReset from "../pages/GridErp/Auth/pages/PasswordReset";
 
 const authProtectedRoutes = [
     { path: "/dashboard", component: <DashboardEcommerce /> },
@@ -96,6 +98,8 @@ const publicRoutes = [
     //Backoffice pages Auth
     { path: "/auth-signup", component: <SignUp /> },
     { path: "/auth-signin", component: <SignIn /> },
+    { path: "/auth-activate-otp", component: <ActivateOtp /> },
+    { path: "/auth-forgot-password", component: <PasswordReset /> },
 ]
 
 
