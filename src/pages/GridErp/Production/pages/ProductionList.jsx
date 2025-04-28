@@ -136,7 +136,7 @@ export default function ProductionListPage() {
 
     useEffect(() => {
         if (!agentesProduccion || agentesProduccion.length === 0) return;
-
+        setIsLoading(true);
         handleGetPurchaseOrders()
             .then(async (data) => {
                 let purchaseOrders = data;
@@ -174,6 +174,9 @@ export default function ProductionListPage() {
                 setFilteredPedidos(parsedPurchaseOrders);
             })
             .catch(e => console.log(e))
+            .finally(() => {
+                setIsLoading(false);
+            });
     }, [reloadTable, agentesProduccion]);
 
     // Aplicar filtros
@@ -815,6 +818,15 @@ export default function ProductionListPage() {
                                 </tr>
                             </thead>
                             <tbody>
+                                {
+                                    isLoading && (
+                                        <tr>
+                                            <td colSpan="8" className="text-center py-4">
+                                                <div className="text-muted">Cargando...</div>
+                                            </td>
+                                        </tr>
+                                    )
+                                }
                                 {currentPedidos.length > 0 ? (
                                     currentPedidos.map((pedido) => (
                                         <React.Fragment key={pedido.id}>
@@ -949,7 +961,11 @@ export default function ProductionListPage() {
                                 ) : (
                                     <tr>
                                         <td colSpan="8" className="text-center py-4">
-                                            <div className="text-muted">No se encontraron pedidos con los filtros aplicados</div>
+                                            {
+                                                !isLoading && (
+                                                    <div className="text-muted">No se encontraron pedidos con los filtros aplicados</div>
+                                                )
+                                            }
                                         </td>
                                     </tr>
                                 )}

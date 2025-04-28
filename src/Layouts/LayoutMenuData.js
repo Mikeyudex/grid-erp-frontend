@@ -166,12 +166,6 @@ const Navdata = () => {
           label: "Lista",
           link: "/production",
           parentId: "production-orders",
-        },
-        {
-          id: "production-create",
-          label: "Crear",
-          link: "/production/create",
-          parentId: "production-orders",
         }
       ],
     },
