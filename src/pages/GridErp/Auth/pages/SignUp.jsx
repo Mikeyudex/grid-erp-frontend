@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, Col, Container, Row, Form, Input, Button } from 'reactstrap';
 
 import AuthSlider from '../../../AuthenticationInner/authCarousel';
 import { validateEmail, validatePassword, validatePhone } from '../helpers/validations_helper';
-import { SIGN_UP, baseUrl } from '../helpers/url_helper';
 import { FooterQuality } from '../components/Footer';
 import AlertCustom from '../../commons/AlertCustom';
+import { AuthHelper } from '../helpers/auth_helper';
 
+const authHelper = new AuthHelper();
 
 const SignUp = () => {
     document.title = "Registrar cuenta | ERP Quality";
@@ -21,12 +22,15 @@ const SignUp = () => {
         email: "",
         phone: "",
         password: "",
+        role: "operativo",
+        zoneId: "",
     });
     const [errors, setErrors] = useState({});
     const [loading, setLoading] = useState(false);
     const [messsageAlert, setMessageAlert] = useState("");
     const [isOpenModal, setIsOpenModal] = useState(false);
     const [typeModal, setTypeModal] = useState('success');
+    const [zones, setZones] = useState([]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -56,6 +60,9 @@ const SignUp = () => {
         if (!data.name) {
             newErrors.name = 'Nombre es requerido';
         }
+        if (!data.zoneId) {
+            newErrors.zoneId = 'Zona es requerida';
+        }
         if (!data.password) {
             newErrors.password = 'Contraseña es requerida';
         }
@@ -73,22 +80,28 @@ const SignUp = () => {
         return Object.keys(newErrors).length === 0; // Devuelve true si no hay errores
     };
 
+    const handleGetZones = async () => {
+        setLoading(true);
+        let response = await authHelper.getZones();
+        if (response?.statusCode === 200) {
+            setZones(response?.data);
+        }
+        if (response?.error) {
+            setMessageAlert(response?.message);
+            setIsOpenModal(true);
+            setTypeModal('danger');
+        }
+        setLoading(false);
+    };
+
     const handleSubmit = async () => {
         if (!validateInputs()) return;
         setIsOpenModal(false);
         setMessageAlert('');
         setLoading(true);
         try {
-            const response = await fetch(`${baseUrl}${SIGN_UP}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-
-            const data = await response.json();
-            if (response.status === 400) {
+            const response = await authHelper.signUp(formData);
+            if (response?.statusCode === 400) {
                 let messages = data?.errors;
                 let messageParsed = messages.map((item) => { return item.message });
                 setMessageAlert(messageParsed.join('\n'));
@@ -96,12 +109,12 @@ const SignUp = () => {
                 setTypeModal('danger');
                 return;
             }
-            if (data?.error) {
+            if (response?.error) {
                 setMessageAlert(data?.message);
                 setIsOpenModal(true);
                 setTypeModal('danger');
             } else {
-                setMessageAlert(data?.message);
+                setMessageAlert('Cuenta creada con éxito, redirigiendo a la página de inicio de sesión...');
                 setIsOpenModal(true);
                 setTypeModal('success');
                 return setTimeout(() => {
@@ -109,6 +122,7 @@ const SignUp = () => {
                 }, 2000);
             }
         } catch (error) {
+            console.log(error);
             setMessageAlert('Error al crear la cuenta');
             setIsOpenModal(true);
             setTypeModal('danger');
@@ -116,6 +130,11 @@ const SignUp = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        handleGetZones()
+        .catch(error => console.log(error));
+    }, []);
 
     return (
         <React.Fragment>
@@ -241,6 +260,30 @@ const SignUp = () => {
                                                             )}
                                                         </div>
 
+                                                        <div className="mb-3">
+                                                            <label htmlFor="zones" className="form-label">Zona <span className="text-danger">*</span></label>
+                                                            <Input
+                                                                onChange={handleChange}
+                                                                value={formData.zoneId}
+                                                                name='zoneId'
+                                                                type="select"
+                                                                className="form-control"
+                                                                id="zones"
+                                                                placeholder="Seleccione una opción"
+                                                                required
+                                                                invalid={errors.zoneId ? true : false}
+                                                            >
+                                                                <option value="0">Seleccione una opción</option>
+                                                                {
+                                                                    (zones.length > 0) && zones.map((zone) => {
+                                                                        return (<option key={zone?._id} label={zone?.shortCode + " - " + zone?.name} value={zone?._id}></option>)
+                                                                    })
+                                                                }
+                                                            </Input>
+                                                            {errors.zoneId && (
+                                                                <span className="fs-12" style={{ color: "#f18275" }}>{errors.zoneId}</span>
+                                                            )}
+                                                        </div>
 
                                                         <div className="mb-3">
                                                             <label className="form-label" htmlFor="password-input">Contraseña <span className="text-danger">*</span></label>

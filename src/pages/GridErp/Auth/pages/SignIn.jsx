@@ -3,14 +3,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, Col, Container, Input, Label, Row, Button } from 'reactstrap';
 
 import AuthSlider from '../../../AuthenticationInner/authCarousel';
-import { SIGN_IN, baseUrl } from '../helpers/url_helper';
+import { SIGN_IN, BASE_URL_API } from '../helpers/auth_url_helper';
 import { validateEmail } from '../helpers/validations_helper';
 import { FooterQuality } from '../components/Footer';
 import { IndexedDBService } from '../../../../helpers/indexedDb/indexed-db-helper';
 import AlertCustom from '../../commons/AlertCustom';
 import { getResourcesByRole } from '../../../../helpers/api_helper';
+import { AuthHelper } from '../helpers/auth_helper';
 
 const indexedDBService = new IndexedDBService();
+const authHelper = new AuthHelper();
 
 const SignIn = () => {
     document.title = "Login | ERP Quality";
@@ -45,31 +47,24 @@ const SignIn = () => {
         setLoading(true);
 
         try {
-            const response = await fetch(`${baseUrl}${SIGN_IN}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-            const data = await response.json();
+            const response = await authHelper.login(formData);
 
-            if (data?.error) {
-                setMessageAlert(data?.message);
+            if (response?.error) {
+                setMessageAlert(response?.message);
                 setIsOpenModal(true);
                 setTypeModal('danger');
             } else {
-                if (!data?.data?.access_token) {
+                if (!response?.data?.access_token) {
                     throw new Error('Error al autenticar');
                 }
-                let token = data?.data?.access_token;
+                let token = response?.data?.access_token;
                 //guardar el token en una cookie
                 document.cookie = `jwt-quality=${token}`;
-                let user = data?.data?.user;
+                let user = response?.data?.user;
                 localStorage.setItem('userId', user?.id);
                 localStorage.setItem('userEmail', user?.email);
 
-                setMessageAlert(data?.message);
+                setMessageAlert(response?.message);
                 setIsOpenModal(true);
                 setTypeModal('success');
 

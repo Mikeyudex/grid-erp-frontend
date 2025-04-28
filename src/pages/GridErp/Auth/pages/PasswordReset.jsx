@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Card, Col, Container, Input, Label, Row, Button } from 'reactstrap';
 
 import AuthSlider from '../../../AuthenticationInner/authCarousel';
-import { REQUEST_PASSWORD_RESET, URL_BASE_API } from '../helpers/url_helper';
 import { validateEmail } from '../helpers/validations_helper';
 import { FooterQuality } from '../components/Footer';
 import AlertCustom from '../../commons/AlertCustom';
+import { AuthHelper } from '../helpers/auth_helper';
+
+const authHelper = new AuthHelper();
 
 const PasswordReset = () => {
     document.title = "Recuperar contraseña | ERP Quality";
@@ -38,20 +40,13 @@ const PasswordReset = () => {
         setLoading(true);
 
         try {
-            const response = await fetch(`${URL_BASE_API}${REQUEST_PASSWORD_RESET}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-            const data = await response.json();
-            if (data?.error) {
-                setMessageAlert(data?.message);
+            const response = await authHelper.requestPasswordReset(formData);
+            if (response?.error) {
+                setMessageAlert(response?.message);
                 setIsOpenModal(true);
                 setTypeModal('danger');
             } else {
-                setMessageAlert(data?.message);
+                setMessageAlert(response?.message);
                 setIsOpenModal(true);
                 setTypeModal('success');
             }

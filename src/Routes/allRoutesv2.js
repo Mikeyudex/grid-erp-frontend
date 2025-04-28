@@ -29,8 +29,12 @@ import SignUp from "../pages/GridErp/Auth/pages/SignUp";
 import SignIn from "../pages/GridErp/Auth/pages/SignIn";
 import ActivateOtp from "../pages/GridErp/Auth/pages/ActivateOtp";
 import PasswordReset from "../pages/GridErp/Auth/pages/PasswordReset";
+import PasswordCreate from "../pages/GridErp/Auth/pages/PasswordCreate";
+import TwosVerify from "../pages/GridErp/Auth/pages/TwosVerify";
+import HomeBackoffice from "../pages/GridErp/Home/pages/Home";
 
 const authProtectedRoutes = [
+    { path: "/home", component: <HomeBackoffice /> },
     { path: "/dashboard", component: <DashboardEcommerce /> },
     {
         path: "/",
@@ -98,8 +102,11 @@ const publicRoutes = [
     //Backoffice pages Auth
     { path: "/auth-signup", component: <SignUp /> },
     { path: "/auth-signin", component: <SignIn /> },
+    { path: "/auth-otp", component: <TwosVerify /> },
     { path: "/auth-activate-otp", component: <ActivateOtp /> },
     { path: "/auth-forgot-password", component: <PasswordReset /> },
+    { path: "/auth-reset-password", component: <PasswordCreate /> },
+
 ]
 
 

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { api } from "../config";
-import { GET_RESORCES_BY_ROLE } from "../pages/GridErp/Auth/helpers/url_helper";
+import { GET_RESORCES_BY_ROLE } from "../pages/GridErp/Auth/helpers/auth_url_helper";
 
 // default
 axios.defaults.baseURL = api.API_URL;

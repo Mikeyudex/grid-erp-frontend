@@ -5,9 +5,11 @@ import { Button, Card, Col, Container, Row } from 'reactstrap';
 //import images
 import AuthSlider from '../../../AuthenticationInner/authCarousel';
 import { FooterQuality } from '../components/Footer';
-import { GENERATE_QR_OTP, URL_BASE_API } from '../helpers/url_helper';
 import { getCookie } from '../../../../helpers/cookies/cookie_helper';
 import AlertCustom from '../../commons/AlertCustom';
+import { AuthHelper } from '../helpers/auth_helper';
+
+const authHelper = new AuthHelper();
 
 const ActivateOtp = () => {
     document.title = "Activar código de verificación | ERP Quality";
@@ -30,21 +32,15 @@ const ActivateOtp = () => {
         const userEmail = localStorage.getItem('userEmail');
         setLoading(true);
         try {
-            const response = await fetch(`${URL_BASE_API}${GENERATE_QR_OTP}/${userEmail}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
-            });
-            const data = await response.json();
-            if (data?.error) {
+            const response = await authHelper.generateQrCodeOtp(userEmail);
+            if (response?.data?.error) {
                 setMessageAlert(data?.message);
                 setIsOpenModal(true);
                 setTypeModal('danger');
             } else {
-                let qrCode = data?.data?.qrcode;
+                let qrCode = response?.data?.qrcode;
                 setQrCode(qrCode);
-                setMessageAlert(data?.message);
+                setMessageAlert(response?.message);
                 setIsOpenModal(true);
                 setTypeModal('success');
             }
