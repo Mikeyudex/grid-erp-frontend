@@ -32,6 +32,7 @@ import PasswordReset from "../pages/GridErp/Auth/pages/PasswordReset";
 import PasswordCreate from "../pages/GridErp/Auth/pages/PasswordCreate";
 import TwosVerify from "../pages/GridErp/Auth/pages/TwosVerify";
 import HomeBackoffice from "../pages/GridErp/Home/pages/Home";
+import ProfileSettings from "../pages/GridErp/Profile/Settings/Settings";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -41,6 +42,7 @@ const authProtectedRoutes = [
         exact: true,
         component: <Navigate to="/dashboard" />,
     },
+    { path: "/profile", component: <ProfileSettings /> },
     // Products
     {
         path: "/products-create",

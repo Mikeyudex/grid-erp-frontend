@@ -13,6 +13,7 @@ export class AuthHelper {
     signUp = (payload) => api.create(`${url.SIGN_UP}`, payload);
     getResourcesByRoleId = (roleId) => api.get(`${url.GET_RESORCES_BY_ROLE}${roleId}`);
     getZones = () => api.get(`${url.GET_ZONES}`);
+    getZoneById = (zoneId) => api.get(`${url.GET_ZONE_BY_ID}/${zoneId}`);
     generateQrCodeOtp = (email) => api.get(`${url.GENERATE_QR_OTP}/${email}`);
     requestPasswordReset = (payload) => api.create(`${url.REQUEST_PASSWORD_RESET}`, payload);
     verifyOtp = (payload) => api.create(`${url.VERIFY_OTP}`, payload);

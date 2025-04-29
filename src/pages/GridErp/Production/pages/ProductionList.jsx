@@ -23,6 +23,7 @@ import {
     DropdownMenu,
     DropdownItem,
     UncontrolledTooltip,
+    CardHeader,
 } from "reactstrap"
 import {
     Search,
@@ -84,6 +85,24 @@ export default function ProductionListPage() {
     // estados para el ordenamiento después de los estados existentes
     const [sortField, setSortField] = useState(null)
     const [sortDirection, setSortDirection] = useState("asc") // "asc" o "desc"
+    // Añadir nuevos estados para los filtros por columna después de los estados existentes
+    const [columnFilters, setColumnFilters] = useState({
+        id: "",
+        ciudad: "",
+        fecha: "",
+        cliente: "",
+        fechaEntrega: "",
+        estado: filterEstado, // Inicializar con el filtro de estado existente
+        productos: "",
+    })
+
+    // Añadir función para manejar cambios en los filtros de columna
+    const handleColumnFilterChange = (column, value) => {
+        setColumnFilters({
+            ...columnFilters,
+            [column]: value,
+        })
+    }
 
     const purchaseHelper = new PurchaseHelper();
 
@@ -182,14 +201,66 @@ export default function ProductionListPage() {
     // Aplicar filtros
     useEffect(() => {
         const term = searchTerm.toLowerCase()
-        let filtered = pedidos.filter(
+        let filtered = pedidos;/* pedidos.filter(
             (pedido) =>
                 (String(pedido?.id).includes(term) ||
                     pedido?.cliente?.nombre.toLowerCase().includes(term) ||
                     (pedido?.cliente?.ciudad && pedido?.cliente.ciudad.toLowerCase().includes(term)) ||
                     (pedido.cliente?.empresa && pedido?.cliente.empresa.toLowerCase().includes(term))) &&
                 (filterEstado === "" || pedido.estado === filterEstado),
-        );
+        ); */
+        // Aplicar filtro general de búsqueda si existe
+        if (term) {
+            filtered = filtered.filter(
+                (pedido) =>
+                    (String(pedido?.id).includes(term) ||
+                        pedido?.cliente?.nombre.toLowerCase().includes(term) ||
+                        (pedido?.cliente?.ciudad && pedido?.cliente.ciudad.toLowerCase().includes(term)) ||
+                        (pedido.cliente?.empresa && pedido?.cliente.empresa.toLowerCase().includes(term))) &&
+                    (filterEstado === "" || pedido.estado === filterEstado),
+            )
+        }
+
+        // Aplicar filtros por columna
+        if (columnFilters.id) {
+            filtered = filtered.filter((pedido) => String(pedido?.id).includes(columnFilters.id.toLowerCase()))
+        }
+
+        if (columnFilters.ciudad) {
+            filtered = filtered.filter((pedido) => pedido.cliente.ciudad.toLowerCase().includes(columnFilters.ciudad.toLowerCase()))
+        }
+
+        if (columnFilters.fecha) {
+            filtered = filtered.filter((pedido) => pedido.fecha.toLowerCase().includes(columnFilters.fecha.toLowerCase()))
+        }
+
+        if (columnFilters.cliente) {
+            filtered = filtered.filter(
+                (pedido) =>
+                    pedido.cliente.nombre.toLowerCase().includes(columnFilters.cliente.toLowerCase()) ||
+                    (pedido.cliente.empresa &&
+                        pedido.cliente.empresa.toLowerCase().includes(columnFilters.cliente.toLowerCase())),
+            )
+        }
+
+        if (columnFilters.fechaEntrega) {
+            filtered = filtered.filter((pedido) =>
+                pedido.fechaEntrega.toLowerCase().includes(columnFilters.fechaEntrega.toLowerCase()),
+            )
+        }
+
+        if (columnFilters.estado) {
+            filtered = filtered.filter((pedido) => pedido.estado === columnFilters.estado)
+        }
+
+        if (columnFilters.productos) {
+            filtered = filtered.filter((pedido) =>
+                pedido.productos.some((producto) =>
+                    producto.nombre.toLowerCase().includes(columnFilters.productos.toLowerCase()),
+                ),
+            )
+        }
+
         // Aplicar filtro de fechas si está activo
         if (filtroFechaActivo && fechaInicio && fechaFin) {
             //set utc to fechaFinObj substract 5 hours
@@ -224,7 +295,42 @@ export default function ProductionListPage() {
         }
         setFilteredPedidos(filtered);
 
-    }, [searchTerm, filterEstado, filtroFechaActivo, fechaInicio, fechaFin, tipoFecha, sortField, sortDirection])
+    }, [
+        searchTerm,
+        filterEstado,
+        filtroFechaActivo,
+        fechaInicio,
+        fechaFin,
+        tipoFecha,
+        sortField,
+        sortDirection,
+        columnFilters
+    ]);
+
+    // Actualizar la función handleFilterChange para sincronizar con columnFilters
+    const handleFilterChange = (e) => {
+        const estado = e.target.value
+        setFilterEstado(estado)
+        setColumnFilters({
+            ...columnFilters,
+            estado: estado,
+        })
+    }
+
+    // Añadir función para limpiar todos los filtros
+    const clearAllFilters = () => {
+        setSearchTerm("")
+        setFilterEstado("")
+        setColumnFilters({
+            id: "",
+            fecha: "",
+            cliente: "",
+            fechaEntrega: "",
+            estado: "",
+            productos: "",
+        })
+        limpiarFiltroFechas()
+    }
 
     const toggleRowExpand = (id) => {
         setExpandedRows({
@@ -599,6 +705,22 @@ export default function ProductionListPage() {
 
                 {/* Card de busqueda */}
                 <Card className="shadow-sm mb-2">
+
+                    <CardHeader className="bg-light">
+                        <div className="d-flex justify-content-between align-items-center">
+                            <h5 className="mb-0">Filtros</h5>
+                            <div>
+                                <Button color="secondary" size="sm" className="me-2" onClick={clearAllFilters}>
+                                    <RefreshCw size={14} className="me-1" /> Limpiar filtros
+                                </Button>
+                                <Button color="light" size="sm">
+                                    <Filter size={16} className="me-2" /> Más Filtros
+                                </Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+
+
                     <CardBody>
                         <Row>
                             <Col md={8}>
@@ -616,7 +738,7 @@ export default function ProductionListPage() {
                                 </Form>
                             </Col>
                             <Col md={4}>
-                                <Input type="select" value={filterEstado} onChange={(e) => setFilterEstado(e.target.value)}>
+                                <Input type="select" value={filterEstado} onChange={handleFilterChange}>
                                     <option value="">Todos los estados</option>
                                     <option value="pendiente">Pendiente</option>
                                     <option value="fabricacion">Fabricación</option>
@@ -816,6 +938,65 @@ export default function ProductionListPage() {
                                     </th>
                                     <th style={{ width: "15%" }}>Productos</th>
                                 </tr>
+                                {/* Fila de filtros por columna */}
+                                <tr className="bg-light">
+                                    <th></th>
+                                    <th>
+                                        <Input
+                                            type="text"
+                                            bsSize="sm"
+                                            placeholder="Buscar #..."
+                                            value={columnFilters.id}
+                                            onChange={(e) => handleColumnFilterChange("id", e.target.value)}
+                                        />
+                                    </th>
+                                    <th>
+                                        <Input
+                                            type="text"
+                                            bsSize="sm"
+                                            placeholder="Buscar ciudad..."
+                                            value={columnFilters.ciudad}
+                                            onChange={(e) => handleColumnFilterChange("ciudad", e.target.value)}
+                                        />
+                                    </th>
+                                    <th>
+                                        <Input
+                                            type="text"
+                                            bsSize="sm"
+                                            placeholder="Buscar fecha..."
+                                            value={columnFilters.fecha}
+                                            onChange={(e) => handleColumnFilterChange("fecha", e.target.value)}
+                                        />
+                                    </th>
+                                    <th>
+                                        <Input
+                                            type="text"
+                                            bsSize="sm"
+                                            placeholder="Buscar cliente..."
+                                            value={columnFilters.cliente}
+                                            onChange={(e) => handleColumnFilterChange("cliente", e.target.value)}
+                                        />
+                                    </th>
+                                    <th>
+                                        <Input
+                                            type="text"
+                                            bsSize="sm"
+                                            placeholder="Buscar fecha entrega..."
+                                            value={columnFilters.fechaEntrega}
+                                            onChange={(e) => handleColumnFilterChange("fechaEntrega", e.target.value)}
+                                        />
+                                    </th>
+                                    <th>{/* El filtro de estado ya está implementado en el dropdown */}</th>
+                                    <th>
+                                        <Input
+                                            type="text"
+                                            bsSize="sm"
+                                            placeholder="Buscar productos..."
+                                            value={columnFilters.productos}
+                                            onChange={(e) => handleColumnFilterChange("productos", e.target.value)}
+                                        />
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody>
                                 {
@@ -974,7 +1155,7 @@ export default function ProductionListPage() {
                     </div>
                 </Card>
 
-                {(filtroFechaActivo || filterEstado) && (
+                {(filtroFechaActivo || filterEstado || Object.values(columnFilters).some((x) => x)) && (
                     <div className="mt-2 mb-5 d-flex flex-wrap gap-2">
                         {filtroFechaActivo && (
                             <Badge color="light" className="d-flex align-items-center p-2 text-dark">
@@ -988,9 +1169,34 @@ export default function ProductionListPage() {
                         {filterEstado && (
                             <Badge color="light" className="d-flex align-items-center p-2 text-dark">
                                 <small>Estado: {getEstadoText(filterEstado)}</small>
-                                <Button close size="sm" onClick={() => setFilterEstado("")} className="ms-2" />
+                                {/*  <Button close size="sm" onClick={() => setFilterEstado("")} className="ms-2" /> */}
+                                <Button
+                                    close
+                                    size="sm"
+                                    onClick={() => {
+                                        setFilterEstado("")
+                                        handleColumnFilterChange("estado", "")
+                                    }}
+                                    className="ms-2"
+                                />
                             </Badge>
                         )}
+                        {Object.entries(columnFilters).map(([key, value]) => {
+                            if (value && key !== "estado") {
+                                return (
+                                    <Badge key={key} color="light" className="d-flex align-items-center p-2 text-dark">
+                                        <small>
+                                            {key}: {value}
+                                        </small>
+                                        <Button close size="sm" onClick={() => handleColumnFilterChange(key, "")} className="ms-2" />
+                                    </Badge>
+                                )
+                            }
+                            return null
+                        })}
+                        <Button color="secondary" size="sm" onClick={clearAllFilters}>
+                            Limpiar todos los filtros
+                        </Button>
                     </div>
                 )}
 

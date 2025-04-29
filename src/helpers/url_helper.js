@@ -17,6 +17,9 @@ export const VALIDATE_TOKEN = "/auth/validatetoken";
 export const POST_EDIT_JWT_PROFILE = "/post-jwt-profile";
 export const POST_EDIT_PROFILE = "/user";
 
+export const UPDATE_USER_PROFILE = "/users";
+export const UPLOAD_USER_IMAGE = "/users/upload-avatar";
+
 // Calendar
 export const GET_EVENTS = "/events";
 export const GET_CATEGORIES = "/categories";
