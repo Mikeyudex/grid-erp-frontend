@@ -19,15 +19,19 @@ import {
     FormGroup,
 } from "reactstrap";
 import { useSnackbar } from 'react-simple-snackbar';
-import { PlusCircle, Trash2, Edit2, User, Search, Check, Save, X, CheckSquare, Square, Edit } from "lucide-react"
+import { PlusCircle, Trash2, Edit2, User, Search, Check, Save, X, CheckSquare, Square, Edit, CheckCircle } from "lucide-react"
 import { optionsSnackbarDanger, optionsSnackbarSuccess, ProductHelper } from "../../Products/helper/product_helper"
 import DropdownPortal from "./DropdownPortal"
 import { CREATE_PURCHASE_ORDER } from "../../Products/helper/url_helper"
 import { validatePayload } from "../utils/purchase-order.utils";
 import "./index.css";
+import { purchaseOrderStatus } from "../helper/purchase_helper";
+import AssignModal from "./assign-modal";
+import { AuthHelper } from "../../Auth/helpers/auth_helper";
 
 
-const productHelper = new ProductHelper()
+const productHelper = new ProductHelper();
+const authHelper = new AuthHelper();
 
 export default function OrderGrid({
     selectedClient,
@@ -46,7 +50,8 @@ export default function OrderGrid({
     const [orderItems, setOrderItems] = useState(initialOrderItems)
     const [clientModalOpen, setClientModalOpen] = useState(false)
     const [clientSearchTerm, setClientSearchTerm] = useState("")
-    const [filteredClients, setFilteredClients] = useState(clients)
+    const [filteredClients, setFilteredClients] = useState(clients);
+    const [orderStatus, setOrderStatus] = useState(purchaseOrderStatus.libre);
 
     // Estado para el modal de piezas
     const [piecesModalOpen, setPiecesModalOpen] = useState(false)
@@ -76,13 +81,26 @@ export default function OrderGrid({
 
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
+    const [asignacionModalOpen, setAsignacionModalOpen] = useState(false);
+    const [zones, setZones] = useState([]);
+    const [selectedZoneId, setSelectedZoneId] = useState(null);
 
     // Actualizar orderItems cuando cambian los initialOrderItems en modo edición
     useEffect(() => {
         if (isEditMode && initialOrderItems.length > 0) {
             setOrderItems(initialOrderItems)
         }
-    }, [initialOrderItems, isEditMode])
+    }, [initialOrderItems, isEditMode]);
+
+    const handleGetZones = async () => {
+        let response = await authHelper.getZones();
+        if (response?.statusCode === 200) {
+            setZones(response?.data);
+        }
+        if (response?.error) {
+            console.log(response?.message);
+        }
+    };
 
     // Crear una nueva fila vacía
     const createEmptyRow = () => {
@@ -494,6 +512,15 @@ export default function OrderGrid({
         setEditingRowIndex(null);
     }
 
+    const handleSelectZone = (zoneId) => {
+        setSelectedZoneId(zoneId);
+    }
+
+    const handleOpenAssignModal = async () => {
+        await handleGetZones();
+        setAsignacionModalOpen(true);
+    }
+
     //crear un nuevo pedido
     const handleSubmit = async () => {
         try {
@@ -503,7 +530,7 @@ export default function OrderGrid({
                 totalOrder: calculateTotal(),
                 tax: 0,
                 discount: 0,
-                status: "pendiente",
+                status: selectedZoneId ? purchaseOrderStatus.asignado : purchaseOrderStatus.libre,
                 details: orderItems.map((item) => {
                     return {
                         matType: item.matType,
@@ -519,8 +546,10 @@ export default function OrderGrid({
                         observations: item.observations,
                     }
                 }),
-                createdBy: "66d4ed2f825f2d54204555c1"
+                createdBy: "66d4ed2f825f2d54204555c1",
+                zoneId: selectedZoneId,
             }
+            console.log(payload);
 
             const validation = validatePayload(payload);
 
@@ -559,6 +588,7 @@ export default function OrderGrid({
                 openSnackbarSuccess(data?.message);
                 setSelectedRows([]);
                 setEditingRowIndex(null);
+                setSelectedZoneId(null);
             }
         } catch (error) {
             console.log(error);
@@ -738,6 +768,15 @@ export default function OrderGrid({
                 </ModalFooter>
             </Modal>
 
+            {/* Modal de Asignación */}
+            <AssignModal
+                isOpen={asignacionModalOpen}
+                toggle={() => setAsignacionModalOpen(false)}
+                zones={zones}
+                onSelectZone={handleSelectZone}
+                selectedZoneId={selectedZoneId}
+            />
+
             {/* Botones de Acción */}
             <div className="d-flex gap-2 mb-4">
                 <Button color="secondary" onClick={toggleClientModal} className="d-flex align-items-center gap-2">
@@ -753,6 +792,16 @@ export default function OrderGrid({
                 >
                     <PlusCircle size={18} />
                     Añadir Producto
+                </Button>
+
+                <Button
+                    color="light"
+                    onClick={handleOpenAssignModal}
+                    className="d-flex align-items-center gap-2"
+                    disabled={!selectedClient}
+                >
+                    <CheckCircle size={18} />
+                    Asignar Pedido
                 </Button>
 
                 {selectedRows.length > 0 && (

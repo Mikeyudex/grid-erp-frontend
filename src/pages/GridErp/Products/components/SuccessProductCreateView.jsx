@@ -7,7 +7,7 @@ export function SuccessProductCreateView() {
     const navigate = useNavigate();
 
     const handleReturnNewProduct = () => {
-        return navigate('/products-create');
+        return navigate('/products-create-tapete');
     }
 
     return (

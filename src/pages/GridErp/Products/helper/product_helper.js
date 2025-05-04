@@ -74,9 +74,9 @@ export class ProductHelper {
             newErrors.name = 'El nombre es requerido';
         }
 
-        if (!formData.description || formData.description === '') {
+        /* if (!formData.description || formData.description === '') {
             newErrors.description = 'La descripción es requerida';
-        }
+        } */
 
         if (!formData.id_type_product || formData.id_type_product === '' || formData.id_type_product === '0') {
             newErrors.id_type_product = 'El tipo de producto es requerido';
@@ -86,21 +86,21 @@ export class ProductHelper {
             newErrors.id_category = 'La categoría es requerida';
         }
 
-        if (!formData.id_sub_category || formData.id_sub_category === '') {
+        /* if (!formData.id_sub_category || formData.id_sub_category === '') {
             newErrors.id_sub_category = 'La subcategoría es requerida';
-        }
+        } */
 
-        if (!formData.taxId || formData.taxId === '') {
+        /* if (!formData.taxId || formData.taxId === '') {
             newErrors.taxId = 'El impuesto es requerido';
-        }
+        } */
 
-        if (!formData.quantity || formData.quantity === '' || formData.quantity === 0) {
+        /* if (!formData.quantity || formData.quantity === '' || formData.quantity === 0) {
             newErrors.quantity = 'La cantidad es requerida';
-        }
+        } */
 
-        if (!formData.unitOfMeasureId || formData.unitOfMeasureId === '') {
+        /* if (!formData.unitOfMeasureId || formData.unitOfMeasureId === '') {
             newErrors.unitOfMeasureId = 'La unidad de medida es requerida';
-        }
+        } */
 
         if (!formData.costPrice || formData.costPrice === '' || formData.costPrice === 0) {
             newErrors.costPrice = 'El precio de costo es requerido';

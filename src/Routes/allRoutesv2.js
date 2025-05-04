@@ -33,6 +33,9 @@ import PasswordCreate from "../pages/GridErp/Auth/pages/PasswordCreate";
 import TwosVerify from "../pages/GridErp/Auth/pages/TwosVerify";
 import HomeBackoffice from "../pages/GridErp/Home/pages/Home";
 import ProfileSettings from "../pages/GridErp/Profile/Settings/Settings";
+import ProductionListByItems from "../pages/GridErp/Production/pages/ProductionListByItems";
+import SeleccionTipoProducto from "../pages/GridErp/Products/pages/SeleccionTipoProducto";
+import LayoutCreateProductTapete from "../pages/GridErp/Products/components/LayoutCreateProductTapete";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -47,6 +50,10 @@ const authProtectedRoutes = [
     {
         path: "/products-create",
         component: <LayoutCreateProduct />,
+    },
+    {
+        path: "/products-create-tapete",
+        component: <ImportProductState> <LayoutCreateProductTapete /> </ImportProductState>,
     },
     {
         path: "/products-list",
@@ -72,6 +79,10 @@ const authProtectedRoutes = [
         path: "/subcategory",
         component: <SubCategoryProductState><ListSubCategories /></SubCategoryProductState>,
     },
+    {
+        path: "/products/lobby",
+        component: <SeleccionTipoProducto />,
+    },
 
     // Company config
     { path: "/config-company", component: <CompanyConfigView /> },
@@ -95,6 +106,7 @@ const authProtectedRoutes = [
 
     // Production
     { path: "/production", component: <ProductionListPage /> },
+    { path: "/production/items", component: <ProductionListByItems /> },
     { path: "/production/create", component: <ProductionListPage /> },
     { path: "/production/edit", component: <ProductionListPage /> },
     { path: "/production/view-detail/:id", component: <ProductionListPage /> },

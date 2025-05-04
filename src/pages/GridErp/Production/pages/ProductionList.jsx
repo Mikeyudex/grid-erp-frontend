@@ -50,9 +50,11 @@ import { UserHelper } from "../../Users/helpers/user_helper"
 import moment from "moment"
 import { footerStyle } from "./footerStyle"
 import { PurchaseHelper } from "../../PurchaseOrder/helper/purchase_helper"
+import { ProductionHelper } from "../helper/production-helper"
 
 const productHelper = new ProductHelper();
 const userHelper = new UserHelper();
+const productionHelper = new ProductionHelper();
 
 export default function ProductionListPage() {
     document.title = "Ordenes de Producción | Quality";
@@ -182,7 +184,7 @@ export default function ProductionListPage() {
                                     fecha: item?.assignedAt || null,
                                 },
                                 marca: item?.marca,
-                                linea: item?.linea,
+                                linea: item?.productName,
                             }
                         }),
                         estado: po.status,
@@ -201,14 +203,8 @@ export default function ProductionListPage() {
     // Aplicar filtros
     useEffect(() => {
         const term = searchTerm.toLowerCase()
-        let filtered = pedidos;/* pedidos.filter(
-            (pedido) =>
-                (String(pedido?.id).includes(term) ||
-                    pedido?.cliente?.nombre.toLowerCase().includes(term) ||
-                    (pedido?.cliente?.ciudad && pedido?.cliente.ciudad.toLowerCase().includes(term)) ||
-                    (pedido.cliente?.empresa && pedido?.cliente.empresa.toLowerCase().includes(term))) &&
-                (filterEstado === "" || pedido.estado === filterEstado),
-        ); */
+        let filtered = pedidos;
+
         // Aplicar filtro general de búsqueda si existe
         if (term) {
             filtered = filtered.filter(
@@ -220,7 +216,6 @@ export default function ProductionListPage() {
                     (filterEstado === "" || pedido.estado === filterEstado),
             )
         }
-
         // Aplicar filtros por columna
         if (columnFilters.id) {
             filtered = filtered.filter((pedido) => String(pedido?.id).includes(columnFilters.id.toLowerCase()))
@@ -250,6 +245,7 @@ export default function ProductionListPage() {
         }
 
         if (columnFilters.estado) {
+            console.log(columnFilters.estado);
             filtered = filtered.filter((pedido) => pedido.estado === columnFilters.estado)
         }
 
@@ -314,6 +310,14 @@ export default function ProductionListPage() {
         setColumnFilters({
             ...columnFilters,
             estado: estado,
+        })
+    }
+
+    const handleFilterChangeStatusColumn = (status) => {
+        setFilterEstado(status)
+        setColumnFilters({
+            ...columnFilters,
+            estado: status,
         })
     }
 
@@ -521,7 +525,7 @@ export default function ProductionListPage() {
             )
 
             setSuccessMessage(
-                `Estado de ${selectedProducts.length} productos cambiado correctamente a "${getEstadoText(nuevoEstado)}"`,
+                `Estado de ${selectedProducts.length} productos cambiado correctamente a "${productionHelper.getEstadoTextItem(nuevoEstado)}"`,
             );
             setReloadTable(!reloadTable);
             // Cerrar modal y limpiar selección
@@ -584,40 +588,6 @@ export default function ProductionListPage() {
         if (selectableProducts.length === 0) return false
 
         return selectableProducts.every((producto) => selectedProducts.includes(producto.id))
-    }
-
-    const getEstadoBadgeColor = (estado) => {
-        switch (estado) {
-            case "pendiente":
-                return "warning"
-            case "fabricacion":
-                return "primary"
-            case "finalizado":
-                return "success"
-            case "inventario":
-                return "info"
-            case "cancelado":
-                return "danger"
-            default:
-                return "secondary"
-        }
-    }
-
-    const getEstadoText = (estado) => {
-        switch (estado) {
-            case "pendiente":
-                return "Pendiente"
-            case "fabricacion":
-                return "Fabricación"
-            case "finalizado":
-                return "Finalizado"
-            case "inventario":
-                return "Inventario"
-            case "cancelado":
-                return "Cancelado"
-            default:
-                return "Desconocido"
-        }
     }
 
     const formatDate = (dateString) => {
@@ -705,22 +675,6 @@ export default function ProductionListPage() {
 
                 {/* Card de busqueda */}
                 <Card className="shadow-sm mb-2">
-
-                    <CardHeader className="bg-light">
-                        <div className="d-flex justify-content-between align-items-center">
-                            <h5 className="mb-0">Filtros</h5>
-                            <div>
-                                <Button color="secondary" size="sm" className="me-2" onClick={clearAllFilters}>
-                                    <RefreshCw size={14} className="me-1" /> Limpiar filtros
-                                </Button>
-                                <Button color="light" size="sm">
-                                    <Filter size={16} className="me-2" /> Más Filtros
-                                </Button>
-                            </div>
-                        </div>
-                    </CardHeader>
-
-
                     <CardBody>
                         <Row>
                             <Col md={8}>
@@ -742,7 +696,7 @@ export default function ProductionListPage() {
                                     <option value="">Todos los estados</option>
                                     <option value="pendiente">Pendiente</option>
                                     <option value="fabricacion">Fabricación</option>
-                                    <option value="invenrario">Inventario</option>
+                                    <option value="inventario">Inventario</option>
                                     <option value="finalizado">Finalizado</option>
                                 </Input>
                             </Col>
@@ -895,29 +849,29 @@ export default function ProductionListPage() {
                                                 {filterEstado ? <Filter size={12} className="text-primary" /> : <Filter size={12} />}
                                             </DropdownToggle>
                                             <DropdownMenu>
-                                                <DropdownItem onClick={() => setFilterEstado("")} active={filterEstado === ""}>
+                                                <DropdownItem onClick={() => handleFilterChangeStatusColumn("")} active={filterEstado === ""}>
                                                     Todos los estados
                                                 </DropdownItem>
                                                 <DropdownItem
-                                                    onClick={() => setFilterEstado("pendiente")}
+                                                    onClick={() => handleFilterChangeStatusColumn("pendiente")}
                                                     active={filterEstado === "pendiente"}
                                                 >
                                                     Pendiente
                                                 </DropdownItem>
                                                 <DropdownItem
-                                                    onClick={() => setFilterEstado("fabricacion")}
+                                                    onClick={() => handleFilterChangeStatusColumn("fabricacion")}
                                                     active={filterEstado === "fabricacion"}
                                                 >
                                                     Fabricación
                                                 </DropdownItem>
                                                 <DropdownItem
-                                                    onClick={() => setFilterEstado("inventario")}
+                                                    onClick={() => handleFilterChangeStatusColumn("inventario")}
                                                     active={filterEstado === "inventario"}
                                                 >
                                                     Inventario
                                                 </DropdownItem>
                                                 <DropdownItem
-                                                    onClick={() => setFilterEstado("finalizado")}
+                                                    onClick={() => handleFilterChangeStatusColumn("finalizado")}
                                                     active={filterEstado === "finalizado"}
                                                 >
                                                     Finalizado
@@ -1031,7 +985,7 @@ export default function ProductionListPage() {
                                                 </td>
                                                 <td>{formatDate(pedido.fechaEntrega)}</td>
                                                 <td>
-                                                    <Badge color={getEstadoBadgeColor(pedido.estado)}>{getEstadoText(pedido.estado)}</Badge>
+                                                    <Badge color={productionHelper.getStatusBadgeColorOrder(pedido.estado)}>{productionHelper.getEstadoTextOrder(pedido.estado)}</Badge>
                                                 </td>
                                                 <td>
                                                     <div className="d-flex justify-content-between align-items-center">
@@ -1112,8 +1066,8 @@ export default function ProductionListPage() {
                                                                             </td>
                                                                             <td className="p-1">{producto.cantidad}</td>
                                                                             <td className="p-1">
-                                                                                <Badge color={getEstadoBadgeColor(producto.estado)}>
-                                                                                    {getEstadoText(producto.estado)}
+                                                                                <Badge color={productionHelper.getStatusBadgeColorItem(producto.estado)}>
+                                                                                    {productionHelper.getEstadoTextItem(producto.estado)}
                                                                                 </Badge>
                                                                             </td>
                                                                             <td className="p-1">
@@ -1168,7 +1122,7 @@ export default function ProductionListPage() {
                         )}
                         {filterEstado && (
                             <Badge color="light" className="d-flex align-items-center p-2 text-dark">
-                                <small>Estado: {getEstadoText(filterEstado)}</small>
+                                <small>Estado: {productionHelper.getEstadoTextOrder(filterEstado)}</small>
                                 {/*  <Button close size="sm" onClick={() => setFilterEstado("")} className="ms-2" /> */}
                                 <Button
                                     close

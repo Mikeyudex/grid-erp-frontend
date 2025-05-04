@@ -195,7 +195,7 @@ const Navdata = () => {
         {
           id: "create-product",
           label: "Crear producto",
-          link: "/products-create",
+          link: "/products/lobby",
           parentId: "products",
         },
         {

@@ -8,7 +8,7 @@ import logoDark from "../assets/images/logo-dark.png";
 import logoLight from "../assets/images/logo-light.png";
 
 //Logo Quality
-import logoQuality from "../assets/images/logo-quality.jpeg";
+import logoQuality from "../assets/images/logo-quality.png";
 
 //import Components
 import SearchOption from '../Components/Common/SearchOption';
@@ -94,7 +94,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
                                         <img src={logoQuality} alt="" height="22"/>
                                     </span>
                                     <span className="logo-lg">
-                                        <img src={logoQuality} alt="" height="20" width="60" />
+                                        <img src={logoQuality} alt="" height="30" width="80" />
                                     </span>
                                 </Link>
                             </div>

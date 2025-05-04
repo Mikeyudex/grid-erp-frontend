@@ -83,7 +83,7 @@ export function TopToolbarActions({
 
                 <DropdownMenuImport table={table}></DropdownMenuImport>
 
-                <Link to="/products-create" className="text-secondary d-inline-block edit-item-btn">
+                <Link to="/products/lobby" className="text-secondary d-inline-block edit-item-btn">
                     <button
                     style={{background:'#132649', color:'white'}}
                         type="button"

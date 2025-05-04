@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { Col, Container, Input, Row } from "reactstrap";
 import Select from 'react-select';
 import BreadCrumb from "./BreadCrumb";
@@ -11,6 +11,7 @@ import { useSnackbar } from 'react-simple-snackbar';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import CancelIcon from '@mui/icons-material/Cancel';
 import SyncOutlinedIcon from '@mui/icons-material/SyncOutlined';
+import { ImportIcon } from "lucide-react";
 import SaveIcon from '@mui/icons-material/Save';
 import { useNavigate } from 'react-router-dom';
 
@@ -25,6 +26,8 @@ import { BackdropGlobal } from "./Backdrop";
 import '../pages/form-product.css';
 import { DrawerProductSync } from "./DrawerProductSync";
 import { GenericDialog } from "../partials/dialogs/GenericDialog";
+import { ImportProductContext } from "../context/imports/importProductContext";
+import { DrawerProductsImport } from "./DrawerImportProduct";
 
 // Register the plugins
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
@@ -32,12 +35,13 @@ registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 const acceptedFileTypes = ['image/jpeg', 'image/png', 'image/gif'];
 const helper = new ProductHelper();
 const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
-const typeOfPiecesDefault = ['Conductor', 'Copiloto'];
+const typeOfPiecesDefault = ['Conductor', 'Copiloto', 'Segunda Fila'];
 
-export default function LayoutCreateProduct(props) {
+export default function LayoutCreateProductTapete(props) {
 
     const navigate = useNavigate();
 
+    const { updateImportData, importData } = useContext(ImportProductContext);
     const [attributeConfigs, setAttributeConfigs] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
@@ -58,7 +62,7 @@ export default function LayoutCreateProduct(props) {
         id_type_product: '',
         id_category: '',
         id_sub_category: '',
-        quantity: 0,
+        quantity: 1,
         unitOfMeasureId: '',
         taxId: '',
         costPrice: '',
@@ -81,6 +85,7 @@ export default function LayoutCreateProduct(props) {
     const [savedProduct, setSavedProduct] = useState(false);
     const [openAlertSuccessSync, setOpenAlertSuccessSync] = useState(false);
     const [idProduct, setIdProduct] = useState("");
+    const [openDrawerImport, setOpenDrawerImport] = useState(false);
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -106,15 +111,6 @@ export default function LayoutCreateProduct(props) {
         }
     };
 
-    const handleInputChangeAdditionalConfigs = (e) => {
-        const { name, value, type, checked } = e.target;
-
-        setAdditionalConfigs((prevAdditionalConfigs) => ({
-            ...prevAdditionalConfigs,
-            [name]: type === 'checkbox' ? checked : value,
-        }));
-    }
-
     const handleClearForm = () => {
         setFormData(
             {
@@ -134,10 +130,13 @@ export default function LayoutCreateProduct(props) {
                 attributes: []
             }
         );
-        setAdditionalConfigs({ hasBarcode: false });
         setFileData([]);
         return;
     }
+
+    const handleOpenDrawerImport = () => {
+        updateImportData({ ...importData, openDrawer: !importData.openDrawer });
+    };
 
     const handleFilterSubcategories = (categoryId) => {
         let categoryFiltered = categories.filter((category) => category?._id === categoryId)[0];
@@ -260,7 +259,7 @@ export default function LayoutCreateProduct(props) {
 
     const actions = [
         { icon: <SaveIcon />, name: 'Guardar', onClick: handleSubmit },
-        { icon: <SyncOutlinedIcon />, name: 'Guardar y sincronizar', onClick: () => setOpenDrawerSync(true) },
+        { icon: <ImportIcon />, name: 'Importar', onClick: () => handleOpenDrawerImport() },
         { icon: <CancelIcon />, name: 'Cancelar' },
     ];
 
@@ -312,7 +311,7 @@ export default function LayoutCreateProduct(props) {
                 let typeOfPiecesFiltered = respTypeOfPieces
                     .filter((item) => typeOfPiecesDefault.includes(item?.name))
                     .map((p) => p?._id);
-                    
+
                 setFormData(prevFormData => ({
                     ...prevFormData,
                     typeOfPieces: typeOfPiecesFiltered,
@@ -326,6 +325,11 @@ export default function LayoutCreateProduct(props) {
 
     return (
         <Fragment>
+            <DrawerProductsImport
+                openDrawer={openDrawerImport}
+                setOpenDrawer={setOpenDrawerImport}
+            /* handleAction={handleAction} */
+            />
             <GenericDialog
                 open={openAlertSuccessSync}
                 handleClose={() => setOpenAlertSuccessSync(false)}
@@ -352,7 +356,7 @@ export default function LayoutCreateProduct(props) {
                 />
 
                 <Container fluid>
-                    <BreadCrumb title="Crear Producto" pageTitle="Productos" to={`/products-list`} />
+                    <BreadCrumb title="Crear Tapete" pageTitle="Productos" to={`/products-list`} />
 
                     <Row md={12}>
 
@@ -364,11 +368,11 @@ export default function LayoutCreateProduct(props) {
                                         item1={
                                             <>
                                                 <div className="input-wrapper">
-                                                    <label className='form-label' htmlFor="quantity">*Nombre:</label>
+                                                    <label className='form-label' htmlFor="quantity">*Nombre (Línea):</label>
                                                     <GlobalInputText
                                                         name={'name'}
                                                         onChange={handleInputChange}
-                                                        placeholder={'Nombre del producto'}
+                                                        placeholder={'Nombre o línea del producto'}
                                                         value={formData.name}
                                                         type={"text"}
                                                         className={"input-box"}
@@ -391,7 +395,7 @@ export default function LayoutCreateProduct(props) {
                                                         type={"text"}
                                                         className={"input-box"}
                                                         id={'description'}
-                                                        required={true}
+                                                        required={false}
                                                     />
                                                 </div>
                                                 {errors.description && (<span className="form-product-input-error">{errors.description}</span>)}
@@ -438,10 +442,10 @@ export default function LayoutCreateProduct(props) {
                             <Col md={12} style={{}}>
 
                                 <LayoutTextInputs
-                                    title={"Categorías"}
+                                    title={"Propiedades"}
                                     item1={
                                         <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                            <label className='form-label' htmlFor="id_category">*Categoría:</label>
+                                            <label className='form-label' htmlFor="id_category">*Marca:</label>
                                             <div>
                                                 <Input
                                                     style={{
@@ -472,7 +476,7 @@ export default function LayoutCreateProduct(props) {
                                             {errors.id_category && (<span className="form-product-input-error">{errors.id_category}</span>)}
                                         </div>
                                     }
-                                    item2={
+                                    /* item2={
                                         <div className="col-span-8 sm:col-span-4">
                                             <label className='form-label' htmlFor="id_sub_category">*Subcategoría:</label>
                                             <div>
@@ -504,7 +508,7 @@ export default function LayoutCreateProduct(props) {
                                             </div>
                                             {errors.id_sub_category && (<span className="form-product-input-error">{errors.id_sub_category}</span>)}
                                         </div>
-                                    }
+                                    } */
                                     item3={
                                         <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
                                             <label className='form-label' htmlFor="typeOfPieces">*Tipo(s) de pieza:</label>
@@ -697,83 +701,6 @@ export default function LayoutCreateProduct(props) {
 
                             </Col>
 
-                            <Col md={12} style={{}}>
-
-                                <LayoutTextInputs
-                                    title={"Atributos"}
-                                    md1={12}
-                                    item1={
-                                        (attributeConfigs ?? []).map((attr, index) => (
-                                            <Col key={attr.name} md={12} className='p-2 mt-3'>
-
-                                                {attr.type !== 'switch' && <label className="pt-2" htmlFor={attr.name}>{attr.label}:</label>}
-                                                {attr.type === 'select' ? (
-
-                                                    <div className="col-span-8 sm:col-span-4">
-                                                        <div>
-                                                            <Input
-                                                                style={{
-                                                                    border: 'none !important',
-                                                                    borderBottom: '2px solid #ccc !important',
-                                                                    backgroundColor: 'transparent',
-                                                                    color: '#132649',
-                                                                    '&:focus': { border: 'none', boxShadow: 'none' },
-                                                                    fontSize: '1em',
-                                                                }}
-                                                                bsSize="md"
-                                                                type="select"
-                                                                id={attr.name}
-                                                                name={attr.name}
-                                                                value={formData.attributes[attr.name]}
-                                                                onChange={handleInputChange}
-                                                                required
-                                                                className="form-control"
-                                                                key={attr.name}
-                                                            >
-                                                                <option value="0">Selecciona una opción</option>
-                                                                {attr.options.map((opt, idx) => {
-                                                                    return (<option key={opt} label={opt} value={opt}></option>)
-                                                                })}
-                                                            </Input>
-                                                        </div>
-                                                    </div>
-                                                ) :
-                                                    attr.type === 'switch' ? (
-                                                        <div className="checkbox-wrapper-59">
-                                                            <label className="switch" key={`${index}-label`}>
-                                                                <input
-                                                                    type="checkbox"
-                                                                    name={attr.name}
-                                                                    id={attr.name}
-                                                                    key={index}
-                                                                    value={formData.attributes[attr.name]}
-                                                                />
-                                                                <span className="slider"></span></label>
-                                                            <span className="p-3" >{attr.label}</span>
-                                                        </div>
-                                                    )
-                                                        :
-                                                        (
-                                                            <div className="input-wrapper">
-                                                                <GlobalInputText
-                                                                    key={index}
-                                                                    name={attr.name}
-                                                                    onChange={handleInputChange}
-                                                                    placeholder={attr.label}
-                                                                    value={formData.attributes[attr.name]}
-                                                                    type={attr.type}
-                                                                    className={"input-box"}
-                                                                    id={attr.name}
-                                                                />
-                                                            </div>
-                                                        )}
-                                            </Col>
-                                        ))
-                                    }
-
-                                />
-                            </Col>
-
                             <Row>
                             </Row>
                         </Col>
@@ -915,72 +842,6 @@ export default function LayoutCreateProduct(props) {
                                 </Col>
 
                             </Row>
-
-                            <Row>
-                                <Col md={12} style={{}}>
-                                    <LayoutTextInputs
-                                        title={"Impuestos"}
-                                        item1={
-                                            <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                                <label className='form-label' htmlFor="id_category">*Impuesto cargo:</label>
-                                                <div>
-                                                    <Input
-                                                        style={{
-                                                            border: 'none !important',
-                                                            borderBottom: '2px solid #ccc !important',
-                                                            backgroundColor: 'transparent',
-                                                            color: '#132649',
-                                                            '&:focus': { border: 'none', boxShadow: 'none' },
-                                                            fontSize: '1em',
-                                                        }}
-                                                        bsSize="md"
-                                                        type="select"
-                                                        id="taxId"
-                                                        name="taxId"
-                                                        value={formData.taxId}
-                                                        onChange={handleInputChange}
-                                                        required
-                                                        className="form-control"
-                                                    >
-                                                        <option value="0">Selecciona una opción</option>
-                                                        {
-                                                            taxes.map((tax) => {
-                                                                return (<option key={tax?._id} label={tax?.name} value={tax?._id}></option>)
-                                                            })
-                                                        }
-                                                    </Input>
-                                                </div>
-                                                {errors.taxId && (<span className="form-product-input-error">{errors.taxId}</span>)}
-                                            </div>
-                                        }
-                                    />
-                                </Col>
-
-                            </Row>
-
-                            <Row>
-                                <Col md={12} style={{}}>
-                                    <LayoutTextInputs
-                                        title={"Configuraciones adicionales"}
-                                        item1={
-                                            <div className="checkbox-wrapper-59 pt-1" style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                                                <label className="switch">
-                                                    <input
-                                                        type="checkbox"
-                                                        name={"hasBarcode"}
-                                                        id={"hasBarcode"}
-                                                        value={additionalConfigs.hasBarcode}
-                                                        onChange={handleInputChangeAdditionalConfigs}
-                                                    />
-                                                    <span className="slider"></span></label>
-                                                <span style={{ padding: '0.5em' }}>Producto con código de barras</span>
-                                            </div>
-                                        }
-                                    />
-                                </Col>
-
-                            </Row>
-
                         </Col >
 
                     </Row >
