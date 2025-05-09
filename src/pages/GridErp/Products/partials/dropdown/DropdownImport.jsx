@@ -20,7 +20,7 @@ const DropdownMenuImport = ({ table }) => {
             <DropdownMenu.Root>
                 <DropdownMenu.Trigger asChild className='px-2'>
                     <button
-                         disabled={table.getPrePaginationRowModel().rows.length === 0}
+                         /* disabled={table.getPrePaginationRowModel().rows.length === 0} */
                          onClick={() => handleExportRows(table.getPrePaginationRowModel().rows)}
                         type="button"
                         className="btn btn-ghost-secondary waves-effect waves-light Innventabtn">

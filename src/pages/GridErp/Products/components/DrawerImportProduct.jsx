@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
+import { useNavigate } from 'react-router-dom';
 import SwipeableDrawer from '@mui/material/SwipeableDrawer';
 import { styled } from '@mui/material/styles';
 import { grey } from '@mui/material/colors';
@@ -44,6 +45,7 @@ function formatBytes(bytes, decimals = 2) {
 
 export function DrawerProductsImport({
 }) {
+    const navigate = useNavigate();
     const { updateImportData, importData } = React.useContext(ImportProductContext);
     const [selectedFiles, setselectedFiles] = React.useState([]);
     const [openBackdrop, setOpenBackdrop] = React.useState(false);
@@ -95,12 +97,13 @@ export function DrawerProductsImport({
                     'Content-Type': 'multipart/form-data',
                 }
             };
-            let response = await apiClient.create(`${url.IMPORT_PRODUCTS}/${url.companyId}`, formData, config);
+            let response = await apiClient.create(`${url.IMPORT_PRODUCTS}/${url.companyId}/${localStorage.getItem("userId")}`, formData, config);
             if (response?.success) {
                 setTimeout(() => {
                     console.log(response?.message);
                     toggleDrawer(false);
                     openSnackbarSuccess('Archivo cargado exitosamente');
+                    return navigate('/uploads');
                 }, 3500);
             }
         } catch (error) {

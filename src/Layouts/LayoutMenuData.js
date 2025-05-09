@@ -166,6 +166,12 @@ const Navdata = () => {
           label: "Lista",
           link: "/production",
           parentId: "production-orders",
+        },
+        {
+          id: "production-list-items",
+          label: "Items",
+          link: "/production/items",
+          parentId: "production-orders",
         }
       ],
     },
@@ -214,6 +220,12 @@ const Navdata = () => {
           id: "mat-material-price",
           label: "Tipo - Material",
           link: "/mat-material-price",
+          parentId: "products",
+        },
+        {
+          id: "uploads",
+          label: "Historial de cargues",
+          link: "/uploads",
           parentId: "products",
         },
       ],

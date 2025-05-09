@@ -36,6 +36,7 @@ import ProfileSettings from "../pages/GridErp/Profile/Settings/Settings";
 import ProductionListByItems from "../pages/GridErp/Production/pages/ProductionListByItems";
 import SeleccionTipoProducto from "../pages/GridErp/Products/pages/SeleccionTipoProducto";
 import LayoutCreateProductTapete from "../pages/GridErp/Products/components/LayoutCreateProductTapete";
+import UploadHistoryPage from "../pages/GridErp/Uploads/pages/UploadHistoryPage";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -110,6 +111,9 @@ const authProtectedRoutes = [
     { path: "/production/create", component: <ProductionListPage /> },
     { path: "/production/edit", component: <ProductionListPage /> },
     { path: "/production/view-detail/:id", component: <ProductionListPage /> },
+
+    // Uploads
+    { path: "/uploads", component: <UploadHistoryPage /> },
 ]
 
 const publicRoutes = [

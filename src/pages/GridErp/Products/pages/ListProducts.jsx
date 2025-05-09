@@ -67,7 +67,8 @@ export const ListProducts = (props) => {
             return {
               id: p?._id,
               image: p?.additionalConfigs?.images?.[0] ?? "",
-              name: `${p?.sku} - ${p?.name}`,
+              name: p?.name,
+              sku: p?.sku,
               category: p?.categoryName,
               subCategory: p?.subCategoryName,
               stock: p?.stock,
@@ -156,7 +157,7 @@ export const ListProducts = (props) => {
           </>
         ),
       },
-      {
+      /* {
         header: "Bodega",
         accessorKey: "warehouse",
         enableColumnFilter: true,
@@ -177,8 +178,8 @@ export const ListProducts = (props) => {
         Cell: ({ cell }) => {
           return (<h6>{cell.row.original.warehouse}</h6>)
         },
-      },
-      {
+      }, */
+      /* {
         header: "Stock",
         accessorKey: "stock",
         enableColumnFilter: false,
@@ -195,6 +196,37 @@ export const ListProducts = (props) => {
         },
         Cell: ({ cell }) => {
           return (<h6>{cell.row.original.stock}</h6>)
+        },
+      }, */
+      {
+        header: "Marca",
+        accessorKey: "category",
+        enableColumnFilter: true,
+        enableEditing: false,
+        editSelectOptions: dataSelectCategories.map((cat) => cat?.label),
+        editVariant: 'select',
+        muiEditTextFieldProps: {
+          select: true,
+          required: true,
+          error: !!validationErrors?.category,
+          helperText: validationErrors?.category,
+          onFocus: () =>
+            setValidationErrors({
+              ...validationErrors,
+              category: undefined,
+            }),
+        },
+        Cell: ({ cell }) => {
+          return (<h6>{cell.row.original.category}</h6>)
+        },
+      },
+      {
+        header: "Línea",
+        accessorKey: "subCategory",
+        enableColumnFilter: true,
+        enableEditing: false,
+        Cell: ({ cell }) => {
+          return (<h6>{cell.row.original.name}</h6>)
         },
       },
       {
@@ -235,37 +267,7 @@ export const ListProducts = (props) => {
           return (<h6>{numberFormatPrice(cell.row.original.salePrice)}</h6>)
         },
       },
-      {
-        header: "Categoría",
-        accessorKey: "category",
-        enableColumnFilter: true,
-        enableEditing: false,
-        editSelectOptions: dataSelectCategories.map((cat) => cat?.label),
-        editVariant: 'select',
-        muiEditTextFieldProps: {
-          select: true,
-          required: true,
-          error: !!validationErrors?.category,
-          helperText: validationErrors?.category,
-          onFocus: () =>
-            setValidationErrors({
-              ...validationErrors,
-              category: undefined,
-            }),
-        },
-        Cell: ({ cell }) => {
-          return (<h6>{cell.row.original.category}</h6>)
-        },
-      },
-      {
-        header: "SubCategoría",
-        accessorKey: "subCategory",
-        enableColumnFilter: true,
-        enableEditing: false,
-        Cell: ({ cell }) => {
-          return (<h6>{cell.row.original.subCategory}</h6>)
-        },
-      },
+
       {
         header: "Creado",
         accessorKey: "createdAt",

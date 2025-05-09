@@ -41,8 +41,6 @@ export class ProductionHelper {
     }
 
     getEstadoTextItem(estado) {
-        console.log(estado);
-        
         switch (estado) {
             case "pendiente":
                 return "Pendiente"

@@ -14,7 +14,6 @@ import {
     InputGroup,
     Form,
     Collapse,
-    Alert,
     Pagination,
     PaginationItem,
     PaginationLink,
@@ -23,7 +22,6 @@ import {
     DropdownMenu,
     DropdownItem,
     UncontrolledTooltip,
-    CardHeader,
 } from "reactstrap"
 import {
     Search,
@@ -42,6 +40,7 @@ import {
     Filter,
     InfoIcon,
     Check,
+    MapPinPlus
 } from "lucide-react"
 import ModalAsignacion from "../components/ModalAsignacion"
 import ModalCambioEstado from "../components/ModalCambioEstado"
@@ -51,10 +50,15 @@ import moment from "moment"
 import { footerStyle } from "./footerStyle"
 import { PurchaseHelper } from "../../PurchaseOrder/helper/purchase_helper"
 import { ProductionHelper } from "../helper/production-helper"
+import { AuthHelper } from "../../Auth/helpers/auth_helper"
+import ModalAsignacionXZona from "../components/ModalAsignacionZona"
+import { IndexedDBService } from "../../../../helpers/indexedDb/indexed-db-helper"
 
 const productHelper = new ProductHelper();
 const userHelper = new UserHelper();
 const productionHelper = new ProductionHelper();
+const authHelper = new AuthHelper();
+const indexedDBService = new IndexedDBService();
 
 export default function ProductionListPage() {
     document.title = "Ordenes de Producción | Quality";
@@ -64,6 +68,7 @@ export default function ProductionListPage() {
     const [filteredPedidos, setFilteredPedidos] = useState([])
     const [filterEstado, setFilterEstado] = useState("")
     const [asignacionModalOpen, setAsignacionModalOpen] = useState(false)
+    const [asignacionZonaModalOpen, setAsignacionZonaModalOpen] = useState(false)
     const [agentesProduccion, setAgentesProduccion] = useState([])
     const [selectedAgent, setSelectedAgent] = useState("")
     const [pedidos, setPedidos] = useState([]);
@@ -72,6 +77,9 @@ export default function ProductionListPage() {
     const [cambioEstadoModalOpen, setCambioEstadoModalOpen] = useState(false)
     const [nuevoEstado, setNuevoEstado] = useState("");
     const [reloadTable, setReloadTable] = useState(false);
+    const [zones, setZones] = useState([]);
+    const [selectedZoneId, setSelectedZoneId] = useState(null);
+    const [selectedPedidos, setSelectedPedidos] = useState([]);
 
     // Nuevos estados para el filtro de fechas
     const [tipoFecha, setTipoFecha] = useState("creacion")
@@ -96,6 +104,7 @@ export default function ProductionListPage() {
         fechaEntrega: "",
         estado: filterEstado, // Inicializar con el filtro de estado existente
         productos: "",
+        zone: "",
     })
 
     // Añadir función para manejar cambios en los filtros de columna
@@ -119,7 +128,9 @@ export default function ProductionListPage() {
 
     const handleGetPurchaseOrders = async () => {
         try {
-            let response = await productHelper.getPurchaseOrdersFromViewProduction(currentPage, itemsPerPage);
+            let userValue = await indexedDBService.getItemById(localStorage.getItem("userId"));
+            let zoneId = userValue?.zoneId;
+            let response = await productHelper.getPurchaseOrdersFromViewProduction(currentPage, itemsPerPage, zoneId);
             return response.data;
         } catch (error) {
             console.log(error);
@@ -134,6 +145,17 @@ export default function ProductionListPage() {
         } catch (error) {
             console.log(error);
             return [];
+        }
+    };
+
+
+    const handleGetZones = async () => {
+        let response = await authHelper.getZones();
+        if (response?.statusCode === 200) {
+            setZones(response?.data);
+        }
+        if (response?.error) {
+            console.log(response?.message);
         }
     };
 
@@ -153,6 +175,10 @@ export default function ProductionListPage() {
             })
             .catch(e => console.log(e))
 
+    }, []);
+
+    useEffect(() => {
+        handleGetZones()
     }, []);
 
     useEffect(() => {
@@ -189,6 +215,7 @@ export default function ProductionListPage() {
                         }),
                         estado: po.status,
                         fechaEntrega: po.deliveryDate,
+                        zoneId: po.zoneId,
                     }
                 });
                 setPedidos(parsedPurchaseOrders);
@@ -245,8 +272,11 @@ export default function ProductionListPage() {
         }
 
         if (columnFilters.estado) {
-            console.log(columnFilters.estado);
             filtered = filtered.filter((pedido) => pedido.estado === columnFilters.estado)
+        }
+
+        if (columnFilters.zone) {
+            filtered = filtered.filter((pedido) => pedido.zoneId?.name.toLowerCase().includes(columnFilters.zone.toLowerCase()))
         }
 
         if (columnFilters.productos) {
@@ -352,6 +382,30 @@ export default function ProductionListPage() {
         setReloadTable(!reloadTable);
     }
 
+    const handlePedidoToggle = (pedidoId) => {
+        togglePedidoSelection(pedidoId);
+        toggleAllProductsInOrder(pedidoId);
+    };
+
+    const togglePedidoSelection = (pedidoId) => {
+        const pedido = filteredPedidos.find((p) => p.id === pedidoId)
+
+        if (!pedido) return;
+        // Verificamos si ya está seleccionado
+        const isSelected = selectedPedidos.find((pedido) => pedido.id === pedidoId);
+
+        if (isSelected) {
+            // Deseleccionar el pedido
+            let newSelectedPedidos = selectedPedidos.filter((pedido) => pedido.id !== pedidoId);
+            setSelectedPedidos(newSelectedPedidos);
+
+        } else {
+            // Seleccionar el pedido
+            let newSelectedPedidos = [...selectedPedidos, pedido];
+            setSelectedPedidos(newSelectedPedidos);
+        }
+    };
+
     const toggleProductSelection = (productId) => {
         if (selectedProducts.includes(productId)) {
             setSelectedProducts(selectedProducts.filter((id) => id !== productId))
@@ -362,7 +416,7 @@ export default function ProductionListPage() {
 
     const toggleAllProductsInOrder = (pedidoId) => {
         const pedido = filteredPedidos.find((p) => p.id === pedidoId)
-        if (!pedido) return
+        if (!pedido) return;
 
         const productIds = pedido.productos
             .filter((producto) => producto.estado !== "completado")
@@ -382,7 +436,7 @@ export default function ProductionListPage() {
                     newSelectedProducts.push(id)
                 }
             })
-            setSelectedProducts(newSelectedProducts)
+            setSelectedProducts(newSelectedProducts);
         }
     }
 
@@ -392,6 +446,14 @@ export default function ProductionListPage() {
             return
         }
         setAsignacionModalOpen(true)
+    }
+
+    const openAsignacionXZonaModal = () => {
+        if (selectedPedidos.length === 0) {
+            alert("Por favor, seleccione al menos un pedido para asignar la zona")
+            return
+        }
+        setAsignacionZonaModalOpen(true)
     }
 
     const handleAsignarProductos = async () => {
@@ -466,6 +528,49 @@ export default function ProductionListPage() {
             setIsLoading(false);
         }
     }
+
+    const handleAsignarProductosXZona = async () => {
+        if (!selectedZoneId) {
+            alert("Por favor, seleccione una zona de producción")
+            return
+        }
+
+        setIsLoading(true)
+        setErrorMessage("")
+        setSuccessMessage("")
+
+        // Crear un array de promesas para todas las asignaciones
+        const asignacionPromises = []
+        //const updatedPedidos = [...pedidos]
+
+        try {
+            //agregar la zona seleccionada a cada pedido
+            selectedPedidos.forEach((pedido) => {
+                asignacionPromises.push(
+                    purchaseHelper.assignOrderToZone(pedido?._id, selectedZoneId, localStorage.getItem("userId")).then(() => {
+                        console.log('Pedido asignado');
+                    }),
+                )
+            })
+
+            await Promise.all(asignacionPromises)
+
+            setSuccessMessage(`${selectedPedidos.length} productos asignados correctamente a zona ${zones.find((z) => z._id === selectedZoneId)?.name}`)
+            setReloadTable(!reloadTable);
+            // Cerrar modal y limpiar selección
+            setTimeout(() => {
+                setAsignacionZonaModalOpen(false)
+                setSelectedZoneId(null)
+                setSuccessMessage("")
+                setSelectedPedidos([])
+            }, 1500)
+        } catch (error) {
+            console.error("Error al asignar pedidos:", error)
+            setErrorMessage("Ocurrió un error al asignar los pedidos. Por favor, inténtelo de nuevo.")
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     const handleCambiarEstado = async () => {
         if (!nuevoEstado) {
@@ -542,6 +647,7 @@ export default function ProductionListPage() {
             setIsLoading(false)
         }
     }
+
     const getProductosSeleccionadosInfo = () => {
         let count = 0
         const pedidosInfo = {}
@@ -582,7 +688,7 @@ export default function ProductionListPage() {
 
     const areAllProductsInOrderSelected = (pedidoId) => {
         const pedido = filteredPedidos.find((p) => p.id === pedidoId)
-        if (!pedido) return false
+        if (!pedido) return false;
 
         const selectableProducts = pedido.productos.filter((producto) => producto.estado !== "completado")
         if (selectableProducts.length === 0) return false
@@ -631,10 +737,14 @@ export default function ProductionListPage() {
                         <Button title="Actualizar" color="light" className="d-flex align-items-center gap-2" onClick={handleRefresh}>
                             <RefreshCw size={18} />
                         </Button>
-                        {selectedProducts.length > 0 && (
+                        {(selectedProducts.length > 0 || selectedPedidos.length > 0) && (
                             <Fragment>
-                                <Button title="Asignar productos seleccionados" color="light" onClick={openAsignacionModal} className="d-flex align-items-center gap-2">
+                                {/*  <Button title="Asignar productos seleccionados" color="light" onClick={openAsignacionModal} className="d-flex align-items-center gap-2">
                                     <User size={18} />  ({selectedProducts.length})
+                                </Button> */}
+
+                                <Button title="Asignar pedidos seleccionados" color="light" onClick={openAsignacionXZonaModal} className="d-flex align-items-center gap-2">
+                                    <MapPinPlus size={18} />  ({selectedPedidos.length})
                                 </Button>
 
                                 <Button title="Cambiar estado" color="light" size="sm" onClick={openCambioEstadoModal}>
@@ -673,6 +783,21 @@ export default function ProductionListPage() {
                     successMessage={successMessage}
                 />
 
+                {/* Modal de Asignación de zona */}
+                <ModalAsignacionXZona
+                    asignacionZonaModalOpen={asignacionZonaModalOpen}
+                    setAsignacionZonaModalOpen={setAsignacionZonaModalOpen}
+                    productosSeleccionadosInfo={productosSeleccionadosInfo}
+                    zonas={zones}
+                    handleAsignarProductosXZona={handleAsignarProductosXZona}
+                    setSelectedZoneId={setSelectedZoneId}
+                    selectedZoneId={selectedZoneId}
+                    isLoading={isLoading}
+                    errorMessage={errorMessage}
+                    successMessage={successMessage}
+                    selectedPedidos={selectedPedidos}
+                />
+
                 {/* Card de busqueda */}
                 <Card className="shadow-sm mb-2">
                     <CardBody>
@@ -694,10 +819,10 @@ export default function ProductionListPage() {
                             <Col md={4}>
                                 <Input type="select" value={filterEstado} onChange={handleFilterChange}>
                                     <option value="">Todos los estados</option>
-                                    <option value="pendiente">Pendiente</option>
-                                    <option value="fabricacion">Fabricación</option>
-                                    <option value="inventario">Inventario</option>
-                                    <option value="finalizado">Finalizado</option>
+                                    <option value="libre">Libre</option>
+                                    <option value="asignado">Asignado</option>
+                                    <option value="fabricacion">En Fabricación</option>
+                                    <option value="despachado">Despachado</option>
                                 </Input>
                             </Col>
                         </Row>
@@ -706,13 +831,13 @@ export default function ProductionListPage() {
 
                 <Card className="shadow-sm">
                     <div className="table-responsive">
-                        <Table hover>
+                        <Table hover style={{ minHeight: '19rem' }}>
                             <thead>
                                 <tr>
                                     <th style={{ width: "3%" }}></th>
-                                    <th style={{ width: "10%" }}>#</th>
-                                    <th style={{ width: "15%" }}>Ciudad</th>
-                                    <th style={{ width: "15%" }} className="position-relative">
+                                    <th style={{ width: "8%" }}>#</th>
+                                    <th style={{ width: "13%" }}>Ciudad</th>
+                                    <th style={{ width: "12%" }} className="position-relative">
                                         Fecha
                                         <UncontrolledDropdown className="d-inline-block ms-1">
                                             <DropdownToggle color="link" size="sm" className="p-0 text-muted">
@@ -768,7 +893,7 @@ export default function ProductionListPage() {
                                             </DropdownMenu>
                                         </UncontrolledDropdown>
                                     </th>
-                                    <th style={{ width: "20%" }}>Cliente</th>
+                                    <th style={{ width: "15%" }}>Cliente</th>
                                     <th style={{ width: "15%" }} className="position-relative">
                                         Entrega
                                         <UncontrolledDropdown className="d-inline-block ms-1">
@@ -853,28 +978,28 @@ export default function ProductionListPage() {
                                                     Todos los estados
                                                 </DropdownItem>
                                                 <DropdownItem
-                                                    onClick={() => handleFilterChangeStatusColumn("pendiente")}
-                                                    active={filterEstado === "pendiente"}
+                                                    onClick={() => handleFilterChangeStatusColumn("libre")}
+                                                    active={filterEstado === "libre"}
                                                 >
-                                                    Pendiente
+                                                    Libre
+                                                </DropdownItem>
+                                                <DropdownItem
+                                                    onClick={() => handleFilterChangeStatusColumn("asignado")}
+                                                    active={filterEstado === "asignado"}
+                                                >
+                                                    Asignado
                                                 </DropdownItem>
                                                 <DropdownItem
                                                     onClick={() => handleFilterChangeStatusColumn("fabricacion")}
                                                     active={filterEstado === "fabricacion"}
                                                 >
-                                                    Fabricación
+                                                    En Producción
                                                 </DropdownItem>
                                                 <DropdownItem
-                                                    onClick={() => handleFilterChangeStatusColumn("inventario")}
-                                                    active={filterEstado === "inventario"}
+                                                    onClick={() => handleFilterChangeStatusColumn("despachado")}
+                                                    active={filterEstado === "despachado"}
                                                 >
-                                                    Inventario
-                                                </DropdownItem>
-                                                <DropdownItem
-                                                    onClick={() => handleFilterChangeStatusColumn("finalizado")}
-                                                    active={filterEstado === "finalizado"}
-                                                >
-                                                    Finalizado
+                                                    Despachado
                                                 </DropdownItem>
                                             </DropdownMenu>
                                         </UncontrolledDropdown>
@@ -890,6 +1015,7 @@ export default function ProductionListPage() {
                                         )}
 
                                     </th>
+                                    <th style={{ width: "10%" }}>Sede</th>
                                     <th style={{ width: "15%" }}>Productos</th>
                                 </tr>
                                 {/* Fila de filtros por columna */}
@@ -945,6 +1071,15 @@ export default function ProductionListPage() {
                                         <Input
                                             type="text"
                                             bsSize="sm"
+                                            placeholder="Buscar sede..."
+                                            value={columnFilters.zone}
+                                            onChange={(e) => handleColumnFilterChange("zone", e.target.value)}
+                                        />
+                                    </th>
+                                    <th>
+                                        <Input
+                                            type="text"
+                                            bsSize="sm"
                                             placeholder="Buscar productos..."
                                             value={columnFilters.productos}
                                             onChange={(e) => handleColumnFilterChange("productos", e.target.value)}
@@ -987,13 +1122,15 @@ export default function ProductionListPage() {
                                                 <td>
                                                     <Badge color={productionHelper.getStatusBadgeColorOrder(pedido.estado)}>{productionHelper.getEstadoTextOrder(pedido.estado)}</Badge>
                                                 </td>
+                                                <td>{pedido.zoneId?.name}</td>
                                                 <td>
                                                     <div className="d-flex justify-content-between align-items-center">
                                                         <span>{pedido.productos.length} productos</span>
                                                         <div
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
-                                                                toggleAllProductsInOrder(pedido.id)
+                                                                /*  toggleAllProductsInOrder(pedido.id) */
+                                                                handlePedidoToggle(pedido.id)
                                                             }}
                                                             style={{ cursor: "pointer" }}
                                                             className="d-flex align-items-center"
@@ -1010,18 +1147,18 @@ export default function ProductionListPage() {
                                             <tr key={`collapse-${pedido.id}`}>
                                                 <td colSpan="8" className="p-0 border-0">
                                                     <Collapse isOpen={expandedRows[pedido.id]}>
-                                                        <div className="bg-light p-3">
+                                                        <div className="bg-light p-3 w-100">
                                                             <h6 className="mb-3">Productos del Pedido #{pedido.id}</h6>
                                                             <Table bordered size="sm" className="bg-white">
                                                                 <thead>
                                                                     <tr>
                                                                         <th style={{ width: "5%" }}></th>
-                                                                        <th style={{ width: "25%" }}>Producto</th>
+                                                                        <th style={{ width: "40%" }}>Producto</th>
                                                                         <th style={{ width: "15%" }}>Tipo / Material</th>
                                                                         <th style={{ width: "10%" }}>Piezas</th>
                                                                         <th style={{ width: "10%" }}>Cantidad</th>
                                                                         <th style={{ width: "15%" }}>Estado</th>
-                                                                        <th style={{ width: "20%" }}>Asignado a</th>
+                                                                        {/*  <th style={{ width: "20%" }}>Asignado a</th> */}
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
@@ -1070,7 +1207,7 @@ export default function ProductionListPage() {
                                                                                     {productionHelper.getEstadoTextItem(producto.estado)}
                                                                                 </Badge>
                                                                             </td>
-                                                                            <td className="p-1">
+                                                                            {/* <td className="p-1">
                                                                                 {producto.asignado?.id ? (
                                                                                     <div>
                                                                                         <div className="fw-medium">{producto.asignado.nombre}</div>
@@ -1082,7 +1219,7 @@ export default function ProductionListPage() {
                                                                                 ) : (
                                                                                     <span className="text-muted">No asignado</span>
                                                                                 )}
-                                                                            </td>
+                                                                            </td> */}
                                                                         </tr>
                                                                     ))}
                                                                 </tbody>

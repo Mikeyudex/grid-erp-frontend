@@ -52,10 +52,15 @@ import { footerStyle } from "./footerStyle"
 import ModalCambioEstado from "../components/ModalCambioEstado"
 import ModalAsignacion from "../components/ModalAsignacion"
 import { ProductionHelper } from "../helper/production-helper"
+import { IndexedDBService } from "../../../../helpers/indexedDb/indexed-db-helper"
+import ModalAsignacionXZona from "../components/ModalAsignacionZona"
+import { AuthHelper } from "../../Auth/helpers/auth_helper"
 
 const productHelper = new ProductHelper();
 const userHelper = new UserHelper();
 const productionHelper = new ProductionHelper();
+const authHelper = new AuthHelper();
+const indexedDBService = new IndexedDBService();
 
 export default function ProductionListByItems() {
     document.title = "Ordenes de Producción - Items | Quality";
@@ -64,6 +69,7 @@ export default function ProductionListByItems() {
     const [filteredItems, setFilteredItems] = useState([])
     const [filterEstado, setFilterEstado] = useState("")
     const [asignacionModalOpen, setAsignacionModalOpen] = useState(false)
+    const [asignacionZonaModalOpen, setAsignacionZonaModalOpen] = useState(false)
     const [agentesProduccion, setAgentesProduccion] = useState([])
     const [selectedAgent, setSelectedAgent] = useState("")
     const [items, setItems] = useState([])
@@ -72,6 +78,9 @@ export default function ProductionListByItems() {
     const [cambioEstadoModalOpen, setCambioEstadoModalOpen] = useState(false)
     const [nuevoEstado, setNuevoEstado] = useState("");
     const [reloadTable, setReloadTable] = useState(false);
+    const [zones, setZones] = useState([]);
+    const [selectedZoneId, setSelectedZoneId] = useState(null);
+    const [selectedPedidos, setSelectedPedidos] = useState([]);
 
     // Estados para operaciones asíncronas
     const [isLoading, setIsLoading] = useState(false)
@@ -118,7 +127,9 @@ export default function ProductionListByItems() {
 
     const handleGetPurchaseOrders = async () => {
         try {
-            let response = await productHelper.getPurchaseOrdersFromViewProduction(currentPage, itemsPerPage);
+            let userValue = await indexedDBService.getItemById(localStorage.getItem("userId"));
+            let zoneId = userValue?.zoneId;
+            let response = await productHelper.getPurchaseOrdersFromViewProduction(currentPage, itemsPerPage, zoneId);
             return response.data;
         } catch (error) {
             console.log(error);
@@ -133,6 +144,16 @@ export default function ProductionListByItems() {
         } catch (error) {
             console.log(error);
             return [];
+        }
+    };
+
+    const handleGetZones = async () => {
+        let response = await authHelper.getZones();
+        if (response?.statusCode === 200) {
+            setZones(response?.data);
+        }
+        if (response?.error) {
+            console.log(response?.message);
         }
     };
 
@@ -152,6 +173,10 @@ export default function ProductionListByItems() {
             })
             .catch(e => console.log(e))
 
+    }, []);
+
+    useEffect(() => {
+        handleGetZones()
     }, []);
 
     useEffect(() => {
@@ -176,14 +201,15 @@ export default function ProductionListByItems() {
                             cantidad: item.quantityItem,
                             estado: item.itemStatus,
                             asignado: {
-                                id: item?.assignedId || null,
-                                nombre: agentesProduccion.find((a) => a.id === item.assignedId)?.nombre || null,
-                                fecha: item?.assignedAt || null,
+                                id: po?.zoneId?._id || null,
+                                nombre: po?.zoneId?.name || null,
                             },
                             marca: item?.marca,
                             linea: item?.productName,
                             fechaEntrega: po.deliveryDate,
                             itemId: item._id,
+                            zone: po?.zoneId,
+                            orderId: po._id,
                         })
                     }
                 };
@@ -407,7 +433,7 @@ export default function ProductionListByItems() {
 
     const toggleItemSelection = (itemId) => {
         console.log('itemId: ', itemId);
-        
+
         if (selectedItems.includes(itemId)) {
             setSelectedItems(selectedItems.filter((id) => id !== itemId))
         } else {
@@ -429,6 +455,14 @@ export default function ProductionListByItems() {
             return
         }
         setAsignacionModalOpen(true)
+    }
+
+    const openAsignacionXZonaModal = () => {
+        if (selectedPedidos.length === 0) {
+            alert("Por favor, seleccione al menos un pedido para asignar la zona")
+            return
+        }
+        setAsignacionZonaModalOpen(true)
     }
 
     // Función para asignar productos a un agente
@@ -523,19 +557,22 @@ export default function ProductionListByItems() {
             // Preparar las actualizaciones y las promesas
             selectedItems.forEach((itemId) => {
                 // Encontrar el item correspondiente
-                const itemIndex = updatedItems.findIndex((item) => item.id === itemId)
+                const itemIndex = updatedItems.findIndex((item) => {
+                    return item.itemId === itemId
+                })
+                console.log(itemIndex);
                 if (itemIndex !== -1) {
                     // Datos para el cambio de estado
                     const data = {
-                        estado: nuevoEstado,
+                        status: nuevoEstado,
                     }
 
                     // Añadir la promesa para este producto
-                    const userId = updatedItems[itemIndex].asignado?.id || 1 // Valor por defecto si no hay asignado
+                    const userId = localStorage.getItem("userId");
 
                     cambioEstadoPromises.push(
                         purchaseHelper
-                            .changeStatusPurchaseOrder(updatedItems[itemIndex].pedidoId, itemId, userId, data)
+                            .changeStatusByItem(updatedItems[itemIndex].orderId, itemId, userId, data)
                             .then(() => {
                                 // Actualizar el estado local del producto
                                 updatedItems[itemIndex].estado = nuevoEstado
@@ -552,18 +589,11 @@ export default function ProductionListByItems() {
             // Ejecutar todos los cambios de estado en paralelo
             await Promise.all(cambioEstadoPromises)
 
-            // Actualizar el estado local con los cambios
-            setItems(updatedItems)
-            setFilteredItems(
-                filteredItems.map((item) => {
-                    const updatedItem = updatedItems.find((i) => i.id === item.id)
-                    return updatedItem || item
-                }),
-            )
-
             setSuccessMessage(
                 `Estado de ${selectedItems.length} productos cambiado correctamente a "${productionHelper.getEstadoTextItem(nuevoEstado)}"`,
-            )
+            );
+
+            setReloadTable(!reloadTable);
 
             // Cerrar modal y limpiar selección
             setTimeout(() => {
@@ -578,7 +608,50 @@ export default function ProductionListByItems() {
         } finally {
             setIsLoading(false)
         }
-    }
+    };
+
+    /* const handleAsignarProductosXZona = async () => {
+        if (!selectedZoneId) {
+            alert("Por favor, seleccione una zona de producción")
+            return
+        }
+
+        setIsLoading(true)
+        setErrorMessage("")
+        setSuccessMessage("")
+
+        // Crear un array de promesas para todas las asignaciones
+        const asignacionPromises = []
+        //const updatedPedidos = [...pedidos]
+
+        try {
+            //agregar la zona seleccionada a cada pedido
+            selectedPedidos.forEach((pedido) => {
+                asignacionPromises.push(
+                    purchaseHelper.assignOrderToZone(pedido?._id, selectedZoneId, localStorage.getItem("userId")).then(() => {
+                        console.log('Pedido asignado');
+                    }),
+                )
+            })
+
+            await Promise.all(asignacionPromises)
+
+            setSuccessMessage(`${selectedPedidos.length} productos asignados correctamente a zona ${zones.find((z) => z._id === selectedZoneId)?.name}`)
+            setReloadTable(!reloadTable);
+            // Cerrar modal y limpiar selección
+            setTimeout(() => {
+                setAsignacionZonaModalOpen(false)
+                setSelectedZoneId(null)
+                setSuccessMessage("")
+                setSelectedPedidos([])
+            }, 1500)
+        } catch (error) {
+            console.error("Error al asignar pedidos:", error)
+            setErrorMessage("Ocurrió un error al asignar los pedidos. Por favor, inténtelo de nuevo.")
+        } finally {
+            setIsLoading(false);
+        }
+    }; */
 
     const getProductosSeleccionadosInfo = () => {
         let count = 0
@@ -590,6 +663,7 @@ export default function ProductionListByItems() {
                     pedidosInfo[producto.itemId] = {
                         cliente: producto.cliente.nombre,
                         count: 1,
+                        id: producto.id,
                     }
                 } else {
                     pedidosInfo[producto.itemId].count++
@@ -600,9 +674,10 @@ export default function ProductionListByItems() {
         return {
             count,
             pedidosInfo: Object.entries(pedidosInfo).map(([itemId, info]) => ({
-                itemId,
+                id: info.id,
                 cliente: info.cliente,
                 count: info.count,
+                itemId
             })),
         }
     }
@@ -656,7 +731,7 @@ export default function ProductionListByItems() {
                         <RefreshCw size={18} />
                     </Button>
                     {selectedItems.length > 0 && (
-                        <Button color="primary" onClick={openAsignacionModal} className="d-flex align-items-center gap-2">
+                        <Button color="primary" onClick={openAsignacionXZonaModal} className="d-flex align-items-center gap-2">
                             <User size={18} /> Asignar Seleccionados ({selectedItems.length})
                         </Button>
                     )}
@@ -690,6 +765,21 @@ export default function ProductionListByItems() {
                 errorMessage={errorMessage}
                 successMessage={successMessage}
             />
+
+            {/* Modal de Asignación de zona */}
+            {/* <ModalAsignacionXZona
+                asignacionZonaModalOpen={asignacionZonaModalOpen}
+                setAsignacionZonaModalOpen={setAsignacionZonaModalOpen}
+                productosSeleccionadosInfo={productosSeleccionadosInfo}
+                zonas={zones}
+                handleAsignarProductosXZona={handleAsignarProductosXZona}
+                setSelectedZoneId={setSelectedZoneId}
+                selectedZoneId={selectedZoneId}
+                isLoading={isLoading}
+                errorMessage={errorMessage}
+                successMessage={successMessage}
+                selectedPedidos={selectedPedidos}
+            /> */}
 
             {/* Filtros */}
             <Card className="shadow-sm mb-4">
@@ -732,9 +822,9 @@ export default function ProductionListByItems() {
                         </span>
                     </div>
                     <div>
-                        <Button color="primary" size="sm" onClick={openAsignacionModal} className="me-2">
+                        {/* <Button color="primary" size="sm" onClick={openAsignacionXZonaModal} className="me-2">
                             Asignar Seleccionados
-                        </Button>
+                        </Button> */}
                         <Button color="secondary" size="sm" onClick={openCambioEstadoModal}>
                             Cambiar Estado
                         </Button>
@@ -744,7 +834,7 @@ export default function ProductionListByItems() {
 
             <Card className="shadow-sm mb-5">
                 <div className="table-responsive">
-                    <Table hover className="mb-0">
+                    <Table hover style={{ minHeight: '19rem' }} className="mb-0">
                         <thead>
                             <tr>
                                 <th style={{ width: "2%" }}>
@@ -794,7 +884,7 @@ export default function ProductionListByItems() {
                                     Estado {sortField === "estado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                 </th>
                                 <th style={{ width: "10%" }} onClick={() => handleSort("asignado")} className="cursor-pointer">
-                                    Asignado a {sortField === "asignado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                    Sede asignada {sortField === "asignado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                 </th>
                             </tr>
                             {/* Fila de filtros por columna */}
@@ -921,7 +1011,7 @@ export default function ProductionListByItems() {
                                             <div className="fw-medium">{item.cliente.nombre}</div>
                                             {item.cliente.empresa && <small className="text-muted">{item.cliente.empresa}</small>}
                                         </td>
-                                      {/*   <td>{item.nombre}</td> */}
+                                        {/*   <td>{item.nombre}</td> */}
                                         <td>{item.marca}</td>
                                         <td>{item.linea}</td>
                                         <td>{item.tipo}</td>
@@ -935,13 +1025,13 @@ export default function ProductionListByItems() {
                                             {item.asignado ? (
                                                 <div>
                                                     <div className="fw-medium">{item.asignado.nombre}</div>
-                                                    <small className="text-muted d-flex align-items-center">
+                                                    {/* <small className="text-muted d-flex align-items-center">
                                                         <Clock size={12} className="me-1" />
                                                         {item.asignado.fecha ? formatDate(item.asignado.fecha) : "No asignado"}
-                                                    </small>
+                                                    </small> */}
                                                 </div>
                                             ) : (
-                                                <span className="text-muted">No asignado</span>
+                                                <span className="text-muted">Libre</span>
                                             )}
                                         </td>
                                     </tr>

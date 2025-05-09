@@ -25,10 +25,10 @@ export default function ModalCambioEstado({
                     <div className="mb-4">
                         <h6 className="fw-bold mb-2">Productos seleccionados:</h6>
                         <ul className="list-group">
-                            {productosSeleccionadosInfo.pedidosInfo.map((info) => (
-                                <li key={info.id} className="list-group-item d-flex justify-content-between align-items-center">
+                            {productosSeleccionadosInfo.pedidosInfo.map((info, idx) => (
+                                <li key={`li-list-${info.id}-${idx}` } className="list-group-item d-flex justify-content-between align-items-center">
                                     <div>
-                                        <span className="fw-medium">Pedido #{info.id}</span>
+                                        <span className="fw-medium">Pedido #{info?.id}</span>
                                         <span className="text-muted ms-2">({info.cliente})</span>
                                     </div>
                                     <Badge color="primary" pill>
@@ -45,7 +45,7 @@ export default function ModalCambioEstado({
                         </label>
                         <Input type="select" id="estadoSelect" value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
                             <option value="">-- Seleccionar Estado --</option>
-                            {/* <option value="pendiente">Pendiente</option> */}
+                            <option value="pendiente">Pendiente</option>
                             <option value="fabricacion">Fabricación</option>
                             <option value="inventario">Inventario</option>
                             <option value="finalizado">Finalizado</option>
@@ -54,6 +54,8 @@ export default function ModalCambioEstado({
 
                     <Alert color="warning" className="d-flex align-items-center">
                         <AlertCircle size={18} className="me-2" />
+                        {nuevoEstado === "pendiente" &&
+                            "Los productos pasarán a estado 'Pendiente' pero mantendrán su asignación actual."}
                         {nuevoEstado === "fabricacion" &&
                             "Los productos pasarán a estado 'Fabricación' pero mantendrán su asignación actual."}
                         {nuevoEstado === "inventario" &&

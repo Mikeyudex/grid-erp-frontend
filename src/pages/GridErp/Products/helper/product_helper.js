@@ -57,7 +57,7 @@ export class ProductHelper {
 
     getPurchaseOrderById = (id) => api.get(`${url.GET_PURCHASE_ORDER_BY_ID}/${id}`);
 
-    getPurchaseOrdersFromViewProduction = (page, limit) => api.get(`${url.GET_PURCHASE_ORDERS_FROM_VIEW_PRODUCTION}?page=${page}&limit=${limit}`);
+    getPurchaseOrdersFromViewProduction = (page, limit, zoneId) => api.get(`${url.GET_PURCHASE_ORDERS_FROM_VIEW_PRODUCTION}?page=${page}&limit=${limit}&zoneId=${zoneId}`);
 
     validateForm = (setErrors, formData) => {
         const newErrors = {};
