@@ -1,6 +1,6 @@
 import React from 'react';
 import { styled } from '@mui/material/styles';
-import { Card, CardContent, Typography, Grid2, Container } from '@mui/material';
+import { Card, CardContent, Typography, Container } from '@mui/material';
 import { Link } from 'react-router-dom';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
@@ -33,7 +33,7 @@ const IconWrapper = styled('div')(({ theme }) => ({
 }));
 
 const ConfigCard = ({ title, description, icon, to }) => (
-  <Grid2 xs={12} sm={6} md={3}>
+ /*  <Grid2 xs={12} sm={6} md={3}>
     <StyledCard component={Link} to={to} sx={{ textDecoration: 'none', color: 'inherit' }}>
       <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', height: '100%', width: '100%' }}>
         <IconWrapper>
@@ -47,7 +47,8 @@ const ConfigCard = ({ title, description, icon, to }) => (
         </Typography>
       </CardContent>
     </StyledCard>
-  </Grid2>
+  </Grid2> */
+  <h1>WooCommerce</h1>
 );
 
 export default function WooGeneralConfig() {
@@ -56,7 +57,7 @@ export default function WooGeneralConfig() {
       <BreadCrumb title="General" pageTitle="Mi empresa" to={'/config-company'}/>
 
       <Container maxWidth="lg" sx={{ mt: 2 }}>
-        <Grid2 container spacing={4}>
+       {/*  <Grid2 container spacing={4}>
           <ConfigCard
             title="Credenciales"
             description="Configura el api de tu tienda WooCommerce"
@@ -69,7 +70,7 @@ export default function WooGeneralConfig() {
             icon={<CategoryRoundedIcon fontSize="large" />}
             to="/woocommerce-config/category-mapping"
           />
-        </Grid2>
+        </Grid2> */}
       </Container>
     </div>
   );

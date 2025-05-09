@@ -32,7 +32,7 @@ const IconWrapper = styled('div')(({ theme }) => ({
   marginBottom: theme.spacing(2),
 }));
 
-const ConfigCard = ({ title, description, icon, to }) => (
+/* const ConfigCard = ({ title, description, icon, to }) => (
   <Grid2 xs={12} sm={6} md={3}>
     <StyledCard component={Link} to={to} sx={{ textDecoration: 'none', color: 'inherit' }}>
       <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', height: '100%', width: '100%' }}>
@@ -48,7 +48,7 @@ const ConfigCard = ({ title, description, icon, to }) => (
       </CardContent>
     </StyledCard>
   </Grid2>
-);
+); */
 
 export default function CompanyConfigView() {
   return (
