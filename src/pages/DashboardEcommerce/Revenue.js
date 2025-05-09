@@ -11,8 +11,8 @@ const Revenue = () => {
   const [chartData, setchartData] = useState([]);
 
   const selectDashboardData = createSelector(
-    (state) => state.DashboardEcommerce,
-    (revenueData) => revenueData.revenueData
+    (state) => state?.DashboardEcommerce,
+    (revenueData) => revenueData?.revenueData
   );
   // Inside your component
   const revenueData = useSelector(selectDashboardData);

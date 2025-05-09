@@ -1,6 +1,7 @@
 import React from 'react';
 import { styled } from '@mui/material/styles';
-import { Card, CardContent, Typography, Grid2, Container } from '@mui/material';
+import { Card, CardContent, Typography, Container } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
 import { Link } from 'react-router-dom';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';

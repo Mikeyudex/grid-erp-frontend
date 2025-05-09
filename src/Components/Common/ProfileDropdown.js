@@ -18,8 +18,8 @@ const ProfileDropdown = () => {
     const navigate = useNavigate();
 
     const profiledropdownData = createSelector(
-        (state) => state.Profile,
-        (user) => user.user
+        (state) => state?.Profile,
+        (user) => user?.user
     );
     // Inside your component
     const user = useSelector(profiledropdownData);
