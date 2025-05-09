@@ -1,7 +1,6 @@
 import React from 'react';
 import { styled } from '@mui/material/styles';
 import { Card, CardContent, Typography, Container } from '@mui/material';
-import Grid2 from '@mui/material/Grid2';
 import { Link } from 'react-router-dom';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
@@ -57,7 +56,7 @@ export default function CompanyConfigView() {
       <BreadCrumb title="General" pageTitle="Mi Empresa" to={'/'} />
 
       <Container maxWidth="lg" sx={{ mt: 2 }}>
-        <Grid2 container spacing={4}>
+        {/* <Grid2 container spacing={4}>
           <ConfigCard
             title="WooCommerce"
             description="Configura tu tienda WooCommerce"
@@ -82,7 +81,7 @@ export default function CompanyConfigView() {
             icon={<WarehouseIcon fontSize="large" />}
             to="/config/bodegas"
           />
-        </Grid2>
+        </Grid2> */}
       </Container>
     </div>
   );
