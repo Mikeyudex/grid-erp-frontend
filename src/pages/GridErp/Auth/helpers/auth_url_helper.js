@@ -1,5 +1,5 @@
 
-export const BASE_URL_API = "http://localhost:5000";
+export const BASE_URL_API = process.env.REACT_APP_API_URL;
 export const companyId = "3423f065-bb88-4cc5-b53a-63290b960c1a";
 
 
