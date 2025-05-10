@@ -1,4 +1,10 @@
-export const BASE_URL = process.env.REACT_APP_API_URL;
+export const BASE_URL = process.env.REACT_APP_ENV === "LOCAL" ?
+    process.env.REACT_APP_API_URL_LOCAL : process.env.REACT_APP_ENV === "DEV" ?
+    process.env.REACT_APP_API_URL_DEV : process.env.REACT_APP_API_URL_PROD;
+
+export const BASE_URL_IMPORT = process.env.REACT_APP_ENV === "LOCAL" ?
+    process.env.REACT_APP_API_IMPORT_LOCAL : process.env.REACT_APP_ENV === "DEV" ?
+    process.env.REACT_APP_API_IMPORT_DEV : process.env.REACT_APP_API_IMPORT_PROD;
 
 
 //REGISTER
