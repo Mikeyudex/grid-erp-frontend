@@ -583,37 +583,33 @@ export default function ProductionListPage() {
         setSuccessMessage("")
 
         try {
-            // Procesar cada producto seleccionado
+            // Procesar cada orden seleccionada
             const cambioEstadoPromises = []
             const updatedPedidos = [...pedidos]
 
             // Preparar las actualizaciones y las promesas
-            selectedProducts.forEach((productId) => {
-                // Encontrar el pedido y producto correspondiente
-                for (const pedido of updatedPedidos) {
-                    const producto = pedido.productos.find((p) => p.id === productId)
-                    if (producto) {
-                        // Datos para el cambio de estado
-                        const data = {
-                            status: nuevoEstado
-                        }
-
-                        // Añadir la promesa para este producto
-                        const userId = localStorage.getItem("userId") || "66d4ed2f825f2d54204555c1";
-
-                        cambioEstadoPromises.push(
-                            purchaseHelper.changeStatusPurchaseOrder(pedido._id, productId, userId, data).then(() => {
-                                // Actualizar el estado local del producto
-                                producto.estado = nuevoEstado
-
-                                // Si el estado es "pendiente", eliminar la asignación
-                                if (nuevoEstado === "pendiente") {
-                                    producto.asignado = null
-                                }
-                            }),
-                        )
-                        break // Salir del bucle una vez encontrado
+            selectedPedidos.forEach((orderId) => {
+                // Encontrar la orden correspondiente
+                const pedido = updatedPedidos.find((p) => p._id === orderId)
+                if (pedido) {
+                    // Datos para el cambio de estado
+                    const data = {
+                        status: nuevoEstado,
+                        // Puedes añadir más datos si son necesarios para tu API
                     }
+                    let userId = localStorage.getItem("userId");
+                    console.log(userId);
+                    console.log(orderId);
+                    console.log(data);
+                    
+                    // Añadir la promesa para esta orden
+                    cambioEstadoPromises.push(
+                        purchaseHelper.changeStatusPurchaseOrder(orderId, userId, data)
+                        .then(() => {
+                            // Actualizar el estado local de la orden
+                            pedido.estado = nuevoEstado
+                        }),
+                    )
                 }
             })
 
@@ -624,30 +620,31 @@ export default function ProductionListPage() {
             setPedidos(updatedPedidos)
             setFilteredPedidos(
                 filteredPedidos.map((pedido) => {
-                    const updatedPedido = updatedPedidos.find((p) => p._id === pedido._id)
+                    const updatedPedido = updatedPedidos.find((p) => p.id === pedido.id)
                     return updatedPedido || pedido
                 }),
             )
 
             setSuccessMessage(
-                `Estado de ${selectedProducts.length} productos cambiado correctamente a "${productionHelper.getEstadoTextItem(nuevoEstado)}"`,
+                `Estado de ${selectedOrders.length} órdenes cambiado correctamente a "${getEstadoText(nuevoEstado)}"`,
             );
+
             setReloadTable(!reloadTable);
+
             // Cerrar modal y limpiar selección
             setTimeout(() => {
                 setCambioEstadoModalOpen(false)
-                setSelectedProducts([])
+                setSelectedOrders([])
                 setNuevoEstado("")
                 setSuccessMessage("")
             }, 1500)
         } catch (error) {
-            console.error("Error al cambiar el estado de los productos:", error)
+            console.error("Error al cambiar el estado de las órdenes:", error)
             setErrorMessage("Ocurrió un error al cambiar el estado. Por favor, inténtelo de nuevo.")
         } finally {
             setIsLoading(false)
         }
     }
-
     const getProductosSeleccionadosInfo = () => {
         let count = 0
         const pedidosInfo = {}
