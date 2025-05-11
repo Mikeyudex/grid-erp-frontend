@@ -1,6 +1,6 @@
 const urlLocal = "http://localhost:5000";
-const urlDev = "http://149.130.186.128/backend/dev";
-const urlProd = "http://149.130.186.128/backend/prod";
+const urlDev = "http://149.130.186.128:8080/backend/dev";
+const urlProd = "http://149.130.186.128:8080/backend/prod";
 
 console.log(process.env.REACT_APP_ENV);
 
