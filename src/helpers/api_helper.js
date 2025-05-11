@@ -88,6 +88,17 @@ class APIClient {
   put = (url, data) => {
     return axios.put(url, data);
   };
+
+  putFetch = (url, data) => {
+    return fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+  };
+
   /**
    * Delete
    */
