@@ -589,6 +589,7 @@ export default function ProductionListPage() {
 
             // Preparar las actualizaciones y las promesas
             selectedPedidos.forEach((orderId) => {
+                console.log('pedido: ', orderId);
                 // Encontrar la orden correspondiente
                 const pedido = updatedPedidos.find((p) => p._id === orderId)
                 if (pedido) {
@@ -601,7 +602,7 @@ export default function ProductionListPage() {
                     console.log(userId);
                     console.log(orderId);
                     console.log(data);
-                    
+
                     // Añadir la promesa para esta orden
                     cambioEstadoPromises.push(
                         purchaseHelper.changeStatusPurchaseOrder(orderId, userId, data)
@@ -626,7 +627,7 @@ export default function ProductionListPage() {
             )
 
             setSuccessMessage(
-                `Estado de ${selectedOrders.length} órdenes cambiado correctamente a "${getEstadoText(nuevoEstado)}"`,
+                `Estado de ${selectedPedidos.length} órdenes cambiado correctamente a "${getEstadoText(nuevoEstado)}"`,
             );
 
             setReloadTable(!reloadTable);
