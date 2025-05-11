@@ -599,7 +599,10 @@ export default function ProductionListPage() {
                         purchaseHelper.changeStatusPurchaseOrder(orderId, userId, data)
                         .then(() => {
                             pedido.estado = nuevoEstado
-                        }),
+                        })
+                        .catch((error) => {
+                            console.error("Error al cambiar el estado del pedido:", error)
+                        })
                     )
                 }
             })
