@@ -1,6 +1,7 @@
+import { BASE_URL, BASE_URL_IMPORT } from "../../../../helpers/url_helper";
 
-const baseUrl = "http://localhost:5000";
-const baseUrlImport = "http://localhost:4405";
+const baseUrl = BASE_URL;
+const baseUrlImport = BASE_URL_IMPORT;
 export const companyId = "3423f065-bb88-4cc5-b53a-63290b960c1a";
 
 
