@@ -72,4 +72,22 @@ export class ProductionHelper {
         }
     }
 
+    getStatusOptionsByOrder(){
+        return [
+            { value: "libre", label: "Libre" },
+            { value: "asignado", label: "Asignado" },
+            { value: "fabricacion", label: "Fabricación" },
+            { value: "despachado", label: "Despachado" },
+        ];
+    };
+
+    getStatusOptionsByProduct(){
+        return [
+            { value: "pendiente", label: "Pendiente" },
+            { value: "fabricacion", label: "Fabricación" },
+            { value: "inventario", label: "Inventario" },
+            { value: "finalizado", label: "Finalizado" },
+        ];
+    }
+
 }

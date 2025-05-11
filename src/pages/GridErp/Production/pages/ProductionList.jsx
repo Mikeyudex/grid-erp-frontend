@@ -781,6 +781,7 @@ export default function ProductionListPage() {
                     isLoading={isLoading}
                     errorMessage={errorMessage}
                     successMessage={successMessage}
+                    statusOptions={productionHelper.getStatusOptionsByOrder()}
                 />
 
                 {/* Modal de Asignación de zona */}

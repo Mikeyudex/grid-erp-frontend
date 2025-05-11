@@ -13,6 +13,7 @@ export default function ModalCambioEstado({
     isLoading,
     errorMessage,
     successMessage,
+    statusOptions,
 }) {
 
     return (
@@ -45,10 +46,11 @@ export default function ModalCambioEstado({
                         </label>
                         <Input type="select" id="estadoSelect" value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)}>
                             <option value="">-- Seleccionar Estado --</option>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="fabricacion">Fabricación</option>
-                            <option value="inventario">Inventario</option>
-                            <option value="finalizado">Finalizado</option>
+                            {statusOptions.map((status, idx) => (
+                                <option key={idx} value={status?.value}>
+                                    {status?.label}
+                                </option>
+                            ))}
                         </Input>
                     </div>
 
@@ -62,6 +64,19 @@ export default function ModalCambioEstado({
                             "Los productos se marcarán como 'Inventario' y mantendrán su asignación actual."}
                         {nuevoEstado === "finalizado" &&
                             "Los productos se marcarán como 'Finalizados' y mantendrán su asignación actual."}
+                            {
+                                nuevoEstado === "libre" && "La orden pasará a estado 'Libre'"
+                            }
+                            {
+                                nuevoEstado === "asignado" && "La orden pasará a estado 'Asignado'"
+                            }
+                            {
+                                nuevoEstado === "fabricacion" && "La orden pasará a estado 'Fabricación'"
+                            }
+
+                            {
+                                nuevoEstado === "despachado" && "La orden pasará a estado 'Despachado'"
+                            }
                     </Alert>
                 </ModalBody>
                 <ModalFooter>

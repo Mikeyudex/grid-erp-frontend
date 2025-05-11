@@ -764,6 +764,7 @@ export default function ProductionListByItems() {
                 isLoading={isLoading}
                 errorMessage={errorMessage}
                 successMessage={successMessage}
+                statusOptions={productionHelper.getStatusOptionsByProduct()}
             />
 
             {/* Modal de Asignación de zona */}
