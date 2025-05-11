@@ -122,7 +122,7 @@ const TwosVerify = () => {
                                                                 <div className="mb-3">
                                                                     <label htmlFor="digit1-input" className="visually-hidden">Digit 1</label>
                                                                     <input type="number"
-                                                                        className="form-control form-control-lg bg-light border-light text-center"
+                                                                        className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit1-input"
                                                                         onKeyUp={() => moveToNext(1)}
@@ -134,7 +134,7 @@ const TwosVerify = () => {
                                                                 <div className="mb-3">
                                                                     <label htmlFor="digit2-input" className="visually-hidden">Digit 2</label>
                                                                     <input type="number"
-                                                                        className="form-control form-control-lg bg-light border-light text-center"
+                                                                        className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit2-input"
                                                                         onKeyUp={() => moveToNext(2)}
@@ -146,7 +146,7 @@ const TwosVerify = () => {
                                                                 <div className="mb-3">
                                                                     <label htmlFor="digit3-input" className="visually-hidden">Digit 3</label>
                                                                     <input type="number"
-                                                                        className="form-control form-control-lg bg-light border-light text-center"
+                                                                        className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit3-input"
                                                                         onKeyUp={() => moveToNext(3)}
@@ -158,7 +158,7 @@ const TwosVerify = () => {
                                                                 <div className="mb-3">
                                                                     <label htmlFor="digit4-input" className="visually-hidden">Digit 4</label>
                                                                     <input type="number"
-                                                                        className="form-control form-control-lg bg-light border-light text-center"
+                                                                        className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit4-input"
                                                                         onKeyUp={() => moveToNext(4)}
@@ -168,9 +168,9 @@ const TwosVerify = () => {
 
                                                             <Col className="col-2">
                                                                 <div className="mb-3">
-                                                                    <label htmlFor="digit5-input" className="visually-hidden">Digit 4</label>
+                                                                    <label htmlFor="digit5-input" className="visually-hidden">Digit 5</label>
                                                                     <input type="number"
-                                                                        className="form-control form-control-lg bg-light border-light text-center"
+                                                                        className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit5-input"
                                                                         onKeyUp={() => moveToNext(5)}
@@ -180,9 +180,9 @@ const TwosVerify = () => {
 
                                                             <Col className="col-2">
                                                                 <div className="mb-3">
-                                                                    <label htmlFor="digit6-input" className="visually-hidden">Digit 4</label>
+                                                                    <label htmlFor="digit6-input" className="visually-hidden">Digit 6</label>
                                                                     <input type="number"
-                                                                        className="form-control form-control-lg bg-light border-light text-center"
+                                                                        className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit6-input"
                                                                         onKeyUp={() => moveToNext(6)}
