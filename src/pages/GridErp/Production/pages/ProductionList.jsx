@@ -588,8 +588,8 @@ export default function ProductionListPage() {
             const updatedPedidos = [...pedidos]
 
             // Preparar las actualizaciones y las promesas
-            selectedPedidos.forEach((orderId) => {
-                console.log('pedido: ', orderId);
+            selectedPedidos.forEach((po) => {
+                const orderId = po?._id;
                 // Encontrar la orden correspondiente
                 const pedido = updatedPedidos.find((p) => p._id === orderId)
                 if (pedido) {
@@ -627,7 +627,7 @@ export default function ProductionListPage() {
             )
 
             setSuccessMessage(
-                `Estado de ${selectedPedidos.length} órdenes cambiado correctamente a "${getEstadoText(nuevoEstado)}"`,
+                `Estado de ${selectedPedidos.length} órdenes cambiado correctamente a "${productionHelper.getEstadoTextOrder(nuevoEstado)}"`,
             );
 
             setReloadTable(!reloadTable);
@@ -635,7 +635,7 @@ export default function ProductionListPage() {
             // Cerrar modal y limpiar selección
             setTimeout(() => {
                 setCambioEstadoModalOpen(false)
-                setSelectedOrders([])
+                setSelectedPedidos([])
                 setNuevoEstado("")
                 setSuccessMessage("")
             }, 1500)
