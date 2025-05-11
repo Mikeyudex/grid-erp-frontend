@@ -583,41 +583,29 @@ export default function ProductionListPage() {
         setSuccessMessage("")
 
         try {
-            // Procesar cada orden seleccionada
             const cambioEstadoPromises = []
             const updatedPedidos = [...pedidos]
 
-            // Preparar las actualizaciones y las promesas
             selectedPedidos.forEach((po) => {
                 const orderId = po?._id;
-                // Encontrar la orden correspondiente
                 const pedido = updatedPedidos.find((p) => p._id === orderId)
                 if (pedido) {
-                    // Datos para el cambio de estado
                     const data = {
                         status: nuevoEstado,
-                        // Puedes añadir más datos si son necesarios para tu API
                     }
                     let userId = localStorage.getItem("userId");
-                    console.log(userId);
-                    console.log(orderId);
-                    console.log(data);
 
-                    // Añadir la promesa para esta orden
                     cambioEstadoPromises.push(
                         purchaseHelper.changeStatusPurchaseOrder(orderId, userId, data)
                         .then(() => {
-                            // Actualizar el estado local de la orden
                             pedido.estado = nuevoEstado
                         }),
                     )
                 }
             })
 
-            // Ejecutar todos los cambios de estado en paralelo
             await Promise.all(cambioEstadoPromises)
 
-            // Actualizar el estado local con los cambios
             setPedidos(updatedPedidos)
             setFilteredPedidos(
                 filteredPedidos.map((pedido) => {
@@ -780,6 +768,7 @@ export default function ProductionListPage() {
                     errorMessage={errorMessage}
                     successMessage={successMessage}
                     statusOptions={productionHelper.getStatusOptionsByOrder()}
+                    viewName={"pedidos"}
                 />
 
                 {/* Modal de Asignación de zona */}

@@ -765,6 +765,7 @@ export default function ProductionListByItems() {
                 errorMessage={errorMessage}
                 successMessage={successMessage}
                 statusOptions={productionHelper.getStatusOptionsByProduct()}
+                viewName={"productos"}
             />
 
             {/* Modal de Asignación de zona */}
@@ -1106,7 +1107,7 @@ export default function ProductionListByItems() {
                         <div className="text-muted me-4">
                             <small>
                                 Mostrando {indexOfFirstItem + 1}-{Math.min(indexOfLastItem, filteredItems.length)} de{" "}
-                                {filteredItems.length} productos
+                                {filteredItems.length} pedidos
                             </small>
                         </div>
 
@@ -1121,7 +1122,7 @@ export default function ProductionListByItems() {
                                     </DropdownToggle>
                                     <DropdownMenu>
                                         <DropdownItem onClick={openAsignacionModal}>
-                                            <User size={14} className="me-2" /> Asignar productos
+                                            <User size={14} className="me-2" /> Asignar zona a pedidos
                                         </DropdownItem>
                                         <DropdownItem onClick={openCambioEstadoModal}>
                                             <Edit size={14} className="me-2" /> Cambiar estado

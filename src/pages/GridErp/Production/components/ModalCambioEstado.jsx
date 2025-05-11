@@ -14,6 +14,7 @@ export default function ModalCambioEstado({
     errorMessage,
     successMessage,
     statusOptions,
+    viewName,
 }) {
 
     return (
@@ -24,7 +25,7 @@ export default function ModalCambioEstado({
                 </ModalHeader>
                 <ModalBody>
                     <div className="mb-4">
-                        <h6 className="fw-bold mb-2">Productos seleccionados:</h6>
+                        <h6 className="fw-bold mb-2">{viewName} seleccionados:</h6>
                         <ul className="list-group">
                             {productosSeleccionadosInfo.pedidosInfo.map((info, idx) => (
                                 <li key={`li-list-${info.id}-${idx}` } className="list-group-item d-flex justify-content-between align-items-center">
