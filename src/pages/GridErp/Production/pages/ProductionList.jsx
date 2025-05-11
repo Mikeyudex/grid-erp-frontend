@@ -600,9 +600,6 @@ export default function ProductionListPage() {
                         .then(() => {
                             pedido.estado = nuevoEstado
                         })
-                        .catch((error) => {
-                            console.error("Error al cambiar el estado del pedido:", error)
-                        })
                     )
                 }
             })
@@ -626,7 +623,6 @@ export default function ProductionListPage() {
             // Cerrar modal y limpiar selección
             setTimeout(() => {
                 setCambioEstadoModalOpen(false)
-                setSelectedPedidos([])
                 setNuevoEstado("")
                 setSuccessMessage("")
             }, 1500)
