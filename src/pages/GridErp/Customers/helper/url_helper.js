@@ -1,4 +1,6 @@
-const baseUrl = "http://localhost:5000"
+import { BASE_URL } from "../../../../helpers/url_helper";
+
+const baseUrl = BASE_URL
 
 //customers
 export const GET_CUSTOMERS = baseUrl + "/customers/getAll";

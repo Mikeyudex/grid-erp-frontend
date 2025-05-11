@@ -1,10 +1,16 @@
+const urlLocal = "http://localhost:5000";
+const urlDev = "http://149.130.186.128/backend/dev";
+const urlProd = "http://149.130.186.128/backend/prod";
+
+console.log(process.env.REACT_APP_ENV);
+
 export const BASE_URL = process.env.REACT_APP_ENV === "LOCAL" ?
-    process.env.REACT_APP_API_URL_LOCAL : process.env.REACT_APP_ENV === "DEV" ?
-    process.env.REACT_APP_API_URL_DEV : process.env.REACT_APP_API_URL_PROD;
+    urlLocal : process.env.REACT_APP_ENV === "DEV" ?
+        urlDev : urlProd;
 
 export const BASE_URL_IMPORT = process.env.REACT_APP_ENV === "LOCAL" ?
     process.env.REACT_APP_API_IMPORT_LOCAL : process.env.REACT_APP_ENV === "DEV" ?
-    process.env.REACT_APP_API_IMPORT_DEV : process.env.REACT_APP_API_IMPORT_PROD;
+        process.env.REACT_APP_API_IMPORT_DEV : process.env.REACT_APP_API_IMPORT_PROD;
 
 
 //REGISTER

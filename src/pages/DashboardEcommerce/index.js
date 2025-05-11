@@ -24,7 +24,7 @@ const DashboardEcommerce = () => {
         <Container fluid>
           <Row>
            
-          <h1 className="mb-4">Ecommerce Dashboard</h1>
+          <h1 className="mb-4">Dashboard</h1>
           </Row>
         </Container>
       </div>

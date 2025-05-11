@@ -1,4 +1,6 @@
-const baseUrl = "http://localhost:5000"
+import { BASE_URL } from "../../../../helpers/url_helper";
+
+const baseUrl = BASE_URL
 
 // Obtener los ajustes de stock mas recientes
 export const GET_RECENT_ADJUSTMENT = baseUrl + "/stock-adjustments/recent";
