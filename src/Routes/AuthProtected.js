@@ -1,31 +1,24 @@
-import React, { useEffect } from "react";
-import {  Route } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Route, Navigate } from "react-router-dom";
+import { validateToken } from "../helpers/jwt-token-access/validate-token";
+import SpinnerLoading from '../Components/Common/SpinnerLoading';
 
-import { useDispatch } from "react-redux";
+const AuthProtected = ({ children }) => {
+  const [loading, setLoading] = useState(true);
+  const [isValid, setIsValid] = useState(false);
 
-
-const AuthProtected = (props) => {
-  const dispatch = useDispatch();
-  /* const { userProfile, loading, token } = useProfile();
   useEffect(() => {
-    if (userProfile && !loading && token) {
-      setAuthorization(token);
-    } else if (!userProfile && loading && !token) {
-      dispatch(logoutUser());
-    }
-  }, [token, userProfile, loading, dispatch]); */
+    const checkToken = async () => {
+      const valid = await validateToken();
+      setIsValid(valid);
+      setLoading(false);
+    };
+    checkToken();
+  }, []);
 
-  /*
-    Navigate is un-auth access protected routes via url
-    */
+  if (loading) return <SpinnerLoading />;
 
-  /*  if (!userProfile && loading && !token) {
-     return (
-       <Navigate to={{ pathname: "/login", state: { from: props.location } }} />
-     );
-   } */
-
-  return <>{props.children}</>;
+  return isValid ? <>{children}</> : <Navigate to="/auth-signin" replace />;
 };
 
 const AccessRoute = ({ component: Component, ...rest }) => {

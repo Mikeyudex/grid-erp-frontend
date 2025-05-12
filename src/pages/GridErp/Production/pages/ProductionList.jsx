@@ -1303,8 +1303,8 @@ export default function ProductionListPage() {
                                             Acciones <ChevronDown size={14} className="ms-1" />
                                         </DropdownToggle>
                                         <DropdownMenu>
-                                            <DropdownItem onClick={openAsignacionModal}>
-                                                <User size={14} className="me-2" /> Asignar productos
+                                            <DropdownItem onClick={openAsignacionXZonaModal}>
+                                                <User size={14} className="me-2" /> Asignar zona a pedidos
                                             </DropdownItem>
                                             <DropdownItem onClick={openCambioEstadoModal}>
                                                 <Edit size={14} className="me-2" /> Cambiar estado

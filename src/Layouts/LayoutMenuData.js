@@ -206,16 +206,16 @@ const Navdata = () => {
         },
         {
           id: "category",
-          label: "Categorías",
+          label: "Marcas (Categorías)",
           link: "/category",
           parentId: "products",
         },
-        {
+        /* {
           id: "subcategory",
           label: "SubCategorías",
           link: "/subcategory",
           parentId: "products",
-        },
+        }, */
         {
           id: "mat-material-price",
           label: "Tipo - Material",

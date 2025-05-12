@@ -17,7 +17,7 @@ export const validateToken = async () => {
         });
         const data = await response.json();
 
-        if (data?.statusCode === 200 && data?.message === 'token validado') {
+        if ((data?.statusCode === 200 || data?.statusCode === 201) && data?.message === 'token validado') {
             return true;
         } else {
             return false;
