@@ -9,6 +9,7 @@ import logoLight from "../assets/images/logo-light.png";
 
 //Logo Quality
 import logoQuality from "../assets/images/logo-quality.png";
+import logoQualityTextoBlanco from "../assets/images/logo-quality-texto-blanco.png";
 
 //import Components
 import SearchOption from '../Components/Common/SearchOption';
@@ -82,19 +83,19 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
                             <div className="navbar-brand-box horizontal-logo">
                                 <Link to="/" className="logo logo-dark">
                                     <span className="logo-sm">
-                                        <img src={logoQuality} alt="" height="22" />
+                                        <img src={logoQualityTextoBlanco} alt="" height="22" />
                                     </span>
                                     <span className="logo-lg">
-                                        <img src={logoQuality} alt="" height="17" />
+                                        <img src={logoQualityTextoBlanco} alt="" height="17" />
                                     </span>
                                 </Link>
 
                                 <Link to="/" className="logo logo-light">
                                     <span className="logo-sm">
-                                        <img src={logoQuality} alt="" height="22"/>
+                                        <img src={logoQualityTextoBlanco} alt="" height="22"/>
                                     </span>
                                     <span className="logo-lg">
-                                        <img src={logoQuality} alt="" height="30" width="80" />
+                                        <img src={logoQualityTextoBlanco} alt="" height="30" width="80" />
                                     </span>
                                 </Link>
                             </div>

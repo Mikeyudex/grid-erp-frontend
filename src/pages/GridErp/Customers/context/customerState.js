@@ -13,6 +13,7 @@ export const CustomerState = (props) => {
             openBackdrop: false,
             openModalCreateTypeCustomer: false,
             reloadTableTypeCustomer: false,
+            reloadTableCustomer: false,
         },
     }
 

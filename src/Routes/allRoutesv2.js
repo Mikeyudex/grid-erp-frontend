@@ -37,6 +37,9 @@ import ProductionListByItems from "../pages/GridErp/Production/pages/ProductionL
 import SeleccionTipoProducto from "../pages/GridErp/Products/pages/SeleccionTipoProducto";
 import LayoutCreateProductTapete from "../pages/GridErp/Products/components/LayoutCreateProductTapete";
 import UploadHistoryPage from "../pages/GridErp/Uploads/pages/UploadHistoryPage";
+import ClientTypesPage from "../pages/GridErp/Customers/pages/ListTypesCustomerV2";
+import ListCustomerV2 from "../pages/GridErp/Customers/pages/ListCustomerV2";
+import ListProductsV2 from "../pages/GridErp/Products/pages/ListProductsV2";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -59,6 +62,10 @@ const authProtectedRoutes = [
     {
         path: "/products-list",
         component: <ImportProductState> <ListProducts /> </ImportProductState>,
+    },
+    {
+        path: "/products-list-v2",
+        component: <ImportProductState> <ListProductsV2 /> </ImportProductState>,
     },
     {
         path: "/success-product",
@@ -93,8 +100,10 @@ const authProtectedRoutes = [
 
     // Customers
     { path: "/customers-create", component: <CreateCustomer />, },
-    { path: "/customers-list", component: <ListCustomersView />, },
-    { path: "/customers-types-list", component: <ListTypeCustomersView />, },
+   /*  { path: "/customers-list", component: <ListCustomersView />, }, */
+    { path: "/customers-list-v2", component: <ListCustomerV2 />, },
+  /*   { path: "/customers-types-list", component: <ListTypeCustomersView />, }, */
+    { path: "/customers-types-list-v2", component: <ClientTypesPage />, },
 
     // Purchase Order
     { path: "/purchase-orders", component: <ListPurchaseOrder /> },

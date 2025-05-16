@@ -35,7 +35,7 @@ export default function SeleccionTipoProducto() {
   }
 
   const handleVolver = () => {
-    navigate("/productos")
+    navigate("/products-list-v2")
   }
 
   return (

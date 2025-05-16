@@ -96,7 +96,7 @@ const Navdata = () => {
         {
           id: "view-customers",
           label: "Ver clientes",
-          link: "/customers-list",
+          link: "/customers-list-v2",
           parentId: "customers",
         },
         {
@@ -108,7 +108,7 @@ const Navdata = () => {
         {
           id: "customer-types-list",
           label: "Tipo de clientes",
-          link: "/customers-types-list",
+          link: "/customers-types-list-v2",
           parentId: "customers",
         },
       ],
@@ -195,7 +195,7 @@ const Navdata = () => {
         {
           id: "view-products",
           label: "Ver productos",
-          link: "/products-list",
+          link: "/products-list-v2",
           parentId: "products",
         },
         {
