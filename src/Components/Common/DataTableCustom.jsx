@@ -322,7 +322,7 @@ const DataTable = ({
         </div>
       </div>
 
-      {error && <Alert color="danger">{error}</Alert>}
+      {/* {error && <Alert color="danger">{error}</Alert>} */}
 
       {loading ? (
         <div className="text-center my-5">

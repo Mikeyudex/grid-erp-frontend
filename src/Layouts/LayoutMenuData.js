@@ -207,15 +207,9 @@ const Navdata = () => {
         {
           id: "category",
           label: "Marcas (Categorías)",
-          link: "/category",
+          link: "/category-v2",
           parentId: "products",
         },
-        /* {
-          id: "subcategory",
-          label: "SubCategorías",
-          link: "/subcategory",
-          parentId: "products",
-        }, */
         {
           id: "mat-material-price",
           label: "Tipo - Material",

@@ -18,6 +18,7 @@ const initialFormData = {
     name: '',
     description: '',
     active: true,
+    shortCode: '',
 };
 
 export function DrawerCreateCategory({
@@ -64,6 +65,9 @@ export function DrawerCreateCategory({
         if (!formData.description) {
             errors.description = 'Requerido';
         }
+        if (!formData.shortCode) {
+            errors.shortCode = 'Requerido';
+        }
         setErrors(errors);
         return Object.keys(errors).length === 0;
     };
@@ -77,9 +81,10 @@ export function DrawerCreateCategory({
                 name: formData.name,
                 description: formData.description,
                 active: formData.active,
+                shortCode: formData.shortCode,
             };
             let { data } = await apiClient.create(`${url.CREATE_CATEGORIES}`, payload);
-            updateCategoryData({ ...categoryData, categoryList: [...categoryData.categoryList, data] });
+            updateCategoryData({ ...categoryData, categoryList: [...categoryData.categoryList,  payload] });
             setTimeout(() => {
                 handleCloseDrawer();
                 openSnackbarSuccess('Categoría creada exitosamente');
@@ -118,10 +123,10 @@ export function DrawerCreateCategory({
                         </div>
                         <Container fluid>
                             <BackdropGlobal openBackdrop={openBackdrop} handleClose={handleCloseBackdrop} title="Creando categoría..." />
-                            <Row style={{ height: '82vh' }}>
+                            <Row style={{ height: '75vh' }}>
                                 <Col lg={12} >
                                     <Row>
-                                        <Col md={12} xl={12} style={{}}>
+                                        <Col md={12} xl={12}>
                                             <LayoutTextInputs
                                                 title={""}
                                                 item1={
@@ -158,6 +163,25 @@ export function DrawerCreateCategory({
                                                             />
                                                         </div>
                                                         {errors.description && (<span className="form-product-input-error">{errors.description}</span>)}
+                                                    </>
+                                                }
+                                                item3={
+                                                    <>
+                                                        <div className="input-wrapper">
+                                                            <label className='form-label' htmlFor="quantity">*Código corto:</label>
+                                                            <GlobalInputText
+                                                                name={'shortCode'}
+                                                                onChange={handleInputChange}
+                                                                placeholder={'Código corto de la categoría'}
+                                                                value={formData.shortCode}
+                                                                type={"text"}
+                                                                className={"input-box"}
+                                                                id={'shortCode'}
+                                                                required={true}
+                                                            />
+
+                                                        </div>
+                                                        {errors.shortCode && (<span className="form-product-input-error">{errors.shortCode}</span>)}
                                                     </>
                                                 }
                                             />
