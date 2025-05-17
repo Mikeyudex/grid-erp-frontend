@@ -213,7 +213,7 @@ const Navdata = () => {
         {
           id: "mat-material-price",
           label: "Tipo - Material",
-          link: "/mat-material-price",
+          link: "/mat-material-price-v2",
           parentId: "products",
         },
         {

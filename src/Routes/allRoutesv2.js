@@ -41,6 +41,7 @@ import ClientTypesPage from "../pages/GridErp/Customers/pages/ListTypesCustomerV
 import ListCustomerV2 from "../pages/GridErp/Customers/pages/ListCustomerV2";
 import ListProductsV2 from "../pages/GridErp/Products/pages/ListProductsV2";
 import ListCategoriesV2 from "../pages/GridErp/Category/pages/ListCategoriesV2";
+import ListMatMaterialPriceV2 from "../pages/GridErp/MatMaterialPrice/pages/ListMatMaterialPriceV2";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -118,6 +119,7 @@ const authProtectedRoutes = [
 
     // Mat Material Price
     { path: "/mat-material-price", component: <ListMatMaterialPrice /> },
+    { path: "/mat-material-price-v2", component: <ListMatMaterialPriceV2 /> },
 
     // Production
     { path: "/production", component: <ProductionListPage /> },
