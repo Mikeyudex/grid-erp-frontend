@@ -32,6 +32,10 @@ export const POST_EDIT_PROFILE = "/user";
 export const UPDATE_USER_PROFILE = "/users";
 export const UPLOAD_USER_IMAGE = "/users/upload-avatar";
 
+//Warehouse
+export const GET_WAREHOUSE_LIST = "/warehouse/getAll";
+export const ADD_WAREHOUSE = "/warehouse/create";
+
 // Calendar
 export const GET_EVENTS = "/events";
 export const GET_CATEGORIES = "/categories";

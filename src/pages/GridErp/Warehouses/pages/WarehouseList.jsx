@@ -5,48 +5,54 @@ import { Row, Col, Card, CardHeader, CardBody, Button, Alert } from "reactstrap"
 import { FaPlus } from "react-icons/fa";
 import DataTable from "../../../../Components/Common/DataTableCustom";
 
-import ModalAddMaterialPrice from "../components/ModalAddMatMaterialPrice";
 import { BASE_URL } from "../../../../helpers/url_helper";
 import { TopLayoutGeneralView } from "../../../../Components/Common/TopLayoutGeneralView";
-import { ProductHelper } from "../../Products/helper/product_helper";
-import { MatMaterialPriceContext } from "../context/Context";
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
+import ModalAddWarehouse from "../components/ModalAddWarehouse";
 
-const helper = new ProductHelper();
+const WarehouseListPage = () => {
+    document.title = "Bodegas | Quality";
 
-const ListMatMaterialPriceV2 = () => {
-    document.title = "Tipo - Material | Quality";
 
-    const { updateMatMaterialPriceData, matMaterialPriceData } = useContext(MatMaterialPriceContext);
-
-    const [matMaterialPriceList, setMatMaterialPriceList] = useState([]);
+    const [warehouseList, setWarehouseList] = useState([]);
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [openModalAdd, setOpenModalAdd] = useState(false);
+    const [reloadData, setReloadData] = useState(false);
 
     // Columnas para la tabla
     const columns = [
-        { key: "tipo_tapete", label: "Tipo", type: "text", editable: true, searchable: true },
-        { key: "tipo_material", label: "Material", type: "text", editable: true, searchable: true },
-        { key: "precioBase", label: "Precio Base", type: "price", editable: true, searchable: true },
+        { key: "name", label: "Nombre", type: "text", editable: true, searchable: true },
+        { key: "description", label: "Descripción", type: "text", editable: true, searchable: true },
+        { key: "shortCode", label: "Código corto", type: "text", editable: true, searchable: true },
+        { key: "active", label: "Activo", type: "boolean", editable: true, searchable: false },
     ]
 
 
     // Cargar datos
-    const fetchMatMaterialPrices = async () => {
+    const fetchWarehouses = async () => {
         setLoading(true);
         setError(null);
 
-        helper.getMatMaterialPrices()
+        let token = getToken();
+        fetch(`${BASE_URL}/warehouse/getAll`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        })
             .then(async (response) => {
-                let matMaterialPrices = response;
-                if (matMaterialPrices && Array.isArray(matMaterialPrices) && matMaterialPrices.length > 0) {
-                    setMatMaterialPriceList(matMaterialPrices);
-                    updateMatMaterialPriceData({ ...matMaterialPriceData, matMaterialPriceList: [...matMaterialPriceData.matMaterialPriceList, matMaterialPrices] });
+                if (!response.ok) {
+                    throw new Error("Error al obtener los bodegas");
+                }
+                let warehouses = await response.json();
+                if (warehouses && Array.isArray(warehouses) && warehouses.length > 0) {
+                    setWarehouseList(warehouses);
                 }
                 return;
             })
-            .catch(e => {
+            .catch(err => {
                 console.error("Error:", err)
                 setError(err.message)
             })
@@ -56,28 +62,29 @@ const ListMatMaterialPriceV2 = () => {
     }
 
     useEffect(() => {
-        fetchMatMaterialPrices();
-    }, [matMaterialPriceData.reloadTableMatMaterialPriceList]);
+        fetchWarehouses();
+    }, [reloadData]);
 
     // Manejadores de eventos
-    const handleUpdate = async (updatedMatMaterialPrice) => {
+    const handleUpdate = async (updatedItem) => {
         try {
             setError(null);
-            if (!updatedMatMaterialPrice) {
-                setError("No se ha seleccionado ninguna tipo de material");
+            if (!updatedItem) {
+                setError("No se ha seleccionado ningún item");
                 return false
             }
             let token = getToken();
-            const response = await fetch(`${BASE_URL}/precios-tapete-material/${updatedMatMaterialPrice._id}`, {
+            const response = await fetch(`${BASE_URL}/warehouse/update/${updatedItem._id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    tipo_tapete: updatedMatMaterialPrice?.tipo_tapete,
-                    tipo_material: updatedMatMaterialPrice?.tipo_material,
-                    precioBase: updatedMatMaterialPrice?.precioBase,
+                    name: updatedItem?.name,
+                    description: updatedItem?.description,
+                    shortCode: updatedItem?.shortCode,
+                    active: updatedItem?.active,
                 }),
             })
 
@@ -86,10 +93,9 @@ const ListMatMaterialPriceV2 = () => {
             }
 
             // Actualizar estado local
-            setMatMaterialPriceList((prev) =>
-                prev.map((item) => (item._id === updatedMatMaterialPrice._id ? updatedMatMaterialPrice : item))
+            setWarehouseList((prev) =>
+                prev.map((item) => (item._id === updatedItem._id ? updatedItem : item))
             )
-            updateMatMaterialPriceData({ ...matMaterialPriceData, reloadTableMatMaterialPriceList: !matMaterialPriceData.reloadTableMatMaterialPriceList });
             return true
         } catch (err) {
             console.error("Error:", err)
@@ -106,7 +112,7 @@ const ListMatMaterialPriceV2 = () => {
                 return false
             }
             let token = getToken();
-            const response = await fetch(`${BASE_URL}/precios-tapete-material/${id}`, {
+            const response = await fetch(`${BASE_URL}/warehouse/delete/${id}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -119,7 +125,7 @@ const ListMatMaterialPriceV2 = () => {
             }
 
             // Actualizar estado local
-            setMatMaterialPriceList((prev) => prev.filter((item) => item._id !== id))
+            setWarehouseList((prev) => prev.filter((item) => item._id !== id))
 
             return true
         } catch (err) {
@@ -133,7 +139,7 @@ const ListMatMaterialPriceV2 = () => {
         setError(null);
         try {
             let token = getToken();
-            const response = await fetch(`${BASE_URL}/precios-tapete-material/bulkDelete`, {
+            const response = await fetch(`${BASE_URL}/warehouse/bulkDelete`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -143,11 +149,11 @@ const ListMatMaterialPriceV2 = () => {
             })
 
             if (!response.ok) {
-                throw new Error("Error al eliminar los tipos de material seleccionados")
+                throw new Error("Error al eliminar los tipos de cliente seleccionados")
             }
 
             // Actualizar estado local
-            setMatMaterialPriceList((prev) => prev.filter((item) => !ids.includes(item._id)))
+            setWarehouseList((prev) => prev.filter((item) => !ids.includes(item._id)))
             return true
         } catch (err) {
             console.error("Error:", err)
@@ -157,33 +163,34 @@ const ListMatMaterialPriceV2 = () => {
     }
 
     const handleOpenModalAdd = () => {
-        updateMatMaterialPriceData({ ...matMaterialPriceData, openModalAddMaterialPrice: true });
+        setOpenModalAdd(!openModalAdd);
     }
 
     const handleCloseModalAdd = () => {
-        setOpenModalAdd(!openModalAdd);
-        updateMatMaterialPriceData({ ...matMaterialPriceData, openModalAddMaterialPrice: !matMaterialPriceData.openModalAddMaterialPrice });
+        setOpenModalAdd(false);
     }
 
-    useEffect(() => {
-        setOpenModalAdd(matMaterialPriceData.openModalAddMaterialPrice);
-    }, [matMaterialPriceData.openModalAddMaterialPrice]);
+    const handleAddItemToList = (newItem) => {
+       setWarehouseList((prev) => [...prev, newItem]);
+    }
 
     return (
         <TopLayoutGeneralView
-            titleBreadcrumb="Lista de tipo - material"
-            pageTitleBreadcrumb="Tipo - Material"
+            titleBreadcrumb="Lista de Bodegas"
+            pageTitleBreadcrumb="Bodegas"
             main={
                 <Fragment>
-                    <ModalAddMaterialPrice
+
+                    <ModalAddWarehouse
                         isOpen={openModalAdd}
-                        closeModal={handleCloseModalAdd} />
+                        closeModal={handleCloseModalAdd}
+                        handleAddItemToList={handleAddItemToList} />
                     <Row>
                         <Col>
                             <Card>
                                 <CardHeader className="bg-light text-white d-flex justify-content-between align-items-center">
                                     <Button color="light" onClick={handleOpenModalAdd}>
-                                        <FaPlus className="me-1" /> Nuevo Tipo
+                                        <FaPlus className="me-1" /> Nueva Bodega
                                     </Button>
                                 </CardHeader>
                                 <CardBody>
@@ -194,15 +201,15 @@ const ListMatMaterialPriceV2 = () => {
                                     )}
 
                                     <DataTable
-                                        data={matMaterialPriceList}
+                                        data={warehouseList}
                                         columns={columns}
                                         onUpdate={handleUpdate}
                                         onDelete={handleDelete}
                                         onBulkDelete={handleBulkDelete}
-                                        title="Lista de tipo - material"
+                                        title="Bodegas"
                                         loading={loading}
                                         error={error}
-                                        refreshData={fetchMatMaterialPrices}
+                                        refreshData={fetchWarehouses}
                                         searchable={true}
                                         itemsPerPage={10}
                                     />
@@ -218,4 +225,4 @@ const ListMatMaterialPriceV2 = () => {
     )
 }
 
-export default ListMatMaterialPriceV2
+export default WarehouseListPage

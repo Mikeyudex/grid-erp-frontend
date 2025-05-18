@@ -273,7 +273,7 @@ const Navdata = () => {
         {
           id: "view-warehouses",
           label: "Ver bodegas",
-          link: "/warehouse-view",
+          link: "/warehouses",
           parentId: "warehouse",
         },
       ],
@@ -295,12 +295,12 @@ const Navdata = () => {
       },
       stateVariables: isConfigurations,
       subItems: [
-        {
+        /* {
           id: "conf-products",
           label: "Conf. Producto",
           link: "/products-conf",
           parentId: "configurations",
-        },
+        }, */
         {
           id: "conf-company",
           label: "Mi Empresa",
