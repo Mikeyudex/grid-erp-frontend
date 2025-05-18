@@ -50,6 +50,9 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
         try {
             if (!validateForm()) return;
             setIsLoading(true);
+            
+            formData.name = formData.name.toUpperCase();
+
             let { data } = await fetch(`${ADD_CUSTOMER_TYPE}`, {
                 method: "POST",
                 headers: {

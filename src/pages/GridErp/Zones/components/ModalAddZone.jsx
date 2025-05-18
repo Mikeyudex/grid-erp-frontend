@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import { Modal, ModalBody, ModalHeader } from "reactstrap";
 import { useSnackbar } from 'react-simple-snackbar';
-import { styles } from '../pages/styles';
 import { optionsSnackbarDanger, optionsSnackbarSuccess } from '../../Products/helper/product_helper';
-import { MatMaterialPriceContext } from '../context/Context';
-import { ADD_MATERIAL_PRICE } from '../../Products/helper/url_helper';
+import { styles } from '../../MatMaterialPrice/pages/styles';
+import { ADD_ZONE, BASE_URL } from '../../../../helpers/url_helper';
+import { getToken } from '../../../../helpers/jwt-token-access/get_token';
 
-const ModalAddMaterialPrice = ({ isOpen, closeModal }) => {
-    const { matMaterialPriceData, updateMatMaterialPriceData } = React.useContext(MatMaterialPriceContext);
+const ModalAddZone = ({ isOpen, closeModal, handleAddItemToList }) => {
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
     const [formData, setFormData] = useState({
-        tipo_tapete: '',
-        tipo_material: '',
-        precioBase: '',
+        name: '', shortCode: '',
     });
     const [errors, setErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
@@ -28,9 +25,7 @@ const ModalAddMaterialPrice = ({ isOpen, closeModal }) => {
 
     const handleClearForm = () => {
         setFormData({
-            tipo_tapete: '',
-            tipo_material: '',
-            precioBase: '',
+            name: '', shortCode: '',
         });
         setErrors({});
     }
@@ -38,34 +33,34 @@ const ModalAddMaterialPrice = ({ isOpen, closeModal }) => {
     const handleCloseModal = () => {
         closeModal();
         handleClearForm();
-        updateMatMaterialPriceData({ ...matMaterialPriceData, openModalAddMaterialPrice: false });
     }
 
     const handleSubmit = async () => {
         try {
             if (!validateForm()) return;
             setIsLoading(true);
-            
-            formData.tipo_tapete = formData.tipo_tapete.toUpperCase();
-            formData.tipo_material = formData.tipo_material.toUpperCase();
-
-            let { data } = await fetch(`${ADD_MATERIAL_PRICE}`, {
+            let token = getToken();
+            formData.name = formData.name.toUpperCase();
+            let response = await fetch(`${BASE_URL}${ADD_ZONE}`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
                 },
                 body: JSON.stringify(formData),
             });
-            updateMatMaterialPriceData({
-                ...matMaterialPriceData,
-                matMaterialPriceList: [...matMaterialPriceData.matMaterialPriceList, data],
-                reloadTableMatMaterialPriceList: !matMaterialPriceData.reloadTableMatMaterialPriceList,
-            });
+            if (!response.ok) {
+                throw new Error("Error al actualizar la sede")
+            }
+            let data = await response.json();
+            if (data) {
+                handleAddItemToList(data);
+            }
             handleCloseModal();
             openSnackbarSuccess('Registro creado exitosamente');
         } catch (error) {
             console.log(error);
-            openSnackbarDanger('Ocurrió un error al crear el registro');
+            openSnackbarDanger('Ocurrió un error al crear el registro: ', error?.message);
         } finally {
             setIsLoading(false);
         }
@@ -73,14 +68,11 @@ const ModalAddMaterialPrice = ({ isOpen, closeModal }) => {
 
     const validateForm = () => {
         const errors = {};
-        if (!formData.tipo_tapete) {
-            errors.tipo_tapete = 'Requerido';
+        if (!formData.name) {
+            errors.name = 'Requerido';
         }
-        if (!formData.tipo_material) {
-            errors.tipo_material = 'Requerido';
-        }
-        if (!formData.precioBase) {
-            errors.precioBase = 'Requerido';
+        if (!formData.shortCode) {
+            errors.shortCode = 'Requerido'
         }
         setErrors(errors);
         return Object.keys(errors).length === 0;
@@ -94,42 +86,25 @@ const ModalAddMaterialPrice = ({ isOpen, closeModal }) => {
             className={"modal-dialog-centered"}
             size='lg'
         >
-            <ModalHeader toggle={handleCloseModal}>{'Crear nuevo tipo - material'}</ModalHeader>
+            <ModalHeader toggle={handleCloseModal}>{'Crear nueva Sede'}</ModalHeader>
             <ModalBody>
-                {"Ingresa los datos del nuevo tipo - material"}
+                {"Ingresa los datos de la nueva Sede"}
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", marginTop: '1.5em' }}>
                     <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
                         <div style={styles.formGroup}>
-                            <label className='form-label' htmlFor="quantity">*Tipo de tapete:</label>
+                            <label className='form-label' htmlFor="name">*Nombre:</label>
                             <input
-                                name={'tipo_tapete'}
+                                name={'name'}
                                 onChange={handleInputChange}
-                                placeholder={'Nombre del tipo de tapete'}
-                                value={formData.tipo_tapete}
+                                placeholder={'Nombre de la sede'}
+                                value={formData.name}
                                 type={"text"}
                                 className={"input-box"}
-                                id={'tipo_tapete'}
+                                id={'name'}
                                 required={true}
                             />
-                            {errors.tipo_tapete && (<span className="form-product-input-error">{errors.tipo_tapete}</span>)}
-                        </div>
-                    </div>
-
-                    <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
-                        <div style={styles.formGroup}>
-                            <label className='form-label' htmlFor="quantity">*Tipo de material:</label>
-                            <input
-                                name={'tipo_material'}
-                                onChange={handleInputChange}
-                                placeholder={'Nombre del tipo de material'}
-                                value={formData.tipo_material}
-                                type={"text"}
-                                className={"input-box"}
-                                id={'tipo_material'}
-                                required={true}
-                            />
-                            {errors.tipo_material && (<span className="form-product-input-error">{errors.tipo_material}</span>)}
+                            {errors.name && (<span className="form-product-input-error">{errors.name}</span>)}
                         </div>
                     </div>
                 </div>
@@ -137,18 +112,18 @@ const ModalAddMaterialPrice = ({ isOpen, closeModal }) => {
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem" }}>
                     <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
                         <div style={styles.formGroup}>
-                            <label className='form-label' htmlFor="quantity">*Precio base:</label>
+                            <label className='form-label' htmlFor="shortCode">*Código corto:</label>
                             <input
-                                name={'precioBase'}
+                                name={'shortCode'}
                                 onChange={handleInputChange}
-                                placeholder={'Precio base'}
-                                value={formData.precioBase}
-                                type={"number"}
+                                placeholder={'Código corto de la sede'}
+                                value={formData.shortCode}
+                                type={"text"}
                                 className={"input-box"}
-                                id={'precioBase'}
+                                id={'shortCode'}
                                 required={true}
                             />
-                            {errors.precioBase && (<span className="form-product-input-error">{errors.precioBase}</span>)}
+                            {errors.shortCode && (<span className="form-product-input-error">{errors.shortCode}</span>)}
                         </div>
                     </div>
                 </div>
@@ -180,5 +155,5 @@ const ModalAddMaterialPrice = ({ isOpen, closeModal }) => {
     );
 };
 
-export default ModalAddMaterialPrice;
+export default ModalAddZone;
 

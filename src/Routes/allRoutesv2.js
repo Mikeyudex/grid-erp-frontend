@@ -43,6 +43,7 @@ import ListProductsV2 from "../pages/GridErp/Products/pages/ListProductsV2";
 import ListCategoriesV2 from "../pages/GridErp/Category/pages/ListCategoriesV2";
 import ListMatMaterialPriceV2 from "../pages/GridErp/MatMaterialPrice/pages/ListMatMaterialPriceV2";
 import WarehouseListPage from "../pages/GridErp/Warehouses/pages/WarehouseList";
+import ZonesListPage from "../pages/GridErp/Zones/pages/ListZones";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -133,6 +134,9 @@ const authProtectedRoutes = [
     { path: "/uploads", component: <UploadHistoryPage /> },
     //warehouses
     { path: "/warehouses", component: <WarehouseListPage /> },
+
+    //zones
+    { path: "/zones", component: <ZonesListPage /> },
 ]
 
 const publicRoutes = [

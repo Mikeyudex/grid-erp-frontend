@@ -8,13 +8,12 @@ import DataTable from "../../../../Components/Common/DataTableCustom";
 import { BASE_URL } from "../../../../helpers/url_helper";
 import { TopLayoutGeneralView } from "../../../../Components/Common/TopLayoutGeneralView";
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
-import ModalAddWarehouse from "../components/ModalAddWarehouse";
+import ModalAddZone from "../components/ModalAddZone";
 
-const WarehouseListPage = () => {
-    document.title = "Bodegas | Quality";
+const ZonesListPage = () => {
+    document.title = "Sedes | Quality";
 
-
-    const [warehouseList, setWarehouseList] = useState([]);
+    const [zoneList, setZoneList] = useState([]);
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [openModalAdd, setOpenModalAdd] = useState(false);
@@ -23,19 +22,18 @@ const WarehouseListPage = () => {
     // Columnas para la tabla
     const columns = [
         { key: "name", label: "Nombre", type: "text", editable: true, searchable: true },
-        { key: "description", label: "Descripción", type: "text", editable: true, searchable: true },
         { key: "shortCode", label: "Código corto", type: "text", editable: true, searchable: true },
-        { key: "active", label: "Activo", type: "boolean", editable: true, searchable: false },
+        { key: "createdAt", label: "Creado", type: "date", editable: false, searchable: true },
     ]
 
 
     // Cargar datos
-    const fetchWarehouses = async () => {
+    const fetchZones = async () => {
         setLoading(true);
         setError(null);
 
         let token = getToken();
-        fetch(`${BASE_URL}/warehouse/getAll`, {
+        fetch(`${BASE_URL}/users/zones/getAll`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
@@ -44,11 +42,12 @@ const WarehouseListPage = () => {
         })
             .then(async (response) => {
                 if (!response.ok) {
-                    throw new Error("Error al obtener las bodegas");
+                    throw new Error("Error al obtener las zonas");
                 }
-                let warehouses = await response.json();
-                if (warehouses && Array.isArray(warehouses) && warehouses.length > 0) {
-                    setWarehouseList(warehouses);
+                let data = await response.json();
+                let zones = data?.data ?? [];
+                if (zones && Array.isArray(zones) && zones.length > 0) {
+                    setZoneList(zones);
                 }
                 return;
             })
@@ -62,7 +61,7 @@ const WarehouseListPage = () => {
     }
 
     useEffect(() => {
-        fetchWarehouses();
+        fetchZones();
     }, [reloadData]);
 
     // Manejadores de eventos
@@ -74,7 +73,7 @@ const WarehouseListPage = () => {
                 return false
             }
             let token = getToken();
-            const response = await fetch(`${BASE_URL}/warehouse/update/${updatedItem._id}`, {
+            const response = await fetch(`${BASE_URL}/users/zones/update/${updatedItem._id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -82,18 +81,16 @@ const WarehouseListPage = () => {
                 },
                 body: JSON.stringify({
                     name: updatedItem?.name,
-                    description: updatedItem?.description,
-                    shortCode: updatedItem?.shortCode,
-                    active: updatedItem?.active,
+                    shortCode: updatedItem?.shortCode
                 }),
             })
 
             if (!response.ok) {
-                throw new Error("Error al actualiza la bodega")
+                throw new Error("Error al actualizar la sede")
             }
 
             // Actualizar estado local
-            setWarehouseList((prev) =>
+            setZoneList((prev) =>
                 prev.map((item) => (item._id === updatedItem._id ? updatedItem : item))
             )
             return true
@@ -112,7 +109,7 @@ const WarehouseListPage = () => {
                 return false
             }
             let token = getToken();
-            const response = await fetch(`${BASE_URL}/warehouse/delete/${id}`, {
+            const response = await fetch(`${BASE_URL}/users/zones/delete/${id}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -121,11 +118,11 @@ const WarehouseListPage = () => {
             })
 
             if (!response.ok) {
-                throw new Error("Error al eliminar la bodega")
+                throw new Error("Error al eliminar la sede")
             }
 
             // Actualizar estado local
-            setWarehouseList((prev) => prev.filter((item) => item._id !== id))
+            setZoneList((prev) => prev.filter((item) => item._id !== id))
 
             return true
         } catch (err) {
@@ -139,7 +136,7 @@ const WarehouseListPage = () => {
         setError(null);
         try {
             let token = getToken();
-            const response = await fetch(`${BASE_URL}/warehouse/bulkDelete`, {
+            const response = await fetch(`${BASE_URL}/users/zones/bulkDelete`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -149,11 +146,11 @@ const WarehouseListPage = () => {
             })
 
             if (!response.ok) {
-                throw new Error("Error al eliminar las bodegas seleccionadas")
+                throw new Error("Error al eliminar las sedes seleccionadas")
             }
 
             // Actualizar estado local
-            setWarehouseList((prev) => prev.filter((item) => !ids.includes(item._id)))
+            setZoneList((prev) => prev.filter((item) => !ids.includes(item._id)))
             return true
         } catch (err) {
             console.error("Error:", err)
@@ -171,17 +168,16 @@ const WarehouseListPage = () => {
     }
 
     const handleAddItemToList = (newItem) => {
-       setWarehouseList((prev) => [...prev, newItem]);
+        setZoneList((prev) => [...prev, newItem]);
     }
 
     return (
         <TopLayoutGeneralView
-            titleBreadcrumb="Lista de Bodegas"
-            pageTitleBreadcrumb="Bodegas"
+            titleBreadcrumb="Lista de Sedes"
+            pageTitleBreadcrumb="Sedes"
             main={
                 <Fragment>
-
-                    <ModalAddWarehouse
+                    <ModalAddZone
                         isOpen={openModalAdd}
                         closeModal={handleCloseModalAdd}
                         handleAddItemToList={handleAddItemToList} />
@@ -190,7 +186,7 @@ const WarehouseListPage = () => {
                             <Card>
                                 <CardHeader className="bg-light text-white d-flex justify-content-between align-items-center">
                                     <Button color="light" onClick={handleOpenModalAdd}>
-                                        <FaPlus className="me-1" /> Nueva Bodega
+                                        <FaPlus className="me-1" /> Nueva Sede
                                     </Button>
                                 </CardHeader>
                                 <CardBody>
@@ -201,15 +197,15 @@ const WarehouseListPage = () => {
                                     )}
 
                                     <DataTable
-                                        data={warehouseList}
+                                        data={zoneList}
                                         columns={columns}
                                         onUpdate={handleUpdate}
                                         onDelete={handleDelete}
                                         onBulkDelete={handleBulkDelete}
-                                        title="Bodegas"
+                                        title="Sedes"
                                         loading={loading}
                                         error={error}
-                                        refreshData={fetchWarehouses}
+                                        refreshData={fetchZones}
                                         searchable={true}
                                         itemsPerPage={10}
                                     />
@@ -225,4 +221,4 @@ const WarehouseListPage = () => {
     )
 }
 
-export default WarehouseListPage
+export default ZonesListPage

@@ -49,6 +49,10 @@ const ModalAddWarehouse = ({ isOpen, closeModal, handleAddItemToList }) => {
             if (!validateForm()) return;
             setIsLoading(true);
             let token = getToken();
+            
+            formData.name = formData.name.toUpperCase();
+            formData.description = formData.description.toUpperCase();
+
             let response = await fetch(`${BASE_URL}${ADD_WAREHOUSE}`, {
                 method: "POST",
                 headers: {
