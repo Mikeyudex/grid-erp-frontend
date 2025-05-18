@@ -295,12 +295,12 @@ const Navdata = () => {
       },
       stateVariables: isConfigurations,
       subItems: [
-        /* {
-          id: "conf-products",
-          label: "Conf. Producto",
-          link: "/products-conf",
+        {
+          id: "zones",
+          label: "Sedes",
+          link: "/zones",
           parentId: "configurations",
-        }, */
+        },
         {
           id: "conf-company",
           label: "Mi Empresa",

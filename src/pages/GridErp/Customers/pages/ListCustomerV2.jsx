@@ -19,7 +19,7 @@ const ListCustomerV2 = () => {
     const navigate = useNavigate();
     const { updateCustomerData, customerData } = useContext(CustomerContext);
     const [customerList, setCustomerList] = useState([]);
-    const [page, setPage] = useState(1);
+    const [page, setPage] = useState(0);
     const [limit, setLimit] = useState(50);
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
@@ -40,9 +40,21 @@ const ListCustomerV2 = () => {
         setError(null);
 
         helper.getCustomers(page, limit)
-            .then(async (customers) => {
+            .then(async (response) => {
+                let customers = response
                 if (customers && Array.isArray(customers) && customers.length > 0) {
-                    setCustomerList(customers);
+                    let parseCustomers = customers.map((c) => {
+                        return {
+                            id: c?._id,
+                            documento: c?.documento,
+                            typeCustomerId: c?.typeCustomerId?.name,
+                            name: c?.name,
+                            lastname: c?.lastname,
+                            email: c?.email,
+                            phone: c?.phone,
+                        }
+                    });
+                    setCustomerList(parseCustomers);
                 }
                 return;
             })
