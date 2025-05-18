@@ -265,9 +265,9 @@ export default function LayoutCreateProductTapete(props) {
 
     useEffect(() => {
         // Obtener la configuración de los atributos desde el backend
-        helper.getAttrProduct(companyId)
-            .then(async (response) => {
-                let respCategoriesFull = await helper.getCategoriesFullByProduct(companyId);
+        helper.getCategoriesFullByProduct(companyId)
+            .then(async (respCategoriesFull) => {
+                //let respCategoriesFull = await helper.getCategoriesFullByProduct(companyId);
                 let respWarehouses = await helper.getWarehouseByCompany(companyId);
                 let respProviders = await helper.getProviderByCompany(companyId);
                 let unitOfMeasures = await helper.getAllUnitsMeasure();
@@ -286,21 +286,21 @@ export default function LayoutCreateProductTapete(props) {
                 setUnits(unitOfMeasures ?? []);
                 setTaxes(taxes ?? []);
                 setTypesProduct(typesProduct?.data ?? []);
-                setAttributeConfigs(response.data);
+                //setAttributeConfigs(response.data);
 
                 // Inicializar atributos en formData con valores vacíos
-                const initialAttributes = response.data.reduce((acc, attr) => {
+                /* const initialAttributes = response.data.reduce((acc, attr) => {
                     acc[attr.name] = '';
                     return acc;
-                }, {});
+                }, {}); */
 
-                setFormData(prevFormData => ({
+                /* setFormData(prevFormData => ({
                     ...prevFormData,
-                    attributes: initialAttributes
-                }));
+                    attributes: []
+                })); */
             })
             .catch(error => {
-                console.error('Error fetching attribute configs:', error);
+                console.error('Error fetching categories:', error);
             });
     }, []);
 

@@ -1,6 +1,7 @@
 import axios from "axios";
 import { api } from "../config";
 import { GET_RESORCES_BY_ROLE } from "../pages/GridErp/Auth/helpers/auth_url_helper";
+import { getToken } from "./jwt-token-access/get_token";
 
 // default
 axios.defaults.baseURL = api.API_URL;
@@ -56,6 +57,7 @@ class APIClient {
     let response;
 
     let paramKeys = [];
+    let token = getToken();
 
     if (params) {
       Object.keys(params).map(key => {
@@ -66,6 +68,12 @@ class APIClient {
       const queryString = paramKeys && paramKeys.length ? paramKeys.join('&') : "";
       response = axios.get(`${url}?${queryString}`, params);
     } else {
+      params = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        }
+      }
       response = axios.get(`${url}`, params);
     }
 
