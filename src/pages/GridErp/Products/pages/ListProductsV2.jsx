@@ -60,7 +60,7 @@ const ListProductsV2 = () => {
                 if (products && Array.isArray(products) && products.length > 0) {
                     let parseProducts = products.map((p) => {
                         return {
-                            id: p?._id,
+                            _id: p?._id,
                             image: p?.additionalConfigs?.images?.[0] ?? "",
                             /* name: p?.name, */
                             sku: p?.sku,
@@ -188,7 +188,7 @@ const ListProductsV2 = () => {
 
     const columns = [
         /*  { key: "name", label: "Nombre", type: "text", editable: true, searchable: true }, */
-        { key: "category", label: "Marca", type: "select", editable: true, searchable: true, options: categories },
+        { key: "category", label: "Marca", type: "select", editable: true, searchable: true, options: categories},
         { key: "subCategory", label: "Línea", type: "text", editable: true, searchable: true },
         { key: "costPrice", label: "Precio de costo", type: "price", editable: true, searchable: true },
         { key: "salePrice", label: "Precio de venta", type: "price", editable: true, searchable: true },
