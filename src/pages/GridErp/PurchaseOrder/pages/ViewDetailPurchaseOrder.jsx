@@ -20,102 +20,10 @@ import { ProductHelper } from "../../Products/helper/product_helper";
 import { ToastContainer } from "react-toastify";
 import BreadCrumb from "../../Products/components/BreadCrumb";
 import "../styles/purchase-order.css";
-
-// En un caso real, estos datos vendrían de una API o base de datos
-// Aquí usamos datos de ejemplo para la demostración
-const pedidosEjemplo = [
-    {
-        id: "1",
-        fecha: "2023-05-15",
-        estado: "completado",
-        cliente: {
-            id: 1,
-            nombre: "Juan Pérez",
-            empresa: "Empresa A",
-            email: "juan@empresaa.com",
-            telefono: "555-123-4567",
-            direccion: "Calle Principal 123, Ciudad",
-        },
-        productos: [
-            {
-                id: 1,
-                productName: "Tapete para Sala",
-                pieces: 3,
-                selectedPieces: [1, 2, 3],
-                matType: "PREMIUM",
-                materialType: "ST-DIAMANTE",
-                quantity: 1,
-                basePrice: 105000,
-                observations: "Color beige, bordes reforzados",
-                finalPrice: 105000,
-            },
-            {
-                id: 2,
-                productName: "Tapete para Comedor",
-                pieces: 5,
-                selectedPieces: [1, 2, 3, 4, 5],
-                matType: "ESTÁNDAR A",
-                materialType: "PR-BEIGE LISO",
-                quantity: 2,
-                basePrice: 120000,
-                observations: "Diseño personalizado con logo",
-                finalPrice: 240000,
-            },
-        ],
-        subtotal: 345000,
-        impuestos: 65550,
-        total: 410550,
-        fechaEntrega: "2023-05-30",
-        notas: "Entrega en horario de oficina. Cliente preferente.",
-        historial: [
-            { fecha: "2023-05-15 09:30", accion: "Pedido creado", usuario: "Admin" },
-            { fecha: "2023-05-16 14:20", accion: "Pago recibido", usuario: "Sistema" },
-            { fecha: "2023-05-20 11:15", accion: "En producción", usuario: "Operario" },
-            { fecha: "2023-05-28 16:40", accion: "Listo para entrega", usuario: "Logística" },
-            { fecha: "2023-05-30 10:25", accion: "Entregado", usuario: "Repartidor" },
-        ],
-    },
-    {
-        id: "2",
-        fecha: "2023-06-10",
-        estado: "en_proceso",
-        cliente: {
-            id: 2,
-            nombre: "María López",
-            empresa: "Empresa B",
-            email: "maria@empresab.com",
-            telefono: "555-987-6543",
-            direccion: "Avenida Central 456, Ciudad",
-        },
-        productos: [
-            {
-                id: 1,
-                productName: "Tapete para Oficina",
-                pieces: 4,
-                selectedPieces: [1, 2, 3, 4],
-                matType: "ESTÁNDAR B",
-                materialType: "ST-KUBIK",
-                quantity: 3,
-                basePrice: 99000,
-                observations: "Resistente al tráfico intenso",
-                finalPrice: 297000,
-            },
-        ],
-        subtotal: 297000,
-        impuestos: 56430,
-        total: 353430,
-        fechaEntrega: "2023-06-25",
-        notas: "Requiere instalación profesional.",
-        historial: [
-            { fecha: "2023-06-10 13:45", accion: "Pedido creado", usuario: "Admin" },
-            { fecha: "2023-06-11 09:10", accion: "Pago recibido", usuario: "Sistema" },
-            { fecha: "2023-06-15 14:30", accion: "En producción", usuario: "Operario" },
-        ],
-    },
-]
-
+import { ProductionHelper } from "../../Production/helper/production-helper";
 
 const helper = new ProductHelper();
+const productionHelper = new ProductionHelper();
 
 export default function ViewDetailPurchaseOrder() {
 
@@ -204,41 +112,6 @@ export default function ViewDetailPurchaseOrder() {
             .join(", ")
     }
 
-    // Función para obtener el color del badge según el estado
-    const getEstadoBadgeColor = (estado) => {
-        switch (estado) {
-            case "pendiente":
-                return "warning"
-            case "fabricacion":
-                return "primary"
-            case "finalizado":
-                return "success"
-            case "inventario":
-                return "info"
-            case "cancelado":
-                return "danger"
-            default:
-                return "secondary"
-        }
-    }
-
-    // Función para obtener el texto del estado
-    const getEstadoText = (estado) => {
-        switch (estado) {
-            case "pendiente":
-                return "Pendiente"
-            case "fabricacion":
-                return "Fabricación"
-            case "finalizado":
-                return "Finalizado"
-            case "inventario":
-                return "Inventario"
-            case "cancelado":
-                return "Cancelado"
-            default:
-                return "Desconocido"
-        }
-    }
 
     if (loading) {
         return (
@@ -311,8 +184,8 @@ export default function ViewDetailPurchaseOrder() {
                                         <h1 className="mb-0">Pedido #{pedido.orderNumber}</h1>
                                         <div className="text-muted">
                                             Creado el {formatDate(pedido.fecha)} ·
-                                            <Badge color={getEstadoBadgeColor(pedido.estado)} className="ms-2">
-                                                {getEstadoText(pedido.estado)}
+                                            <Badge color={productionHelper.getStatusBadgeColorOrder(pedido.estado)} className="ms-2">
+                                                {productionHelper.getEstadoTextOrder(pedido.estado)}
                                             </Badge>
                                         </div>
                                     </div>
@@ -364,7 +237,7 @@ export default function ViewDetailPurchaseOrder() {
                                             </p>
                                             <p className="mb-3">
                                                 <strong>Estado:</strong>{" "}
-                                                <Badge color={getEstadoBadgeColor(pedido.estado)}>{getEstadoText(pedido.estado)}</Badge>
+                                                <Badge color={productionHelper.getStatusBadgeColorOrder(pedido.estado)}>{productionHelper.getEstadoTextOrder(pedido.estado)}</Badge>
                                             </p>
                                             <h6 className="fw-bold">Resumen de Costos</h6>
                                             <div className="d-flex justify-content-between mb-1">
