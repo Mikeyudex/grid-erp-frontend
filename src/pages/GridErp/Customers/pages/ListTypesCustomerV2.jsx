@@ -14,7 +14,7 @@ import { TopLayoutGeneralView } from "../../../../Components/Common/TopLayoutGen
 const helper = new CustomerHelper();
 
 const ClientTypesPage = () => {
-    document.title = "Tipo de clientes | Quality Erp";
+    document.title = "Categoría de cliente | Quality Erp";
 
     const { updateCustomerData, customerData } = useContext(CustomerContext);
 
@@ -23,12 +23,13 @@ const ClientTypesPage = () => {
     const [error, setError] = useState(null)
     const [currentClientType, setCurrentClientType] = useState(null);
     const [openModalAddTypeCustomer, setOpenModalAddTypeCustomer] = useState(false);
+    const [reloadData, setReloadData] = useState(false);
 
     // Columnas para la tabla
     const columns = [
         { key: "name", label: "Nombre", type: "text", editable: true, searchable: true },
         { key: "description", label: "Descripción", type: "text", editable: true, searchable: true },
-        { key: "shortCode", label: "Código", type: "text", editable: true, searchable: true },
+        /* { key: "shortCode", label: "Código", type: "text", editable: true, searchable: true }, */
         { key: "percentDiscount", label: "Descuento (%)", type: "percentage", editable: true, searchable: true },
         { key: "active", label: "Activo", type: "boolean", editable: true, searchable: false },
     ]
@@ -57,7 +58,7 @@ const ClientTypesPage = () => {
 
     useEffect(() => {
         fetchClientTypes();
-    }, [customerData.reloadTableTypeCustomer]);
+    }, [customerData.reloadTableTypeCustomer, reloadData]);
 
     // Manejadores de eventos
     const handleUpdate = async (updatedClientType) => {
@@ -153,19 +154,22 @@ const ClientTypesPage = () => {
 
     return (
         <TopLayoutGeneralView
-            titleBreadcrumb="Lista de tipo de clientes"
-            pageTitleBreadcrumb="Tipo de clientes"
+            titleBreadcrumb="Categoría de cliente"
+            pageTitleBreadcrumb="Categoría de cliente"
             main={
                 <Fragment>
                     <ModalAddTypeCustomer
                         isOpen={openModalAddTypeCustomer}
-                        closeModal={handleCloseModalAddTypeCustomer} />
+                        closeModal={handleCloseModalAddTypeCustomer} 
+                        setReloadData={setReloadData}
+                        reloadData={reloadData}
+                        />
                     <Row>
                         <Col>
                             <Card>
                                 <CardHeader className="bg-light text-white d-flex justify-content-between align-items-center">
                                     <Button color="light" onClick={handleOpenModalAddTypeCustomer}>
-                                        <FaPlus className="me-1" /> Nuevo Tipo
+                                        <FaPlus className="me-1" /> Nuevo
                                     </Button>
                                 </CardHeader>
                                 <CardBody>
@@ -181,7 +185,7 @@ const ClientTypesPage = () => {
                                         onUpdate={handleUpdate}
                                         onDelete={handleDelete}
                                         onBulkDelete={handleBulkDelete}
-                                        title="Tipos de Cliente"
+                                        title="Categoría de cliente"
                                         loading={loading}
                                         error={error}
                                         refreshData={fetchClientTypes}

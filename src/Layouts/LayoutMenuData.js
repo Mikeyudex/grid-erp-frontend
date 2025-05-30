@@ -107,7 +107,7 @@ const Navdata = () => {
         },
         {
           id: "customer-types-list",
-          label: "Tipo de clientes",
+          label: "Categoría de cliente",
           link: "/customers-types-list-v2",
           parentId: "customers",
         },

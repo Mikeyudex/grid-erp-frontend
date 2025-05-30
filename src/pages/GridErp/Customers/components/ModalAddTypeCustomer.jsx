@@ -7,7 +7,7 @@ import { optionsSnackbarDanger, optionsSnackbarSuccess } from '../../Products/he
 import { CustomerContext } from '../context/customerContext';
 
 
-const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
+const ModalAddTypeCustomer = ({ isOpen, closeModal, reloadData, setReloadData }) => {
     const { customerData, updateCustomerData } = React.useContext(CustomerContext);
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
@@ -52,6 +52,7 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
             setIsLoading(true);
             
             formData.name = formData.name.toUpperCase();
+            formData.shortCode = formData.shortCode.toUpperCase();
 
             let { data } = await fetch(`${ADD_CUSTOMER_TYPE}`, {
                 method: "POST",
@@ -65,11 +66,12 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
                 typeCustomerList: [...customerData.typeCustomerList, data],
                 reloadTableTypeCustomer: !customerData.reloadTableTypeCustomer,
             });
+            setReloadData(!reloadData);
             handleCloseModal();
-            openSnackbarSuccess('Tipo de cliente creado exitosamente');
+            openSnackbarSuccess('Categoría de cliente creada exitosamente');
         } catch (error) {
             console.log(error);
-            openSnackbarDanger('Ocurrió un error al crear el tipo de cliente');
+            openSnackbarDanger('Ocurrió un error al crear la categoría de cliente');
         } finally {
             setIsLoading(false);
         }
@@ -83,9 +85,9 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
         if (!formData.description) {
             errors.description = 'Requerido';
         }
-        if (!formData.shortCode) {
+        /* if (!formData.shortCode) {
             errors.shortCode = 'Requerido';
-        }
+        } */
         if (!formData.active) {
             errors.active = 'Requerido';
         }
@@ -104,10 +106,9 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
             className={"modal-dialog-centered"}
             size='lg'
         >
-            <ModalHeader toggle={handleCloseModal}>{'Crear nuevo tipo de cliente'}</ModalHeader>
+            <ModalHeader toggle={handleCloseModal}>{'Crear nueva categoría de cliente'}</ModalHeader>
             <ModalBody>
-                {"Ingresa los datos del nuevo tipo de cliente"}
-
+                {"Ingresa los datos de la categoría de cliente"}
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem", marginTop: '1.5em' }}>
                     <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
                         <div style={styles.formGroup}>
@@ -115,7 +116,7 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
                             <input
                                 name={'name'}
                                 onChange={handleInputChange}
-                                placeholder={'Nombre del tipo de cliente'}
+                                placeholder={'Nombre'}
                                 value={formData.name}
                                 type={"text"}
                                 className={"input-box"}
@@ -132,7 +133,7 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
                             <input
                                 name={'description'}
                                 onChange={handleInputChange}
-                                placeholder={'Descripción del tipo de cliente'}
+                                placeholder={'Descripción'}
                                 value={formData.description}
                                 type={"text"}
                                 className={"input-box"}
@@ -145,13 +146,13 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
                 </div>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem" }}>
-                    <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
+                   {/*  <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
                         <div style={styles.formGroup}>
                             <label className='form-label' htmlFor="quantity">*Código corto:</label>
                             <input
                                 name={'shortCode'}
                                 onChange={handleInputChange}
-                                placeholder={'Código corto del tipo de cliente'}
+                                placeholder={'Código corto'}
                                 value={formData.shortCode}
                                 type={"text"}
                                 className={"input-box"}
@@ -160,7 +161,7 @@ const ModalAddTypeCustomer = ({ isOpen, closeModal }) => {
                             />
                             {errors.shortCode && (<span className="form-product-input-error">{errors.shortCode}</span>)}
                         </div>
-                    </div>
+                    </div> */}
 
                     <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
                         <div style={styles.formGroup}>

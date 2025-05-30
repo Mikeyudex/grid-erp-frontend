@@ -9,7 +9,7 @@ import logoLight from "../assets/images/logo-light.png";
 
 //Logo Quality
 import logoQuality from "../assets/images/logo-quality.png";
-import logoQualityTextoBlanco from "../assets/images/logo-quality-texto-blanco.png";
+import logoQualityTextoBlanco from "../assets/images/logo-quality-4.jpeg";
 
 //import Components
 import SearchOption from '../Components/Common/SearchOption';

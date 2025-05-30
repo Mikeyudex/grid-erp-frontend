@@ -116,7 +116,7 @@ const ClientTypeModal = ({ isOpen, toggle, clientType, onSave }) => {
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} size="lg">
-      <ModalHeader toggle={toggle}>{clientType ? "Editar Tipo de Cliente" : "Nuevo Tipo de Cliente"}</ModalHeader>
+      <ModalHeader toggle={toggle}>{clientType ? "Editar" : "Nuevo"}</ModalHeader>
       <ModalBody>
         <Form onSubmit={handleSubmit}>
           <Row>
