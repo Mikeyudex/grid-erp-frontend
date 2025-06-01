@@ -261,7 +261,7 @@ const SignUp = () => {
                                                         </div>
 
                                                         <div className="mb-3">
-                                                            <label htmlFor="zones" className="form-label">Zona <span className="text-danger">*</span></label>
+                                                            <label htmlFor="zones" className="form-label">Sede <span className="text-danger">*</span></label>
                                                             <Input
                                                                 onChange={handleChange}
                                                                 value={formData.zoneId}

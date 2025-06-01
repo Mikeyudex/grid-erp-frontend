@@ -26,12 +26,12 @@ const ListCustomerV2 = () => {
 
     // Columnas para la tabla
     const columns = [
-        { key: "documento", label: "Documento", type: "text", editable: true, searchable: true },
-        { key: "typeCustomerId", label: "Tipo cliente", type: "text", editable: true, searchable: true },
-        { key: "name", label: "Nombre", type: "text", editable: true, searchable: true },
-        { key: "lastname", label: "Apellidos", type: "text", editable: true, searchable: true },
-        { key: "email", label: "Correo", type: "text", editable: true, searchable: true },
-        { key: "phone", label: "Teléfono", type: "text", editable: true, searchable: true },
+        { key: "documento", label: "Documento", type: "text", editable: false, searchable: true },
+        { key: "typeCustomerId", label: "Tipo cliente", type: "text", editable: false, searchable: true },
+        { key: "name", label: "Nombre", type: "text", editable: false, searchable: true },
+        { key: "lastname", label: "Apellidos", type: "text", editable: false, searchable: true },
+        { key: "email", label: "Correo", type: "text", editable: false, searchable: true },
+        { key: "phone", label: "Teléfono", type: "text", editable: false, searchable: true },
     ]
 
     // Cargar datos
@@ -45,7 +45,7 @@ const ListCustomerV2 = () => {
                 if (customers && Array.isArray(customers) && customers.length > 0) {
                     let parseCustomers = customers.map((c) => {
                         return {
-                            id: c?._id,
+                            _id: c?._id,
                             documento: c?.documento,
                             typeCustomerId: c?.typeCustomerId?.name,
                             name: c?.name,
@@ -72,7 +72,11 @@ const ListCustomerV2 = () => {
     }, [page, limit, customerData.reloadTableCustomer]);
 
     const handleAddCustomer = () => {
-        return navigate("/customers-create")
+        return navigate("/customers-create-v2")
+    };
+
+    const handleClickEditRow = (id) => {
+        return navigate(`/customers-edit/${id}`)
     };
 
     const handleUpdate = async (updatedCustomer) => {
@@ -193,6 +197,7 @@ const ListCustomerV2 = () => {
                                         refreshData={fetchClients}
                                         searchable={true}
                                         itemsPerPage={10}
+                                        onClickEditRow={handleClickEditRow}
                                     />
                                 </CardBody>
                             </Card>

@@ -1,49 +1,45 @@
 "use client"
 
 import { useState, useEffect, useContext, Fragment } from "react"
-import {Row, Col, Card, CardHeader, CardBody, Button, Alert } from "reactstrap";
+import { Row, Col, Card, CardHeader, CardBody, Button, Alert } from "reactstrap";
 import { FaPlus } from "react-icons/fa";
 import DataTable from "../../../../Components/Common/DataTableCustom";
 import { CustomerHelper } from "../helper/customer-helper";
 import { CustomerContext } from "../context/customerContext";
 
-import ModalAddTypeCustomer from "../components/ModalAddTypeCustomer";
-import { BASE_URL } from "../../../../helpers/url_helper";
+import ModalAddTypeClient from "../components/ModalAddTypeClient";
 import { TopLayoutGeneralView } from "../../../../Components/Common/TopLayoutGeneralView";
+import { BULK_DELETE_CUSTOMERS_TYPES, DELETE_CUSTOMERS_TYPES, UPDATE_CUSTOMERS_TYPES } from "../helper/url_helper";
+import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 
 const helper = new CustomerHelper();
 
-const ClientTypesPage = () => {
-    document.title = "Categoría de cliente | Quality Erp";
+const ListTypeOfClient = () => {
+    document.title = "Tipo de cliente | Quality Erp";
 
     const { updateCustomerData, customerData } = useContext(CustomerContext);
 
     const [clientTypes, setClientTypes] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
-    const [currentClientType, setCurrentClientType] = useState(null);
-    const [openModalAddTypeCustomer, setOpenModalAddTypeCustomer] = useState(false);
+    const [openModalAdd, setOpenModalAdd] = useState(false);
     const [reloadData, setReloadData] = useState(false);
 
     // Columnas para la tabla
     const columns = [
-        { key: "name", label: "Nombre", type: "text", editable: true, searchable: true },
-        { key: "description", label: "Descripción", type: "text", editable: true, searchable: true },
-        /* { key: "shortCode", label: "Código", type: "text", editable: true, searchable: true }, */
-        { key: "percentDiscount", label: "Descuento (%)", type: "percentage", editable: true, searchable: true },
-        { key: "active", label: "Activo", type: "boolean", editable: true, searchable: false },
+        { key: "name", label: "Nombre", type: "text", editable: true, searchable: true }
     ]
 
     // Cargar datos
-    const fetchClientTypes = async () => {
+    const fetchTypeOfClients = async () => {
         setLoading(true);
         setError(null);
 
-        helper.getTypesCustomer()
-            .then(async (typesCustomers) => {
-                if (typesCustomers && Array.isArray(typesCustomers) && typesCustomers.length > 0) {
-                    setClientTypes(typesCustomers);
-                    updateCustomerData({ ...customerData, typeCustomerList: [...customerData.typeCustomerList, typesCustomers] });
+        helper.getTypeOfClients()
+            .then(async (typeOfClients) => {
+                if (typeOfClients && Array.isArray(typeOfClients) && typeOfClients.length > 0) {
+                    setClientTypes(typeOfClients);
+                    updateCustomerData({ ...customerData, typeOfClientList: [...customerData.typeOfClientList, typeOfClients] });
                 }
                 return;
             })
@@ -57,33 +53,31 @@ const ClientTypesPage = () => {
     }
 
     useEffect(() => {
-        fetchClientTypes();
-    }, [customerData.reloadTableTypeCustomer, reloadData]);
+        fetchTypeOfClients();
+    }, [customerData.reloadTableTypeOfClient, reloadData]);
 
     // Manejadores de eventos
-    const handleUpdate = async (updatedClientType) => {
+    const handleUpdate = async (updated) => {
         try {
-            const response = await fetch(`${BASE_URL}/customers/updateTypeCustomer/${updatedClientType._id}`, {
+            let token = getToken();
+            const response = await fetch(`${UPDATE_CUSTOMERS_TYPES}/${updated._id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    name: updatedClientType?.name,
-                    description: updatedClientType?.description,
-                    shortCode: updatedClientType?.shortCode,
-                    percentDiscount: updatedClientType?.percentDiscount,
-                    active: updatedClientType?.active,
+                    name: updated?.name
                 }),
             })
 
             if (!response.ok) {
-                throw new Error("Error al actualizar la categoría de cliente")
+                throw new Error("Error al actualizar el tipo de cliente")
             }
 
             // Actualizar estado local
-            setClientTypes((prev) => prev.map((item) => (item._id === updatedClientType._id ? updatedClientType : item)))
-            updateCustomerData({ ...customerData, reloadTableTypeCustomer: !customerData.reloadTableTypeCustomer });
+            setClientTypes((prev) => prev.map((item) => (item._id === updated._id ? updated : item)))
+            updateCustomerData({ ...customerData, reloadTableTypeOfClient: !customerData.reloadTableTypeOfClient });
             return true
         } catch (err) {
             console.error("Error:", err)
@@ -94,12 +88,17 @@ const ClientTypesPage = () => {
 
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`${BASE_URL}/customers/deleteTypeCustomer/${id}`, {
+            let token = getToken();
+            const response = await fetch(`${DELETE_CUSTOMERS_TYPES}/${id}`, {
                 method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
             })
 
             if (!response.ok) {
-                throw new Error("Error al eliminar la categoría de cliente")
+                throw new Error("Error al eliminar el tipo de cliente")
             }
 
             // Actualizar estado local
@@ -116,21 +115,23 @@ const ClientTypesPage = () => {
     const handleBulkDelete = async (ids) => {
         setError(null);
         try {
-            const response = await fetch(`${BASE_URL}/customers/typeCustomer/bulkDelete`, {
+            let token = getToken();
+            const response = await fetch(`${BULK_DELETE_CUSTOMERS_TYPES}`, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ ids }),
             })
 
             if (!response.ok) {
-                throw new Error("Error al eliminar las categorías de cliente seleccionadas")
+                throw new Error("Error al eliminar los tipos de cliente seleccionados")
             }
 
             // Actualizar estado local
             setClientTypes((prev) => prev.filter((item) => !ids.includes(item._id)))
-            updateCustomerData({ ...customerData, reloadTableTypeCustomer: !customerData.reloadTableTypeCustomer });
+            updateCustomerData({ ...customerData, reloadTableTypeOfClient: !customerData.reloadTableTypeOfClient });
             return true
         } catch (err) {
             console.error("Error:", err)
@@ -140,30 +141,25 @@ const ClientTypesPage = () => {
     }
 
     const handleCloseModalAddTypeCustomer = () => {
-        setOpenModalAddTypeCustomer(!openModalAddTypeCustomer);
-        updateCustomerData({ ...customerData, openModalCreateTypeCustomer: !customerData.openModalCreateTypeCustomer });
+        setOpenModalAdd(!openModalAdd);
     }
 
     const handleOpenModalAddTypeCustomer = () => {
-        updateCustomerData({ ...customerData, openModalCreateTypeCustomer: true });
+        setOpenModalAdd(true);
     }
-
-    useEffect(() => {
-        setOpenModalAddTypeCustomer(customerData.openModalCreateTypeCustomer);
-    }, [customerData.openModalCreateTypeCustomer]);
 
     return (
         <TopLayoutGeneralView
-            titleBreadcrumb="Categoría de cliente"
-            pageTitleBreadcrumb="Categoría de cliente"
+            titleBreadcrumb="Tipo de cliente"
+            pageTitleBreadcrumb="Tipo de cliente"
             main={
                 <Fragment>
-                    <ModalAddTypeCustomer
-                        isOpen={openModalAddTypeCustomer}
-                        closeModal={handleCloseModalAddTypeCustomer} 
+                    <ModalAddTypeClient
+                        isOpen={openModalAdd}
+                        closeModal={handleCloseModalAddTypeCustomer}
                         setReloadData={setReloadData}
                         reloadData={reloadData}
-                        />
+                    />
                     <Row>
                         <Col>
                             <Card>
@@ -185,10 +181,10 @@ const ClientTypesPage = () => {
                                         onUpdate={handleUpdate}
                                         onDelete={handleDelete}
                                         onBulkDelete={handleBulkDelete}
-                                        title="Categoría de cliente"
+                                        title="Tipo de cliente"
                                         loading={loading}
                                         error={error}
-                                        refreshData={fetchClientTypes}
+                                        refreshData={fetchTypeOfClients}
                                         searchable={true}
                                         itemsPerPage={10}
                                     />
@@ -204,4 +200,4 @@ const ClientTypesPage = () => {
     )
 }
 
-export default ClientTypesPage
+export default ListTypeOfClient

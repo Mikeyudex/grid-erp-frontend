@@ -44,6 +44,10 @@ import ListCategoriesV2 from "../pages/GridErp/Category/pages/ListCategoriesV2";
 import ListMatMaterialPriceV2 from "../pages/GridErp/MatMaterialPrice/pages/ListMatMaterialPriceV2";
 import WarehouseListPage from "../pages/GridErp/Warehouses/pages/WarehouseList";
 import ZonesListPage from "../pages/GridErp/Zones/pages/ListZones";
+import CreateClientV2 from "../pages/GridErp/Customers/pages/CreateCustomerV2";
+import ListTypeOfClient from "../pages/GridErp/Customers/pages/ListTypeOfClient";
+import ListTypeOfDocument from "../pages/GridErp/Customers/pages/ListTypeOfDocument";
+import EditCustomerView from "../pages/GridErp/Customers/pages/EditCustomerView";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -108,10 +112,12 @@ const authProtectedRoutes = [
 
     // Customers
     { path: "/customers-create", component: <CreateCustomer />, },
-    /*  { path: "/customers-list", component: <ListCustomersView />, }, */
+    { path: "/customers-create-v2", component: <CreateClientV2 />, },
+    { path: "/customers-edit/:id", component: <EditCustomerView />, },
     { path: "/customers-list-v2", component: <ListCustomerV2 />, },
-    /*   { path: "/customers-types-list", component: <ListTypeCustomersView />, }, */
     { path: "/customers-types-list-v2", component: <ClientTypesPage />, },
+    { path: "/type-of-customer-list", component: <ListTypeOfClient />, },
+    { path: "/type-of-document-list", component: <ListTypeOfDocument />, },
 
     // Purchase Order
     { path: "/purchase-orders", component: <ListPurchaseOrder /> },

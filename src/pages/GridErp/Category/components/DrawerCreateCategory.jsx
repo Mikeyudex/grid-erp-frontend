@@ -62,9 +62,9 @@ export function DrawerCreateCategory({
         if (!formData.name) {
             errors.name = 'Requerido';
         }
-        if (!formData.description) {
+        /* if (!formData.description) {
             errors.description = 'Requerido';
-        }
+        } */
         if (!formData.shortCode) {
             errors.shortCode = 'Requerido';
         }
@@ -150,7 +150,7 @@ export function DrawerCreateCategory({
                                                 item2={
                                                     <>
                                                         <div className="input-wrapper">
-                                                            <label className='form-label' htmlFor="quantity">*Descripción:</label>
+                                                            <label className='form-label' htmlFor="quantity">Descripción:</label>
                                                             <GlobalInputText
                                                                 name={'description'}
                                                                 onChange={handleInputChange}
@@ -159,7 +159,7 @@ export function DrawerCreateCategory({
                                                                 type={"text"}
                                                                 className={"input-box"}
                                                                 id={'description'}
-                                                                required={true}
+                                                                required={false}
                                                             />
                                                         </div>
                                                         {errors.description && (<span className="form-product-input-error">{errors.description}</span>)}

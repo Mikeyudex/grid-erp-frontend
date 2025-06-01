@@ -1,4 +1,5 @@
-import { GET_CUSTOMERS, GET_TYPES_CUSTOMERS } from "./url_helper";
+import { getToken } from "../../../../helpers/jwt-token-access/get_token";
+import { GET_CUSTOMER_BY_ID, GET_CUSTOMERS, GET_CUSTOMERS_TYPES, GET_CUSTOMERS_TYPES_DOCUMENTS, GET_TYPES_CUSTOMERS } from "./url_helper";
 
 
 export class CustomerHelper {
@@ -18,6 +19,28 @@ export class CustomerHelper {
             if (response && response.status === 200) {
                 let data = await response.json();
                 return data?.data ?? [];
+            } else {
+                return [];
+            }
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    };
+
+    getCustomerById = async (id) => {
+        try {
+            let token = getToken();
+            let response = await fetch(`${GET_CUSTOMER_BY_ID}/${id}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (response && response.status === 200) {
+                let data = await response.json();
+                return data?.data;
             } else {
                 return [];
             }
@@ -47,5 +70,86 @@ export class CustomerHelper {
         }
     };
 
+    getTypeOfClients = async () => {
+        try {
+            let token = getToken();
+            let response = await fetch(`${GET_CUSTOMERS_TYPES}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (response && response.status === 200) {
+                let data = await response.json();
+                return data?.data ?? [];
+            } else {
+                return [];
+            }
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    };
 
+    getTypeOfDocuments = async () => {
+        try {
+            let token = getToken();
+            let response = await fetch(`${GET_CUSTOMERS_TYPES_DOCUMENTS}`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            if (response && response.status === 200) {
+                let data = await response.json();
+                return data?.data ?? [];
+            } else {
+                return [];
+            }
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    };
 }
+
+//Type of customer
+export const typeOfCustomerOptions = [
+    {
+        label: "Persona natural",
+        value: "PN",
+    },
+    {
+        label: "Persona jurídica",
+        value: "PJ",
+    }
+]
+
+export const typeOfDocumentOptions = [
+    {
+        label: "Cédula de ciudadanía",
+        value: "CC",
+    },
+    {
+        label: "NIT",
+        value: "NIT",
+    },
+    {
+        label: "Pasaporte",
+        value: "P",
+    },
+    {
+        label: "Tarjeta de identidad",
+        value: "TI",
+    },
+    {
+        label: "Cédula de extranjería",
+        value: "CE",
+    },
+    {
+        label: "Otro",
+        value: "O",
+    }
+]

@@ -10,10 +10,14 @@ export const CustomerState = (props) => {
             openDrawer: false,
             customerList: [],
             typeCustomerList: [],
+            typeOfClientList: [],
+            typeOfDocumentList: [],
             openBackdrop: false,
             openModalCreateTypeCustomer: false,
             reloadTableTypeCustomer: false,
             reloadTableCustomer: false,
+            reloadTableTypeOfClient: false,
+            reloadTableTypeOfDocument: false,
         },
     }
 

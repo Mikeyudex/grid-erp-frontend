@@ -102,13 +102,25 @@ const Navdata = () => {
         {
           id: "create-customer",
           label: "Crear cliente",
-          link: "/customers-create",
+          link: "/customers-create-v2",
           parentId: "customers",
         },
         {
           id: "customer-types-list",
           label: "Categoría de cliente",
           link: "/customers-types-list-v2",
+          parentId: "customers",
+        },
+        {
+          id: "type-customer",
+          label: "Tipo de cliente",
+          link: "/type-of-customer-list",
+          parentId: "customers",
+        },
+        {
+          id: "type-document",
+          label: "Tipo de documento",
+          link: "/type-of-document-list",
           parentId: "customers",
         },
       ],

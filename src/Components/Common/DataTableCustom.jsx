@@ -33,6 +33,7 @@ const DataTable = ({
   itemsPerPage = 10,
   searchable = true,
   refreshData = null,
+  onClickEditRow = null,
 }) => {
   // Estados
   const [tableData, setTableData] = useState([])
@@ -73,6 +74,10 @@ const DataTable = ({
 
   // Manejo de edición
   const handleEdit = (row) => {
+    if (onClickEditRow) {
+      onClickEditRow(row._id)
+      return
+    }
     setEditingRow(row._id)
     setEditData({ ...row })
   }
@@ -309,9 +314,9 @@ const DataTable = ({
           )}
 
           {refreshData && (
-              <Button title="Actualizar" color="info" className="d-flex align-items-center gap-2 me-2" onClick={refreshData}>
+            <Button title="Actualizar" color="info" className="d-flex align-items-center gap-2 me-2" onClick={refreshData}>
               <RefreshCw size={18} />
-          </Button>
+            </Button>
           )}
 
           {selectedRows.length > 0 && (
