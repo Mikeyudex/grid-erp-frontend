@@ -10,6 +10,7 @@ export const CategoryProductState = (props) => {
             openDrawer: false,
             categoryList: [],
             openBackdrop: false,
+            reloadData: false,
         },
     }
 

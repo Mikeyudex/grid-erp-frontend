@@ -73,11 +73,15 @@ const ListCategoriesV2 = () => {
 
     useEffect(() => {
         fetchCategories();
-    }, [page, limit, reload]);
+    }, [page, limit, reload, categoryData.reloadData]);
 
     const handleAddCategory = () => {
         updateCategoryData({ ...categoryData, openDrawer: true });
     };
+
+    const handleAddItemToList = (newItem) => {
+        setCategoryList((prev) => [...prev, newItem]);
+     }
 
     const handleUpdate = async (updatedCategory) => {
         setError(null);
@@ -201,7 +205,7 @@ const ListCategoriesV2 = () => {
                                         )
                                     }
 
-                                    <DrawerCreateCategory />
+                                    <DrawerCreateCategory handleAddItemToList={handleAddItemToList} />
 
                                     <DataTable
                                         data={categoryList}

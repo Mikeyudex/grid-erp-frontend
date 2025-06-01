@@ -22,6 +22,7 @@ const initialFormData = {
 };
 
 export function DrawerCreateCategory({
+    handleAddItemToList,
 }) {
     const { updateCategoryData, categoryData } = React.useContext(CategoryProductContext);
     const [openBackdrop, setOpenBackdrop] = React.useState(false);
@@ -78,17 +79,21 @@ export function DrawerCreateCategory({
             setOpenBackdrop(true);
             let payload = {
                 companyId: url.companyId,
-                name: formData.name,
-                description: formData.description,
+                name: formData.name.toUpperCase(),
+                description: formData.description.toUpperCase(),
                 active: formData.active,
-                shortCode: formData.shortCode,
+                shortCode: formData.shortCode.toUpperCase(),
             };
-            let { data } = await apiClient.create(`${url.CREATE_CATEGORIES}`, payload);
-            updateCategoryData({ ...categoryData, categoryList: [...categoryData.categoryList,  payload] });
-            setTimeout(() => {
-                handleCloseDrawer();
-                openSnackbarSuccess('Categoría creada exitosamente');
-            }, 1500);
+            let data = await apiClient.create(`${url.CREATE_CATEGORIES}`, payload);
+            updateCategoryData({
+                ...categoryData,
+                categoryList: [...categoryData.categoryList, payload]
+            });
+            if(data){
+                handleAddItemToList(data);
+            }
+            handleCloseDrawer();
+            openSnackbarSuccess('Categoría creada exitosamente');
         } catch (error) {
             console.log(error);
             setOpenBackdrop(false);
