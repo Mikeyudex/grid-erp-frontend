@@ -36,7 +36,7 @@ export default function PurchaseOrderPage() {
 
     const handleGetClients = async () => {
         try {
-            let response = await productHelper.getClients(0, 100, ["_id", "name", "lastname", "commercialName", "email", "typeCustomerId"]);
+            let response = await productHelper.getClients(0, 100, ["_id", "name", "lastname", "commercialName", "email", "typeCustomerId", "documento"]);
             return response.data;
         } catch (error) {
             console.log(error);
@@ -92,7 +92,14 @@ export default function PurchaseOrderPage() {
         handleGetClients()
             .then(async (data) => {
                 let clients = (data || [])
-                    .map((c) => ({ ...c, id: c._id, name: `${c.name} ${c.lastname}`, company: c.commercialName, typeCustomerId: c.typeCustomerId }));
+                    .map((c) => ({
+                        ...c,
+                        id: c._id,
+                        name: `${c.name} ${c.lastname}`,
+                        company: c.commercialName,
+                        typeCustomerId: c.typeCustomerId,
+                        documento: c.documento,
+                    }));
                 setClients(clients);
             })
             .catch(e => console.log(e))
@@ -124,7 +131,7 @@ export default function PurchaseOrderPage() {
         handleGetProducts()
             .then(async (data) => {
                 let products = data;
-                console.log(products); 
+                console.log(products);
                 setProducts(products);
             })
             .catch(e => console.log(e))
@@ -154,47 +161,6 @@ export default function PurchaseOrderPage() {
                 <ToastContainer closeButton={false} limit={1} />
                 <Container fluid>
                     <BreadCrumb title="Crear Orden de Pedido" pageTitle="Pedidos" />
-
-                    {/* {selectedClient && (
-                        <div className="mt-2 p-2 bg-light rounded mb-4">
-                            <span className="fw-medium">Cliente: </span>
-                            <span>{selectedClient.name}</span>
-                            {selectedClient.company && <span className="ms-2 text-muted">({selectedClient.company})</span>}
-                        </div>
-                    )} */}
-
-                    {/* <OrderForm
-                        onAddItem={addOrderItem}
-                        orderItems={orderItems}
-                        onUpdateItem={updateOrderItem}
-                        onRemoveItem={removeOrderItem}
-                        selectedClient={selectedClient}
-                        onClientSelect={handleClientSelect}
-                        products={products}
-                        clients={clients}
-                        typeOfPieces={typeOfPieces}
-                        matMaterialPrices={matMaterialPrices}
-                        matTypeOptions={matTypeOptions}
-                        materialTypeOptions={materialTypeOptions}
-                    /> */}
-
-                    {/*    <Row className="mt-4">
-                        <Col>
-                            <div className="bg-light p-3 rounded shadow-sm">
-                                <div className="d-flex justify-content-between align-items-center">
-                                    <h2 className="h5 fw-semibold mb-0">Total del Pedido:</h2>
-                                    <span className="h4 fw-bold mb-0">${calculateTotal().toLocaleString()}</span>
-                                </div>
-
-                                <div className="mt-3 d-flex justify-content-end">
-                                    <button className="btn btn-success" disabled={!selectedClient}>
-                                        Finalizar Pedido
-                                    </button>
-                                </div>
-                            </div>
-                        </Col>
-                    </Row> */}
-
                     <OrderGrid
                         selectedClient={selectedClient}
                         onClientSelect={handleClientSelect}

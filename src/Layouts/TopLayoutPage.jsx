@@ -3,12 +3,12 @@ import BreadCrumb from "../pages/GridErp/Products/components/BreadCrumb";
 import { Container } from "reactstrap";
 
 
-export default function TopLayoutPage({ children, title, pageTitle }) {
+export default function TopLayoutPage({ children, title, pageTitle, to }) {
     return (
         <div className="page-content">
             <ToastContainer closeButton={false} limit={1} />
             <Container fluid>
-            <BreadCrumb title={title} pageTitle={pageTitle} />
+            <BreadCrumb title={title} pageTitle={pageTitle} to={to} />
                 {children}
             </Container>
         </div>

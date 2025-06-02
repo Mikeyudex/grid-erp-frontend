@@ -9,11 +9,13 @@ export function FloatingInput({
     disabled = false,
     as = "input",
     rows = 3,
+    name
 }) {
     return (
         <div className="floating-input-container">
         {as === "textarea" ? (
             <textarea
+                name={name}
                 id={id}
                 className={`floating-input ${value ? "has-value" : ""}`}
                 value={value}
@@ -26,6 +28,7 @@ export function FloatingInput({
             <input
                 type={type}
                 id={id}
+                name={name}
                 className={`floating-input ${value ? "has-value" : ""}`}
                 value={value}
                 onChange={onChange}

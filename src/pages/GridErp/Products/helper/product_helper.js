@@ -62,13 +62,13 @@ export class ProductHelper {
     validateForm = (setErrors, formData) => {
         const newErrors = {};
 
-        if (!formData.warehouseId || formData.warehouseId === '') {
+        /* if (!formData.warehouseId || formData.warehouseId === '') {
             newErrors.warehouseId = 'La bodega es requerida';
-        }
+        } */
 
-        if (!formData.providerId || formData.providerId === '') {
+        /* if (!formData.providerId || formData.providerId === '') {
             newErrors.providerId = 'El proveedor es requerido';
-        }
+        } */
 
         if (!formData.name || formData.name === '') {
             newErrors.name = 'El nombre es requerido';
@@ -79,11 +79,11 @@ export class ProductHelper {
         } */
 
         if (!formData.id_type_product || formData.id_type_product === '' || formData.id_type_product === '0') {
-            newErrors.id_type_product = 'El tipo de producto es requerido';
+            newErrors.id_type_product = 'El tipo de vehículo es requerido';
         }
 
         if (!formData.id_category || formData.id_category === '') {
-            newErrors.id_category = 'La categoría es requerida';
+            newErrors.id_category = 'La marca es requerida';
         }
 
         /* if (!formData.id_sub_category || formData.id_sub_category === '') {
@@ -103,12 +103,12 @@ export class ProductHelper {
         } */
 
         if (!formData.costPrice || formData.costPrice === '' || formData.costPrice === 0) {
-            newErrors.costPrice = 'El precio de costo es requerido';
+            newErrors.costPrice = 'El precio base es requerido';
         }
 
-        if (!formData.salePrice || formData.salePrice === '' || formData.salePrice === 0) {
+        /* if (!formData.salePrice || formData.salePrice === '' || formData.salePrice === 0) {
             newErrors.salePrice = 'El precio de venta es requerido';
-        }
+        } */
 
         setErrors(newErrors);
 

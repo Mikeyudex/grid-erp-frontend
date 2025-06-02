@@ -347,9 +347,12 @@ export default function OrderGrid({
             setFilteredClients(clients)
         } else {
             const filtered = clients.filter(
-                (client) =>
-                    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    (client.company && client.company.toLowerCase().includes(searchTerm.toLowerCase())),
+                (client) => {
+                    console.log(client);
+                    return client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (client.documento && client.documento.includes(searchTerm)) ||
+                        (client.company && client.company.toLowerCase().includes(searchTerm.toLowerCase()))
+                },
             )
             setFilteredClients(filtered)
         }
@@ -619,7 +622,7 @@ export default function OrderGrid({
                                     style={{ cursor: "pointer" }}
                                 >
                                     <div className="fw-medium">{client.name}</div>
-                                    {client.company && <div className="small text-muted">{client.company}</div>}
+                                    {client.company && <div className="small text-muted">{client.company} - {client.documento}</div>}
                                 </div>
                             ))
                         ) : (

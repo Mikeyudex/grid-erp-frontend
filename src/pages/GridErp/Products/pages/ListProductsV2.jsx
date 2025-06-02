@@ -9,6 +9,7 @@ import { UploadIcon } from "lucide-react"
 import { ImportProductContext } from "../context/imports/importProductContext"
 import { DrawerProductsImport } from "../components/DrawerImportProduct"
 import { getToken } from "../../../../helpers/jwt-token-access/get_token"
+import { BASE_URL } from "../../../../helpers/url_helper"
 
 const helper = new ProductHelper();
 const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
@@ -126,7 +127,7 @@ const ListProductsV2 = () => {
                 throw new Error("Error al actualizar el producto")
             }
 
-            setReloadData(!reloadData);
+            setProductList((prev) => prev.map((item) => (item._id === updatedProduct._id ? updatedProduct : item)))
             return true
         } catch (err) {
             console.error("Error:", err)
@@ -151,7 +152,7 @@ const ListProductsV2 = () => {
                 throw new Error("Error al eliminar el producto")
             }
 
-            setReloadData(!reloadData);
+            setProductList((prev) => prev.filter((item) => item._id !== id))
             return true
         } catch (error) {
             console.log(error);
@@ -177,7 +178,7 @@ const ListProductsV2 = () => {
                 throw new Error("Error al eliminar los productos seleccionados")
             }
 
-            setReloadData(!reloadData);
+            setProductList((prev) => prev.filter((item) => !ids.includes(item._id)))
             return true
         } catch (error) {
             console.log(error);
@@ -190,7 +191,7 @@ const ListProductsV2 = () => {
         /*  { key: "name", label: "Nombre", type: "text", editable: true, searchable: true }, */
         { key: "category", label: "Marca", type: "select", editable: true, searchable: true, options: categories},
         { key: "subCategory", label: "Línea", type: "text", editable: true, searchable: true },
-        { key: "costPrice", label: "Precio de costo", type: "price", editable: true, searchable: true },
+       /*  { key: "costPrice", label: "Precio de costo", type: "price", editable: true, searchable: true }, */
         { key: "salePrice", label: "Precio de venta", type: "price", editable: true, searchable: true },
         { key: "createdAt", label: "Creado", type: "date", editable: false, searchable: true },
     ];

@@ -1,5 +1,6 @@
+"use client"
 import { Fragment, useContext, useEffect, useState } from "react";
-import { Col, Container, Input, Row } from "reactstrap";
+import { Col, Container, Form, Input, Row } from "reactstrap";
 import Select from 'react-select';
 import BreadCrumb from "./BreadCrumb";
 import * as url from "../helper/url_helper";
@@ -10,24 +11,21 @@ import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
 import { useSnackbar } from 'react-simple-snackbar';
 import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import CancelIcon from '@mui/icons-material/Cancel';
-import SyncOutlinedIcon from '@mui/icons-material/SyncOutlined';
 import { ImportIcon } from "lucide-react";
 import SaveIcon from '@mui/icons-material/Save';
 import { useNavigate } from 'react-router-dom';
+import { CircleAlert, WarehouseIcon, ImageIcon } from "lucide-react";
 
-import InputSpin from '../components/InputSpin';
 import './LayoutCreateProduct.css';
-import LayoutTextInputs from "../partials/layouts/createProduct/LayoutTextInputs";
-import GlobalInputText from "../partials/inputs/GlobalInputText";
-import LayoutProductImages from "../partials/layouts/createProduct/LayoutProductImages";
 import { optionsSnackbarDanger, optionsSnackbarSuccess, ProductHelper } from '../helper/product_helper';
 import SpeedDialProduct from "./SpeedDial";
 import { BackdropGlobal } from "./Backdrop";
 import '../pages/form-product.css';
-import { DrawerProductSync } from "./DrawerProductSync";
-import { GenericDialog } from "../partials/dialogs/GenericDialog";
-import { ImportProductContext } from "../context/imports/importProductContext";
 import { DrawerProductsImport } from "./DrawerImportProduct";
+import TopLayoutPage from "../../../../Layouts/TopLayoutPage";
+import { ImportProductContext } from "../context/imports/importProductContext";
+import { CollapsibleSection } from "../../../../Components/Common/CollapsibleSection";
+import { FloatingInput } from "../../../../Components/Common/FloatingInput";
 
 // Register the plugins
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
@@ -39,16 +37,16 @@ const typeOfPiecesDefault = ['Conductor', 'Copiloto', 'Segunda Fila'];
 
 export default function LayoutCreateProductTapete(props) {
 
+    document.title = "Crear producto | Quality";
     const navigate = useNavigate();
-
     const { updateImportData, importData } = useContext(ImportProductContext);
     const [attributeConfigs, setAttributeConfigs] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
-    const [warehouses, setWarehouses] = useState([]);
-    const [providers, setProviders] = useState([]);
+    /* const [warehouses, setWarehouses] = useState([]);
+    const [providers, setProviders] = useState([]); */
     const [units, setUnits] = useState([]);
-    const [taxes, setTaxes] = useState([]);
+    /* const [taxes, setTaxes] = useState([]); */
     const [typesProduct, setTypesProduct] = useState([]);
     const [typeOfPieces, setTypeOfPieces] = useState([]);
     const [lastSku, setLastSku] = useState("0");
@@ -68,46 +66,41 @@ export default function LayoutCreateProductTapete(props) {
         costPrice: '',
         salePrice: '',
         attributes: [],
-        typeOfPieces: []
+        typeOfPieces: [],
+        observations: "",
+        barCode: "",
+        taxIncluded: false,
+        taxPercent: '',
     });
     const [additionalConfigs, setAdditionalConfigs] = useState({
         hasBarcode: false
     });
     const [fileData, setFileData] = useState([]);
-    const [errors, setErrors] = useState({});
     const [hasSuccessProductCreate, setHasSuccessProductCreate] = useState(false);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openBackdrop, setOpenBackdrop] = useState(false);
-    const [openDrawerSync, setOpenDrawerSync] = useState(false);
-    const [marketPlaceToSync, setMarketPlaceToSync] = useState(['woocommerce']);
     const [titleBackdrop, setTitleBackdrop] = useState("");
     const [savedProduct, setSavedProduct] = useState(false);
-    const [openAlertSuccessSync, setOpenAlertSuccessSync] = useState(false);
     const [idProduct, setIdProduct] = useState("");
     const [openDrawerImport, setOpenDrawerImport] = useState(false);
+    const [openSections, setOpenSections] = useState({
+        datosBasicos: true,
+        inventario: false,
+        multimedia: false,
+        otros: false,
+    });
+    const [validationErrors, setValidationErrors] = useState({});
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
 
-        // Si el nombre del campo coincide con un campo fijo (name, sku, price)
-        if (Object.keys(formData).includes(name)) {
-            setFormData((prevFormData) => ({
-                ...prevFormData,
-                [name]: value,
-            }));
-            if (name === 'id_category') {
-                handleFilterSubcategories(value);
-            }
-        } else {
-            // Si es un campo dinámico
-            setFormData((prevFormData) => ({
-                ...prevFormData,
-                attributes: {
-                    ...prevFormData.attributes,
-                    [name]: value,
-                },
-            }));
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            [name]: value,
+        }));
+        if (name === 'id_category') {
+            handleFilterSubcategories(value);
         }
     };
 
@@ -127,7 +120,12 @@ export default function LayoutCreateProductTapete(props) {
                 taxId: '',
                 costPrice: 0,
                 salePrice: 0,
-                attributes: []
+                attributes: [],
+                observations: '',
+                barCode: '',
+                taxIncluded: false,
+                taxPercent: '',
+
             }
         );
         setFileData([]);
@@ -143,17 +141,10 @@ export default function LayoutCreateProductTapete(props) {
         setSubcategories(categoryFiltered?.subcategories ?? []);
     };
 
-    const handleSetQuantity = (value) => {
-        setFormData((prevFormData) => ({
-            ...prevFormData,
-            quantity: value,
-        }));
-    }
-
     const handleProductOperation = async (sync = false) => {
         try {
             // Validación del formulario
-            if (!helper.validateForm(setErrors, formData)) {
+            if (!helper.validateForm(setValidationErrors, formData)) {
                 return;
             }
             setOpenBackdrop(true);
@@ -168,33 +159,11 @@ export default function LayoutCreateProductTapete(props) {
                 setSavedProduct(true);
             }
 
-            // Sincronización opcional
-            if (sync) {
-                try {
-                    setTitleBackdrop("Sincronizando producto en woocommerce...");
-                    if (marketPlaceToSync.includes("woocommerce")) {
-                        return await handleSyncProductWooCommerce(preparePayload());
-                    }
-                    if (marketPlaceToSync.includes("meli")) {
-                        return await helper.syncProductMercadoLibre(preparePayload());
-                    }
-                    setTitleBackdrop("No hay un marketplace seleccionado");
-                    setOpenBackdrop(false);
-                    return;
-                } catch (error) {
-                    console.log('Error al sincronizar producto:', error);
-                    setTitleBackdrop("Ocurrió un error al sincronizar el producto");
-                    setOpenBackdrop(false);
-                    return;
-                }
-            } else {
-                // Navegar en caso de no sincronizar
-                handleClearForm();
-                setAttributeConfigs([]);
-                setAdditionalConfigs({ hasBarcode: false });
-                setFileData([]);
-                return navigate('/success-product');
-            }
+            handleClearForm();
+            setAttributeConfigs([]);
+            setAdditionalConfigs({ hasBarcode: false });
+            setFileData([]);
+            return navigate('/success-product');
 
         } catch (error) {
             console.log(error);
@@ -208,40 +177,14 @@ export default function LayoutCreateProductTapete(props) {
         await handleProductOperation(false);
     };
 
-    const handleSyncProduct = async () => {
-        await handleProductOperation(true);
-    };
-
-    const handleClickDialogSyncSuccess = () => {
-        setOpenAlertSuccessSync(false);
-        openSnackbarSuccess('Proceso exitoso! recibirás una notificación cuando se haya sincronizado el producto.');
-        return navigate('/success-product');
-    }
-
-    const handleSyncProductWooCommerce = async (payload) => {
-        try {
-            await helper.syncProductWooCommerceQueue(payload, companyId, idProduct);
-            handleClearForm();
-            setAttributeConfigs([]);
-            setAdditionalConfigs({ hasBarcode: false });
-            setFileData([]);
-            setOpenAlertSuccessSync(true);
-        } catch (error) {
-            console.log(error);
-            openSnackbarDanger('Ocurrió un error al sincronizar el producto en woocommerce.');
-        } finally {
-            setOpenBackdrop(false);
-            setTitleBackdrop("");
-            setOpenDrawerSync(false);
-        }
-    };
-
     const preparePayload = () => {
         let payload = formData;
         let payloadModiffied = { ...payload, sku: lastSku };
-        payloadModiffied.quantity = Number(formData.quantity);
-        payloadModiffied.costPrice = Number(formData.costPrice);
-        payloadModiffied.salePrice = Number(formData.salePrice);
+        payloadModiffied.name = formData.name.toUpperCase();
+        payloadModiffied.quantity = Number(formData.quantity) ?? 0;
+        payloadModiffied.costPrice = Number(formData.costPrice) ?? 0;
+        payloadModiffied.salePrice = Number(formData.costPrice) ?? 0;
+        payloadModiffied.taxPercent = Number(formData.taxPercent) ?? 0;
         payloadModiffied.companyId = companyId;
 
         let additionalConfigsModiffied = { ...additionalConfigs, images: fileData.map(({ url }) => url) }
@@ -257,6 +200,24 @@ export default function LayoutCreateProductTapete(props) {
         setOpenBackdrop(false);
     }
 
+    const toggleSection = (section) => {
+        setOpenSections((prev) => ({
+            ...prev,
+            [section]: !prev[section],
+        }))
+    };
+
+    const handleSwitchChange = (e) => {
+        const { name, value, type, checked } = e.target;
+
+        setFormData((prevFormData) => ({
+            ...prevFormData,
+            [name]: type === 'checkbox' ? checked : value,
+        }));
+
+    }
+
+
     const actions = [
         { icon: <SaveIcon />, name: 'Guardar', onClick: handleSubmit },
         { icon: <ImportIcon />, name: 'Importar', onClick: () => handleOpenDrawerImport() },
@@ -268,36 +229,24 @@ export default function LayoutCreateProductTapete(props) {
         helper.getCategoriesFullByProduct(companyId)
             .then(async (respCategoriesFull) => {
                 //let respCategoriesFull = await helper.getCategoriesFullByProduct(companyId);
-                let respWarehouses = await helper.getWarehouseByCompany(companyId);
-                let respProviders = await helper.getProviderByCompany(companyId);
+                /* let respWarehouses = await helper.getWarehouseByCompany(companyId);
+                let respProviders = await helper.getProviderByCompany(companyId); */
                 let unitOfMeasures = await helper.getAllUnitsMeasure();
-                let taxes = await helper.getAllTaxes();
+                /* let taxes = await helper.getAllTaxes(); */
                 let typesProduct = await helper.getTypesProduct();
 
 
                 await handleSetLastSku();
                 let categories = respCategoriesFull.data;
-                let warehouses = respWarehouses.data;
-                let providers = respProviders.data;
+                /* let warehouses = respWarehouses.data;
+                let providers = respProviders.data; */
 
                 setCategories(categories ?? []);
-                setWarehouses(warehouses ?? []);
-                setProviders(providers ?? []);
+                /* setWarehouses(warehouses ?? []);
+                setProviders(providers ?? []); */
                 setUnits(unitOfMeasures ?? []);
-                setTaxes(taxes ?? []);
+                /* setTaxes(taxes ?? []); */
                 setTypesProduct(typesProduct?.data ?? []);
-                //setAttributeConfigs(response.data);
-
-                // Inicializar atributos en formData con valores vacíos
-                /* const initialAttributes = response.data.reduce((acc, attr) => {
-                    acc[attr.name] = '';
-                    return acc;
-                }, {}); */
-
-                /* setFormData(prevFormData => ({
-                    ...prevFormData,
-                    attributes: []
-                })); */
             })
             .catch(error => {
                 console.error('Error fetching categories:', error);
@@ -324,533 +273,481 @@ export default function LayoutCreateProductTapete(props) {
 
 
     return (
-        <Fragment>
-            <DrawerProductsImport
-                openDrawer={openDrawerImport}
-                setOpenDrawer={setOpenDrawerImport}
-            /* handleAction={handleAction} */
-            />
-            <GenericDialog
-                open={openAlertSuccessSync}
-                handleClose={() => setOpenAlertSuccessSync(false)}
-                title="Sincronización añadida a la cola"
-                body="El producto ha sido añadido a la cola de sincronización, te notificaremos cuando sea concluida la operación."
-                icon="Aceptar"
-                isCancelable={false}
-                handleClick={handleClickDialogSyncSuccess}
-            />
+        <>
+            <style jsx>{`
+    .floating-input-container {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
 
-            <SpeedDialProduct actions={actions}> </SpeedDialProduct>
-            <BackdropGlobal
-                openBackdrop={openBackdrop}
-                handleClose={handleCloseBackdrop}
-                title={titleBackdrop}
-            />
+    .floating-input {
+      width: 100%;
+      padding: 1rem 0.75rem 0.5rem 0.75rem;
+      border: 1px solid #ced4da;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      background-color: #fff;
+      transition: all 0.2s ease-in-out;
+    }
 
-            <div className="page-content">
-                <DrawerProductSync
-                    openDrawerSync={openDrawerSync}
-                    setOpenDrawerSync={setOpenDrawerSync}
-                    setMarketPlaceToSync={setMarketPlaceToSync}
-                    handleSyncProduct={handleSyncProduct}
+    .floating-input:focus {
+      outline: none;
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .floating-label {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #fff;
+      padding: 0 0.25rem;
+      color: #6c757d;
+      font-size: 1rem;
+      transition: all 0.2s ease-in-out;
+      pointer-events: none;
+    }
+
+    .floating-input:focus + .floating-label,
+    .floating-input.has-value + .floating-label {
+      top: 0;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      color: #0d6efd;
+      font-weight: 500;
+    }
+
+    .section-card {
+      border: 1px solid #e9ecef;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .section-header {
+      border-bottom: 1px solid #e9ecef;
+      transition: background-color 0.2s ease;
+    }
+
+    .section-header:hover {
+      background-color: #f8f9fa;
+    }
+
+    .section-title {
+      color: #333;
+      font-weight: 600;
+    }
+
+    .type-option {
+      border: 2px solid #e9ecef;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      height: 100%;
+    }
+
+    .type-option:hover {
+      border-color: #0d6efd;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .type-option.selected {
+      border-color: #0d6efd;
+      background-color: #f8f9ff;
+    }
+
+    .type-option input[type="radio"] {
+      transform: scale(1.2);
+    }
+
+    .contact-card {
+      border: 1px solid #e9ecef;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      background-color: #f8f9fa;
+    }
+
+    .custom-field-row {
+      background-color: #f8f9fa;
+      border-radius: 0.375rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn-floating {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+    }
+
+    @media (max-width: 768px) {
+      .floating-input {
+        padding: 0.875rem 0.75rem 0.375rem 0.75rem;
+      }
+      
+      .btn-floating {
+        bottom: 1rem;
+        right: 1rem;
+        width: 50px;
+        height: 50px;
+      }
+    }
+  `}</style>
+            <Fragment>
+                <DrawerProductsImport
+                    openDrawer={openDrawerImport}
+                    setOpenDrawer={setOpenDrawerImport}
                 />
+                <SpeedDialProduct actions={actions}> </SpeedDialProduct>
+                <BackdropGlobal
+                    openBackdrop={openBackdrop}
+                    handleClose={handleCloseBackdrop}
+                    title={titleBackdrop}
+                />
+            </Fragment >
 
-                <Container fluid>
-                    <BreadCrumb title="Crear Tapete" pageTitle="Productos" to={`/products-list`} />
+            <TopLayoutPage
+                title={"Producto"}
+                pageTitle={"Productos"}
+                to={`/products-list-v2`}
+                children={
+                    <Fragment>
 
-                    <Row md={12}>
-
-                        <Col md={6} style={{}}>
-                            <Row>
-                                <Col md={12} style={{}}>
-                                    <LayoutTextInputs
-                                        title={"Descripción"}
-                                        item1={
-                                            <>
-                                                <div className="input-wrapper">
-                                                    <label className='form-label' htmlFor="quantity">*Nombre (Línea):</label>
-                                                    <GlobalInputText
-                                                        name={'name'}
-                                                        onChange={handleInputChange}
-                                                        placeholder={'Nombre o línea del producto'}
-                                                        value={formData.name}
-                                                        type={"text"}
-                                                        className={"input-box"}
-                                                        id={'name'}
-                                                        required={true}
-                                                    />
-                                                </div>
-                                                {errors.name && (<span className="form-product-input-error">{errors.name}</span>)}
-                                            </>
-                                        }
-                                        item2={
-                                            <>
-                                                <div className="input-wrapper">
-                                                    <label className='form-label' htmlFor="quantity">*Descripción:</label>
-                                                    <GlobalInputText
-                                                        name={'description'}
-                                                        onChange={handleInputChange}
-                                                        placeholder={'Descripción del producto'}
-                                                        value={formData.description}
-                                                        type={"text"}
-                                                        className={"input-box"}
-                                                        id={'description'}
-                                                        required={false}
-                                                    />
-                                                </div>
-                                                {errors.description && (<span className="form-product-input-error">{errors.description}</span>)}
-                                            </>
-                                        }
-                                        item3={
-                                            <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                                <label className='form-label' htmlFor="id_type_product">*Tipo de producto:</label>
-                                                <div>
-                                                    <Input
-                                                        style={{
-                                                            border: 'none !important',
-                                                            borderBottom: '2px solid #ccc !important',
-                                                            backgroundColor: 'transparent',
-                                                            color: '#132649',
-                                                            '&:focus': { border: 'none', boxShadow: 'none' },
-                                                            fontSize: '1em',
-                                                        }}
-                                                        bsSize="md"
-                                                        type="select"
-                                                        id="id_type_product"
-                                                        name="id_type_product"
-                                                        value={formData.id_type_product}
-                                                        onChange={handleInputChange}
-                                                        required
-                                                        className="form-control"
-                                                    >
-                                                        <option value="0">Selecciona una opción</option>
-                                                        {
-                                                            typesProduct.map((typeProduct) => {
-                                                                return (<option key={typeProduct?._id} label={typeProduct?.name} value={typeProduct?._id}></option>)
-                                                            })
-                                                        }
-                                                    </Input>
-                                                </div>
-                                                {errors.id_type_product && (<span className="form-product-input-error">{errors.id_type_product}</span>)}
-                                            </div>
-                                        }
+                        {/* Datos Básicos */}
+                        <CollapsibleSection
+                            id="datosBasicos"
+                            title="Datos Básicos"
+                            icon={CircleAlert}
+                            isOpen={openSections.datosBasicos}
+                            onToggle={toggleSection}
+                        >
+                            <Row className="mt-3">
+                                <Col md={6}>
+                                    <FloatingInput
+                                        id="sku"
+                                        name="sku"
+                                        value={lastSku}
+                                        onChange={handleInputChange}
+                                        label="Código"
+                                        disabled
                                     />
+                                    {validationErrors.sku && <span style={{ color: "red" }}>{validationErrors.sku}</span>}
+                                </Col>
+
+                                <Col md={6}>
+                                    <Input
+                                        style={{
+                                            border: 'none !important',
+                                            borderBottom: '2px solid #ccc !important',
+                                            backgroundColor: 'transparent',
+                                            color: '#132649',
+                                            '&:focus': { border: 'none', boxShadow: 'none' },
+                                            fontSize: '1em',
+                                        }}
+                                        bsSize="lg"
+                                        type="select"
+                                        id="id_category"
+                                        name="id_category"
+                                        value={formData.id_category}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="form-control mb-3 floating-input"
+                                    >
+                                        <option value="0">Selecciona una marca <span className="text-danger">*</span></option>
+                                        {
+                                            categories.map((category) => {
+                                                return (<option key={category?._id} label={category?.name} value={category?._id}></option>)
+                                            })
+                                        }
+                                    </Input>
+                                    {validationErrors.id_category && <span style={{ color: "red" }}>{validationErrors.id_category}</span>}
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col md={6}>
+                                    <FloatingInput
+                                        id="name"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        label="Nombre (Línea)"
+                                        required
+                                    />
+                                    {validationErrors.name && <span style={{ color: "red" }}>{validationErrors.name}</span>}
+                                </Col>
+
+                                <Col md={6}>
+                                    <Input
+                                        style={{
+                                            border: 'none !important',
+                                            borderBottom: '2px solid #ccc !important',
+                                            backgroundColor: 'transparent',
+                                            color: '#132649',
+                                            '&:focus': { border: 'none', boxShadow: 'none' },
+                                            fontSize: '1em',
+                                        }}
+                                        bsSize="md"
+                                        type="select"
+                                        id="id_type_product"
+                                        name="id_type_product"
+                                        value={formData.id_type_product}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="form-control mb-3 floating-input"
+                                    >
+                                        <option value="0">Selecciona un tipo de vehículo <span className="text-danger">*</span></option>
+                                        {
+                                            typesProduct.map((typeProduct) => {
+                                                return (<option key={typeProduct?._id} label={typeProduct?.name} value={typeProduct?._id}></option>)
+                                            })
+                                        }
+                                    </Input>
+                                    {validationErrors.id_type_product && <span style={{ color: "red" }}>{validationErrors.id_type_product}</span>}
+                                </Col>
+
+
+                            </Row>
+
+                            <Row>
+                                <Col md={6}>
+                                    <Select
+                                        id="typeOfPieces"
+                                        name="typeOfPieces"
+                                        isMulti
+
+                                        options={typeOfPieces.map(piece => ({
+                                            value: piece._id,
+                                            label: piece.name
+                                        }))}
+                                        value={typeOfPieces
+                                            .filter(piece => formData.typeOfPieces.includes(piece._id))
+                                            .map(piece => ({ value: piece._id, label: piece.name }))
+                                        }
+                                        onChange={(selectedOptions) => {
+                                            const values = selectedOptions.map(opt => opt.value);
+                                            handleInputChange({ target: { name: "typeOfPieces", value: values } });
+                                        }}
+                                        classNamePrefix="react-select"
+                                        placeholder="Selecciona uno o más tipos de piezas"
+                                        className="form-control"
+                                    />
+                                    {validationErrors.typeOfPieces && <span style={{ color: "red" }}>{validationErrors.typeOfPieces}</span>}
+                                </Col>
+
+                                <Col md={6}>
+                                    <FloatingInput
+                                        id="observations"
+                                        name="observations"
+                                        value={formData.observations}
+                                        onChange={handleInputChange}
+                                        label="Observaciones"
+                                    />
+                                    {validationErrors.observations && <span style={{ color: "red" }}>{validationErrors.observations}</span>}
+                                </Col>
+                            </Row>
+                        </CollapsibleSection>
+
+                        {/* Datos de inventario */}
+                        <CollapsibleSection
+                            id="inventario"
+                            title="Datos de inventario"
+                            icon={WarehouseIcon}
+                            isOpen={openSections.inventario}
+                            onToggle={toggleSection}
+                        >
+                            <Row className="mt-3">
+                                <Col md={6}>
+                                    <FloatingInput
+                                        id="costPrice"
+                                        name="costPrice"
+                                        value={formData.costPrice}
+                                        onChange={handleInputChange}
+                                        label="Precio base"
+                                        type="number"
+                                        required
+                                    />
+                                    {validationErrors.costPrice && <span style={{ color: "red" }}>{validationErrors.costPrice}</span>}
+                                </Col>
+
+                                <Col md={6}>
+                                    <Input
+                                        style={{
+                                            border: 'none !important',
+                                            borderBottom: '2px solid #ccc !important',
+                                            backgroundColor: 'transparent',
+                                            color: '#132649',
+                                            '&:focus': { border: 'none', boxShadow: 'none' },
+                                            fontSize: '1em',
+                                        }}
+                                        bsSize="md"
+                                        type="select"
+                                        id="unitOfMeasureId"
+                                        name="unitOfMeasureId"
+                                        value={formData.unitOfMeasureId}
+                                        onChange={handleInputChange}
+                                        required
+                                        className="form-control mb-3 floating-input"
+                                    >
+                                        <option value="0">Selecciona una unidad de medida <span className="text-danger">*</span></option>
+                                        {
+                                            units.map((unit) => {
+                                                return (<option key={unit._id} label={`${unit.name} (${unit.abbreviation})`} value={unit._id}></option>)
+                                            })
+                                        }
+                                    </Input>
+                                    {validationErrors.unitOfMeasureId && <span style={{ color: "red" }}>{validationErrors.unitOfMeasureId}</span>}
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col md={6}>
+                                    <FloatingInput
+                                        name="barCode"
+                                        id="barCode"
+                                        value={formData.barCode}
+                                        onChange={handleInputChange}
+                                        label="Código de barras"
+                                    />
+                                    {validationErrors.barCode && <span style={{ color: "red" }}>{validationErrors.barCode}</span>}
+                                </Col>
+
+                                <Col md={6}>
+                                    <span>¿El IVA está incluido en el precio de venta?</span>
+                                    <div className="checkbox-wrapper-59 pt-1" style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                                        <label className="switch">
+                                            <input
+                                                type="checkbox"
+                                                name={"taxIncluded"}
+                                                id={"taxIncluded"}
+                                                value={formData.taxIncluded}
+                                                onChange={handleSwitchChange}
+                                            />
+                                            <span className="slider"></span></label>
+                                        <span style={{ padding: '0.5em' }}>Sí / No</span>
+                                    </div>
+                                </Col>
+                            </Row>
+
+                            <Row>
+                                <Col md={6}>
+                                    <FloatingInput
+                                        name="taxPercent"
+                                        type="number"
+                                        id="taxPercent"
+                                        value={formData.taxPercent}
+                                        onChange={handleInputChange}
+                                        label="Impuesto (Porcentaje IVA)"
+                                    />
+                                    {validationErrors.taxPercent && <span style={{ color: "red" }}>{validationErrors.taxPercent}</span>}
                                 </Col>
 
                             </Row>
+                        </CollapsibleSection>
 
-                            <Col md={12} style={{}}>
+                        {/* Galería de multimedia */}
+                        <CollapsibleSection
+                            id="multimedia"
+                            title="Galería"
+                            icon={ImageIcon}
+                            isOpen={openSections.multimedia}
+                            onToggle={toggleSection}
+                        >
+                            <Row className="mt-3">
+                                <Col md={12}>
 
-                                <LayoutTextInputs
-                                    title={"Propiedades"}
-                                    item1={
-                                        <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                            <label className='form-label' htmlFor="id_category">*Marca:</label>
-                                            <div>
-                                                <Input
-                                                    style={{
-                                                        border: 'none !important',
-                                                        borderBottom: '2px solid #ccc !important',
-                                                        backgroundColor: 'transparent',
-                                                        color: '#132649',
-                                                        '&:focus': { border: 'none', boxShadow: 'none' },
-                                                        fontSize: '1em',
-                                                    }}
-                                                    bsSize="md"
-                                                    type="select"
-                                                    id="id_category"
-                                                    name="id_category"
-                                                    value={formData.id_category}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                    className="form-control"
-                                                >
-                                                    <option value="0">Selecciona una opción</option>
-                                                    {
-                                                        categories.map((category) => {
-                                                            return (<option key={category?._id} label={category?.name} value={category?._id}></option>)
-                                                        })
-                                                    }
-                                                </Input>
-                                            </div>
-                                            {errors.id_category && (<span className="form-product-input-error">{errors.id_category}</span>)}
-                                        </div>
-                                    }
-                                    /* item2={
-                                        <div className="col-span-8 sm:col-span-4">
-                                            <label className='form-label' htmlFor="id_sub_category">*Subcategoría:</label>
-                                            <div>
-                                                <Input
-                                                    style={{
-                                                        border: 'none !important',
-                                                        borderBottom: '2px solid #ccc !important',
-                                                        backgroundColor: 'transparent',
-                                                        color: '#132649',
-                                                        '&:focus': { border: 'none', boxShadow: 'none' },
-                                                        fontSize: '1em',
-                                                    }}
-                                                    bsSize="md"
-                                                    type="select"
-                                                    id="id_sub_category"
-                                                    name="id_sub_category"
-                                                    value={formData.id_sub_category}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                    className="form-control"
-                                                >
-                                                    <option value="0">Selecciona una opción</option>
-                                                    {
-                                                        subcategories.map((subcategory) => {
-                                                            return (<option key={subcategory?._id} label={subcategory?.name} value={subcategory?._id}></option>)
-                                                        })
-                                                    }
-                                                </Input>
-                                            </div>
-                                            {errors.id_sub_category && (<span className="form-product-input-error">{errors.id_sub_category}</span>)}
-                                        </div>
-                                    } */
-                                    item3={
-                                        <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                            <label className='form-label' htmlFor="typeOfPieces">*Tipo(s) de pieza:</label>
-                                            <Select
-                                                id="typeOfPieces"
-                                                name="typeOfPieces"
-                                                isMulti
-                                                options={typeOfPieces.map(piece => ({
-                                                    value: piece._id,
-                                                    label: piece.name
-                                                }))}
-                                                value={typeOfPieces
-                                                    .filter(piece => formData.typeOfPieces.includes(piece._id))
-                                                    .map(piece => ({ value: piece._id, label: piece.name }))
-                                                }
-                                                onChange={(selectedOptions) => {
-                                                    const values = selectedOptions.map(opt => opt.value);
-                                                    handleInputChange({ target: { name: "typeOfPieces", value: values } });
-                                                }}
-                                                classNamePrefix="react-select"
-                                                placeholder="Selecciona uno o más tipos"
-                                            />
-                                            {errors.typeOfPieces && (
-                                                <span className="form-product-input-error">{errors.typeOfPieces}</span>
-                                            )}
-                                        </div>
-                                    }
-                                />
-                            </Col>
-
-                            <Col md={12} style={{}}>
-
-                                <LayoutTextInputs
-                                    title={"Inventario"}
-                                    item1={
-                                        <div className="input-wrapper">
-                                            <label className='form-label' htmlFor="externalId">*Código externo:</label>
-                                            <GlobalInputText
-                                                name={'externalId'}
-                                                onChange={handleInputChange}
-                                                placeholder={'Ej. 9987621'}
-                                                value={formData.externalId}
-                                                type={"text"}
-                                                className={"input-box"}
-                                                id={'externalId'}
-                                                disabled={false}
-                                            />
-                                        </div>
-
-                                    }
-                                    md1={6}
-                                    md2={6}
-                                    group={true}
-                                    item2={
-                                        <div className="input-wrapper">
-                                            <label className='form-label' htmlFor="quantity">*SKU:</label>
-                                            <GlobalInputText
-                                                name={'sku'}
-                                                onChange={handleInputChange}
-                                                placeholder={'sku'}
-                                                value={lastSku}
-                                                type={"text"}
-                                                className={"input-box"}
-                                                id={'sku'}
-                                                disabled={true}
-                                            />
-                                        </div>
-                                    }
-                                    md3={6}
-                                    item3={
-                                        <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                            <label className='form-label' htmlFor="quantity">*Cantidad:</label>
-                                            <div>
-                                                <InputSpin
-                                                    setState={handleSetQuantity}
-                                                    value={formData.quantity}
-                                                    min={"0"}
-                                                    max={"5000"}
-                                                    inputClassname={'bg-red'}
-                                                    containerClass={"input-step full-width"}
-                                                />
-                                            </div>
-                                            {errors.quantity && (<span className="form-product-input-error">{errors.quantity}</span>)}
-                                        </div>
-                                    }
-                                    md3_5={6}
-                                    item3_5={
-                                        <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                            <label className='form-label' htmlFor="unitOfMeasureId">*Unidad de medida:</label>
-                                            <div>
-                                                <Input
-                                                    style={{
-                                                        border: 'none !important',
-                                                        borderBottom: '2px solid #ccc !important',
-                                                        backgroundColor: 'transparent',
-                                                        color: '#132649',
-                                                        '&:focus': { border: 'none', boxShadow: 'none' },
-                                                        fontSize: '1em',
-                                                    }}
-                                                    bsSize="md"
-                                                    type="select"
-                                                    id="unitOfMeasureId"
-                                                    name="unitOfMeasureId"
-                                                    value={formData.unitOfMeasureId}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                    className="form-control"
-                                                >
-                                                    <option value="0">Selecciona una opción</option>
-                                                    {
-                                                        units.map((unit) => {
-                                                            return (<option key={unit._id} label={`${unit.name} (${unit.abbreviation})`} value={unit._id}></option>)
-                                                        })
-                                                    }
-                                                </Input>
-                                            </div>
-                                            {errors.unitOfMeasureId && (<span className="form-product-input-error">{errors.unitOfMeasureId}</span>)}
-                                        </div>
-                                    }
-                                    md4={12}
-                                    item4={
-                                        <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                            <label className='form-label' htmlFor="id_category">*Bodega:</label>
-                                            <div>
-                                                <Input
-                                                    style={{
-                                                        border: 'none !important',
-                                                        borderBottom: '2px solid #ccc !important',
-                                                        backgroundColor: 'transparent',
-                                                        color: '#132649',
-                                                        '&:focus': { border: 'none', boxShadow: 'none' },
-                                                        fontSize: '1em',
-                                                    }}
-                                                    bsSize="md"
-                                                    type="select"
-                                                    id="warehouseId"
-                                                    name="warehouseId"
-                                                    value={formData.warehouseId}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                    className="form-control"
-                                                >
-                                                    <option value="0">Selecciona una opción</option>
-                                                    {
-                                                        warehouses.map((warehouse) => {
-                                                            return (<option key={warehouse?._id} label={warehouse?.name} value={warehouse?.uuid}></option>)
-                                                        })
-                                                    }
-                                                </Input>
-                                            </div>
-                                            {errors.warehouseId && (<span className="form-product-input-error">{errors.warehouseId}</span>)}
-                                        </div>
-                                    }
-                                    md5={12}
-                                    item5={
-                                        <div className="col-span-4 sm:col-span-4 pr-2 mr-2">
-                                            <label className='form-label' htmlFor="providerId">*Proveedor:</label>
-                                            <div>
-                                                <Input
-                                                    style={{
-                                                        border: 'none !important',
-                                                        borderBottom: '2px solid #ccc !important',
-                                                        backgroundColor: 'transparent',
-                                                        color: '#132649',
-                                                        '&:focus': { border: 'none', boxShadow: 'none' },
-                                                        fontSize: '1em',
-                                                    }}
-                                                    bsSize="md"
-                                                    type="select"
-                                                    id="providerId"
-                                                    name="providerId"
-                                                    value={formData.providerId}
-                                                    onChange={handleInputChange}
-                                                    required
-                                                    className="form-control"
-                                                >
-                                                    <option value="0">Selecciona una opción</option>
-                                                    {
-                                                        providers.map((provider) => {
-                                                            return (<option key={provider?._id} label={provider?.name} value={provider?.uuid}></option>)
-                                                        })
-                                                    }
-                                                </Input>
-                                            </div>
-                                            {errors.providerId && (<span className="form-product-input-error">{errors.providerId}</span>)}
-                                        </div>
-                                    }
-                                />
-
-
-                            </Col>
-
-                            <Row>
-                            </Row>
-                        </Col>
-
-
-                        <Col md={6} style={{}}>
-                            <Row>
-                                <Col md={12} style={{}}>
-
-                                    {/* Sección imagenes del producto */}
-                                    <LayoutProductImages
-                                        item1={
-                                            <FilePond
-                                                acceptedFileTypes={acceptedFileTypes}
-                                                fileValidateTypeLabelExpectedTypesMap={{
-                                                    'image/jpeg': '.jpg',
-                                                    'image/png': '.png',
-                                                    'image/gif': '.gif',
-                                                }}
-                                                labelFileTypeNotAllowed={'Solo se permiten archivos de imagen.'}
-                                                beforeAddFile={(file) => {
-                                                    const fileType = file.fileType;
-                                                    if (!acceptedFileTypes.includes(fileType)) {
-                                                        return false;
-                                                    }
-                                                    return true;
-                                                }}
-                                                server={
-                                                    {
-                                                        process: {
-                                                            url: url.UPLOAD_IMAGES,
-                                                            method: 'POST',
-                                                            withCredentials: false,
-                                                            onload: (response) => {
-                                                                const { url, storageId } = JSON.parse(response);
-                                                                return JSON.stringify({ url, storageId });
-                                                            },
-                                                            onerror: (response) => {
-                                                                console.error('Error uploading file:', response);
-                                                            },
-                                                        },
-                                                        revert: async (uniqueFileId, load, error) => {
-                                                            try {
-                                                                const { storageId } = JSON.parse(uniqueFileId);
-                                                                let data = await helper.deleteImageProduct(storageId);
-                                                                if (data?.status === 'success') {
-                                                                    let newFileData = fileData.filter((file) => file.storageId !== storageId)
-                                                                    setFileData(newFileData);
-                                                                    load();
-                                                                } else {
-                                                                    error('Could not delete file');
-                                                                }
-                                                            } catch (e) {
-                                                                error('Could not delete file');
-                                                            }
+                                    <FilePond
+                                        acceptedFileTypes={acceptedFileTypes}
+                                        fileValidateTypeLabelExpectedTypesMap={{
+                                            'image/jpeg': '.jpg',
+                                            'image/png': '.png',
+                                            'image/gif': '.gif',
+                                        }}
+                                        labelFileTypeNotAllowed={'Solo se permiten archivos de imagen.'}
+                                        beforeAddFile={(file) => {
+                                            const fileType = file.fileType;
+                                            if (!acceptedFileTypes.includes(fileType)) {
+                                                return false;
+                                            }
+                                            return true;
+                                        }}
+                                        server={
+                                            {
+                                                process: {
+                                                    url: url.UPLOAD_IMAGES,
+                                                    method: 'POST',
+                                                    withCredentials: false,
+                                                    onload: (response) => {
+                                                        const { url, storageId } = JSON.parse(response);
+                                                        return JSON.stringify({ url, storageId });
+                                                    },
+                                                    onerror: (response) => {
+                                                        console.error('Error uploading file:', response);
+                                                    },
+                                                },
+                                                revert: async (uniqueFileId, load, error) => {
+                                                    try {
+                                                        const { storageId } = JSON.parse(uniqueFileId);
+                                                        let data = await helper.deleteImageProduct(storageId);
+                                                        if (data?.status === 'success') {
+                                                            let newFileData = fileData.filter((file) => file.storageId !== storageId)
+                                                            setFileData(newFileData);
+                                                            load();
+                                                        } else {
+                                                            error('Could not delete file');
                                                         }
+                                                    } catch (e) {
+                                                        error('Could not delete file');
                                                     }
                                                 }
-                                                onprocessfile={(error, file) => {
-                                                    if (error) {
-                                                        console.error('Error processing file:', error);
-                                                        return;
-                                                    }
-                                                    const { file: fileInfo } = file;
-                                                    const { name } = fileInfo;
-                                                    // Add the URL and storageId to fileData
-                                                    setFileData((prevData) => [
-                                                        ...prevData,
-                                                        {
-                                                            url: JSON.parse(file.serverId).url,  // URL returned by onload
-                                                            storageId: JSON.parse(file.serverId).storageId, // Extract storageId from serverId
-                                                            name,
-                                                        },
-                                                    ]);
-                                                }}
-                                                allowMultiple={true}
-                                                maxFiles={4}
-                                                name="files"
-                                                className="filepond filepond-input-multiple"
-                                                labelIdle='Arrastra tus archivos aquí o <span className="filepond--label-action">Buscar</span>'
-                                                labelFileLoadError="Error durante la carga"
-                                                labelFileProcessingError="Error al cargar la imagen"
-                                                labelTapToCancel="Tap para cancelar"
-                                                labelTapToRetry="Tap para reintentar"
-                                                labelTapToUndo="Tap para revertir"
-                                                labelFileProcessing="Subiendo"
-                                                labelFileProcessingComplete="Carga completa"
-                                                labelFileProcessingAborted="Carga cancelada"
-                                            />
+                                            }
                                         }
-
+                                        onprocessfile={(error, file) => {
+                                            if (error) {
+                                                console.error('Error processing file:', error);
+                                                return;
+                                            }
+                                            const { file: fileInfo } = file;
+                                            const { name } = fileInfo;
+                                            // Add the URL and storageId to fileData
+                                            setFileData((prevData) => [
+                                                ...prevData,
+                                                {
+                                                    url: JSON.parse(file.serverId).url,  // URL returned by onload
+                                                    storageId: JSON.parse(file.serverId).storageId, // Extract storageId from serverId
+                                                    name,
+                                                },
+                                            ]);
+                                        }}
+                                        allowMultiple={true}
+                                        maxFiles={4}
+                                        name="files"
+                                        className="filepond filepond-input-multiple"
+                                        labelIdle='Arrastra tus archivos aquí o <span className="filepond--label-action">Buscar</span>'
+                                        labelFileLoadError="Error durante la carga"
+                                        labelFileProcessingError="Error al cargar la imagen"
+                                        labelTapToCancel="Tap para cancelar"
+                                        labelTapToRetry="Tap para reintentar"
+                                        labelTapToUndo="Tap para revertir"
+                                        labelFileProcessing="Subiendo"
+                                        labelFileProcessingComplete="Carga completa"
+                                        labelFileProcessingAborted="Carga cancelada"
                                     />
-                                </Col >
 
-                            </Row >
-
-                            <Row>
-                                <Col md={12} style={{}}>
-                                    <LayoutTextInputs
-                                        title={"Precios"}
-                                        item1={
-                                            <>
-                                                <div className="input-wrapper">
-                                                    <label className='form-label' htmlFor="quantity">*Precio de costo:</label>
-                                                    <GlobalInputText
-                                                        name={'costPrice'}
-                                                        onChange={handleInputChange}
-                                                        placeholder={'$600.000'}
-                                                        value={formData.costPrice}
-                                                        type={"number"}
-                                                        className={"input-box"}
-                                                        id={'costPrice'}
-                                                        required={true}
-                                                    />
-                                                </div>
-                                                {errors.costPrice && (<span className="form-product-input-error">{errors.costPrice}</span>)}
-                                            </>
-
-                                        }
-                                        item2={
-                                            <>
-                                                <div className="input-wrapper">
-                                                    <label className='form-label' htmlFor="quantity">*Precio de venta:</label>
-                                                    <GlobalInputText
-                                                        name={'salePrice'}
-                                                        onChange={handleInputChange}
-                                                        placeholder={'$630.000'}
-                                                        value={formData.salePrice}
-                                                        type={"number"}
-                                                        className={"input-box"}
-                                                        id={'salePrice'}
-                                                        required={true}
-                                                    />
-                                                </div>
-                                                {errors.salePrice && (<span className="form-product-input-error">{errors.salePrice}</span>)}
-                                            </>
-                                        }
-                                    />
                                 </Col>
-
                             </Row>
-                        </Col >
+                        </CollapsibleSection>
 
-                    </Row >
+                    </Fragment>
 
-                </Container >
-
-            </div >
-
-        </Fragment >
+                }
+            />
+        </>
     )
 
 }

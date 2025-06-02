@@ -440,9 +440,15 @@ const DataTable = ({
         <ModalBody>
           ¿Está seguro que desea eliminar este registro?
           {itemToDelete && (
-            <div className="mt-2">
-              <strong>Nombre:</strong> {itemToDelete?.name ?? itemToDelete?.tipo_material ?? itemToDelete?.label}
-            </div>
+            <>
+              {
+                itemToDelete?.name || itemToDelete?.tipo_material || itemToDelete?.label && (
+                  <div className="mt-2">
+                    <strong>Nombre:</strong> {itemToDelete?.name ?? itemToDelete?.tipo_material ?? itemToDelete?.label}
+                  </div>
+                )
+              }
+            </>
           )}
         </ModalBody>
         <ModalFooter>
