@@ -1,5 +1,5 @@
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
-import { GET_CUSTOMER_BY_ID, GET_CUSTOMERS, GET_CUSTOMERS_TYPES, GET_CUSTOMERS_TYPES_DOCUMENTS, GET_TYPES_CUSTOMERS } from "./url_helper";
+import { GET_CUSTOMER_BY_ID, GET_CUSTOMERS, GET_CUSTOMERS_TYPES, GET_CUSTOMERS_TYPES_DOCUMENTS, GET_POSTAL_CODE_FROM_CITY, GET_TYPES_CUSTOMERS } from "./url_helper";
 
 
 export class CustomerHelper {
@@ -111,6 +111,25 @@ export class CustomerHelper {
         } catch (error) {
             console.log(error);
             return [];
+        }
+    };
+
+    getPostalCodeFromCity = async (city) => {
+        try {
+            let response = await fetch(`${GET_POSTAL_CODE_FROM_CITY}?placename=${city}&country=CO&username=yudexlabs`);
+            if (response && response.status === 200) {
+                let data = await response.json();
+                let postalCodes = data?.postalCodes;
+                if (postalCodes && Array.isArray(postalCodes) && postalCodes.length > 0) {
+                    return postalCodes[0]?.postalCode;
+                }
+                return null;
+            } else {
+                return [];
+            }
+        } catch (error) {
+            console.log(error);
+            return null;
         }
     };
 }

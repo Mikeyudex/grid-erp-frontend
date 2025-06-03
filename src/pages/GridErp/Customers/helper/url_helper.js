@@ -25,3 +25,5 @@ export const GET_CUSTOMERS_TYPES_DOCUMENTS_BY_ID = baseUrl + "/typeOfDocument/ge
 export const UPDATE_CUSTOMERS_TYPES_DOCUMENTS = baseUrl + "/typeOfDocument/update";
 export const DELETE_CUSTOMERS_TYPES_DOCUMENTS = baseUrl + "/typeOfDocument/delete";
 export const BULK_DELETE_CUSTOMERS_TYPES_DOCUMENTS = baseUrl + "/typeOfDocument/bulkDelete";
+
+export const GET_POSTAL_CODE_FROM_CITY = "http://api.geonames.org/postalCodeSearchJSON";

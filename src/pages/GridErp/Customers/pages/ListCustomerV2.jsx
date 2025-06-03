@@ -9,6 +9,7 @@ import { CustomerContext } from "../context/customerContext";
 import { useNavigate } from "react-router-dom";
 import { TopLayoutGeneralView } from "../../../../Components/Common/TopLayoutGeneralView";
 import { Loader } from "lucide-react";
+import { BASE_URL } from "../../../../helpers/url_helper";
 
 
 const helper = new CustomerHelper();

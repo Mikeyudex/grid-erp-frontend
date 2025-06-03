@@ -102,8 +102,8 @@ export const validateIsSameAddress = (data) => {
         data?.phone === data?.shippingPhone &&
         data?.documento === data?.shippingDocumento &&
         data?.address === data?.shippingAddress &&
-        data?.city === data?.shippingCity /* &&
-        data?.postalCode === data?.shippingPostalCode */
+        data?.city === data?.shippingCity &&
+        data?.postalCode === data?.shippingPostalCode
     ) {
         return true;
     }

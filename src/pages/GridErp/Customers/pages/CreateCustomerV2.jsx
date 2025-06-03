@@ -4,15 +4,18 @@ import { Fragment, useEffect, useState } from "react"
 import { Form, Button, Row, Col, Input, Alert } from "reactstrap"
 import { useNavigate } from "react-router-dom";
 import { Save, User, MapPin, Phone, Settings, FileText, PlusCircle, Trash2 } from "lucide-react";
+import { useSnackbar } from 'react-simple-snackbar';
+import Select from 'react-select';
 
 import TopLayoutPage from "../../../../Layouts/TopLayoutPage";
-import { CustomerHelper, /* typeOfCustomerOptions, typeOfDocumentOptions */ } from "../helper/customer-helper";
+import { CustomerHelper } from "../helper/customer-helper";
 import { FloatingInput } from "../../../../Components/Common/FloatingInput";
 import { CollapsibleSection } from "../../../../Components/Common/CollapsibleSection";
 import { validateBasicInputs, validateIsSameAddress } from "../utils/validations";
 import { ADD_CUSTOMER } from "../helper/url_helper";
 import { optionsSnackbarDanger, optionsSnackbarSuccess } from "../../Products/helper/product_helper";
-import { useSnackbar } from 'react-simple-snackbar';
+import { citys } from "../../../../helpers/citys";
+
 
 const customerHelper = new CustomerHelper();
 
@@ -42,6 +45,7 @@ export default function CreateClientV2({
             documento: "",
             city: "",
             address: "",
+            postalCode: "",
             sameAddress: false,
         },
         shippingData: {
@@ -71,7 +75,7 @@ export default function CreateClientV2({
     const [typeDocumentsOptions, setTypeDocumentsOptions] = useState([]);
     const [typeCustomerName, setTypeCustomerName] = useState("");
     const [customFields, setCustomFields] = useState([{ id: 1, nombre: "", valor: "" }]);
-    const [postalCode, setPostalCode] = useState("");
+    const [cities, setCities] = useState([]);
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [validationErrors, setValidationErrors] = useState({});
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
@@ -95,10 +99,16 @@ export default function CreateClientV2({
         }
     }, [mode, clientId, initialData]);
 
+    const handleGetCities = () => {
+        let citiesOptions = citys.map((c) => ({ value: c.name, label: c.toponymName }));
+        setCities(citiesOptions);
+    };
+
     const loadClientData = async () => {
         setError("");
         setSuccess("");
         try {
+            handleGetCities();
             let customerData = await customerHelper.getCustomerById(clientId);
             if (!customerData) {
                 setError("No se ha seleccionado ningun cliente");
@@ -115,8 +125,9 @@ export default function CreateClientV2({
                     phone: customerData?.phone,
                     email: customerData?.email,
                     documento: customerData?.documento,
-                    city: customerData?.city,
+                    city: cities.find((c) => c.value === customerData?.city),
                     address: customerData?.address,
+                    postalCode: customerData?.postalCode,
                     sameAddress: validateIsSameAddress(customerData),
                 },
                 shippingData: {
@@ -126,7 +137,7 @@ export default function CreateClientV2({
                     shippingEmail: customerData?.shippingEmail,
                     shippingDocumento: customerData?.shippingDocumento,
                     shippingAddress: customerData?.shippingAddress,
-                    shippingCity: customerData?.shippingCity,
+                    shippingCity: cities.find((c) => c.value === customerData?.shippingCity),
                     shippingPostalCode: customerData?.shippingPostalCode,
                 },
                 contacts: customerData?.contacts,
@@ -158,14 +169,26 @@ export default function CreateClientV2({
     }
 
     const handleInputChange = (section, field, value) => {
+        console.log(section, field, value);
+
         setFormData({
             ...formData,
             [section]: {
                 ...formData[section],
                 [field]: value,
             },
-        })
-    }
+        });
+    };
+
+    const handleGetPostalCodeFromCity = async (city) => {
+        try {
+            let postalCode = await customerHelper.getPostalCodeFromCity(city);
+            return postalCode;
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    };
 
     const handleDirectChange = (field, value) => {
         setFormData({
@@ -271,7 +294,10 @@ export default function CreateClientV2({
                     : formData.shippingData.shippingAddress,
                 shippingCity: isSameAddress
                     ? formData.basics.city
-                    : formData.shippingData.shippingCity
+                    : formData.shippingData.shippingCity,
+                shippingPostalCode: isSameAddress
+                    ? formData.basics.postalCode
+                    : formData.shippingData.shippingPostalCode
             }
         })
     }
@@ -320,12 +346,18 @@ export default function CreateClientV2({
         e.preventDefault();
         try {
             setValidationErrors({});
-            let { name, lastname, email, phone, documento, address, city, commercialName, typeOfCustomer, typeOfDocument } = formData.basics;
+            let { name, lastname, email, phone, documento, address, city, postalCode, commercialName, typeOfCustomer, typeOfDocument } = formData.basics;
             let { shippingName, shippingLastname, shippingPhone, shippingEmail, shippingDocumento, shippingAddress, shippingCity, shippingPostalCode } = formData.shippingData;
             let { contacts, customFields, observations, typeCustomerId } = formData;
             name = name.toUpperCase();
             lastname = lastname.toUpperCase();
             commercialName = commercialName.toUpperCase();
+            city = city['value'];
+            shippingCity = shippingCity['value'];
+
+            postalCode = await handleGetPostalCodeFromCity(city);
+            shippingPostalCode = await handleGetPostalCodeFromCity(shippingCity);
+
             let payload = {
                 typeOfCustomer,
                 typeOfDocument,
@@ -337,6 +369,7 @@ export default function CreateClientV2({
                 documento,
                 address,
                 city,
+                postalCode,
                 commercialName,
                 shippingName,
                 shippingLastname,
@@ -386,7 +419,7 @@ export default function CreateClientV2({
         } catch (error) {
             openSnackbarDanger('Ocurrió un error :(, intenta más tarde.');
             setError(`Error al ${mode === "edit" ? "actualizar" : "crear"} el cliente`)
-            console.error("Error submitting form:", err)
+            console.error("Error submitting form:", error)
         } finally {
             setIsLoading(false);
         }
@@ -416,11 +449,14 @@ export default function CreateClientV2({
             return response;
         };
 
+        handleGetCities();
+
         Promise.all([getTypeOfClients(), getTypeOfDocuments(), getTypeCustomers()])
             .then(data => {
                 setTypeClientsOptions(data[0].map(item => ({ ...item, label: item.name, value: item._id })));
                 setTypeDocumentsOptions(data[1].map(item => ({ ...item, label: item.name, value: item._id })));
                 setTypeCustomers(data[2]);
+
             })
             .catch(e => {
                 console.log(e);
@@ -775,12 +811,17 @@ export default function CreateClientV2({
 
                                 <Row>
                                     <Col md={6}>
-                                        <FloatingInput
+                                        <Select
                                             id="city"
+                                            name="city"
+                                            options={cities}
                                             value={formData.basics.city}
-                                            onChange={(e) => handleInputChange("basics", "city", e.target.value)}
-                                            label="Ciudad"
-                                            required
+                                            onChange={(option) => {
+                                                handleInputChange("basics", "city", option);
+                                            }}
+                                            classNamePrefix="react-select"
+                                            placeholder="Selecciona una ciudad"
+                                            className="form-control"
                                         />
                                         {validationErrors.city && <span style={{ color: "red" }}>{validationErrors.city}</span>}
                                     </Col>
@@ -907,13 +948,20 @@ export default function CreateClientV2({
                                             </Row>
 
                                             <Row>
-                                                <Col md={4}>
-                                                    <FloatingInput
-                                                        id="ciudadFacturacion"
+                                                <Col md={6}>
+                                                    <Select
+                                                        id="shippingCity"
+                                                        name="shippingCity"
+                                                        options={cities}
                                                         value={formData.shippingData.shippingCity}
-                                                        onChange={(e) => handleInputChange("facturacionEnvio", "shippingCity", e.target.value)}
-                                                        label="Ciudad"
+                                                        onChange={(option) => {
+                                                            handleInputChange("facturacionEnvio", "shippingCity", option);
+                                                        }}
+                                                        classNamePrefix="react-select"
+                                                        placeholder="Selecciona una ciudad"
+                                                        className="form-control"
                                                     />
+                                                    {validationErrors.shippingCity && <span style={{ color: "red" }}>{validationErrors.shippingCity}</span>}
                                                 </Col>
 
                                                 <Col md={4}>
