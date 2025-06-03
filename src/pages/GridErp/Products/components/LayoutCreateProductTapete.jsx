@@ -1,8 +1,7 @@
 "use client"
 import { Fragment, useContext, useEffect, useState } from "react";
-import { Col, Container, Form, Input, Row } from "reactstrap";
+import { Alert, Col, Input, Row } from "reactstrap";
 import Select from 'react-select';
-import BreadCrumb from "./BreadCrumb";
 import * as url from "../helper/url_helper";
 import { FilePond, registerPlugin } from 'react-filepond';
 import 'filepond/dist/filepond.min.css';
@@ -35,7 +34,13 @@ const helper = new ProductHelper();
 const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
 const typeOfPiecesDefault = ['Conductor', 'Copiloto', 'Segunda Fila'];
 
-export default function LayoutCreateProductTapete(props) {
+export default function LayoutCreateProductTapete({
+    mode = "create",
+    productId = null,
+    initialData = null,
+    onSubmit,
+    onCancel,
+}) {
 
     document.title = "Crear producto | Quality";
     const navigate = useNavigate();
@@ -43,10 +48,7 @@ export default function LayoutCreateProductTapete(props) {
     const [attributeConfigs, setAttributeConfigs] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
-    /* const [warehouses, setWarehouses] = useState([]);
-    const [providers, setProviders] = useState([]); */
     const [units, setUnits] = useState([]);
-    /* const [taxes, setTaxes] = useState([]); */
     const [typesProduct, setTypesProduct] = useState([]);
     const [typeOfPieces, setTypeOfPieces] = useState([]);
     const [lastSku, setLastSku] = useState("0");
@@ -91,6 +93,50 @@ export default function LayoutCreateProductTapete(props) {
         otros: false,
     });
     const [validationErrors, setValidationErrors] = useState({});
+    const [isInitialLoading, setIsInitialLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
+
+    useEffect(() => {
+        if (mode === "edit" && (productId || initialData)) {
+            loadProductData();
+        }
+    }, [mode, productId, initialData]);
+
+    const loadProductData = async () => {
+        setError("");
+        setSuccess("");
+        try {
+            let productData = await helper.getProductById(productId);
+            if (!productData) {
+                setError("No se ha seleccionado ningun producto");
+                return;
+            }
+            setFormData({
+                sku: productData?.sku,
+                id_type_product: productData?.id_type_product?._id,
+                id_category: productData?.id_category?._id,
+                name: productData?.name,
+                quantity: productData?.quantity ?? 1,
+                unitOfMeasureId: productData?.unitOfMeasureId,
+                taxId: productData?.taxId,
+                costPrice: productData?.costPrice,
+                salePrice: productData?.salePrice,
+                attributes: productData?.attributes,
+                typeOfPieces: productData?.typeOfPieces,
+                observations: productData?.observations,
+                barCode: productData?.barCode,
+                taxIncluded: productData?.taxIncluded,
+                taxPercent: productData?.taxPercent,
+            });
+
+        } catch (error) {
+            setError("Error al cargar los datos del cliente")
+            console.error("Error loading client data:", err)
+        } finally {
+            setIsInitialLoading(false);
+        }
+    };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -149,7 +195,7 @@ export default function LayoutCreateProductTapete(props) {
             }
             setOpenBackdrop(true);
 
-            if (!savedProduct) {
+            if (!savedProduct && mode === "create") {
                 setTitleBackdrop("Creando producto...");
                 let payload = preparePayload();
                 let response = await helper.addProduct(payload);
@@ -157,6 +203,12 @@ export default function LayoutCreateProductTapete(props) {
                 setIdProduct(idProduct);
                 openSnackbarSuccess('Producto creado!');
                 setSavedProduct(true);
+            } else if (mode === "edit") {
+                setTitleBackdrop("Actualizando producto...");
+                let payload = preparePayload();
+                await onSubmit(payload);
+                openSnackbarSuccess('Producto actualizado!');
+                return;
             }
 
             handleClearForm();
@@ -179,9 +231,9 @@ export default function LayoutCreateProductTapete(props) {
 
     const preparePayload = () => {
         let payload = formData;
-        let payloadModiffied = { ...payload, sku: lastSku };
+        let payloadModiffied = mode === "create" ? { ...payload, sku: lastSku } : { ...payload };
         payloadModiffied.name = formData.name.toUpperCase();
-        payloadModiffied.quantity = Number(formData.quantity) ?? 0;
+        payloadModiffied.quantity = formData.quantity ?? 1;
         payloadModiffied.costPrice = Number(formData.costPrice) ?? 0;
         payloadModiffied.salePrice = Number(formData.costPrice) ?? 0;
         payloadModiffied.taxPercent = Number(formData.taxPercent) ?? 0;
@@ -217,39 +269,34 @@ export default function LayoutCreateProductTapete(props) {
 
     }
 
-
     const actions = [
-        { icon: <SaveIcon />, name: 'Guardar', onClick: handleSubmit },
+        { icon: <SaveIcon />, name: `${mode === "edit" ? "Actualizar" : "Crear"}`, onClick: handleSubmit },
         { icon: <ImportIcon />, name: 'Importar', onClick: () => handleOpenDrawerImport() },
         { icon: <CancelIcon />, name: 'Cancelar' },
     ];
 
     useEffect(() => {
-        // Obtener la configuración de los atributos desde el backend
         helper.getCategoriesFullByProduct(companyId)
             .then(async (respCategoriesFull) => {
-                //let respCategoriesFull = await helper.getCategoriesFullByProduct(companyId);
-                /* let respWarehouses = await helper.getWarehouseByCompany(companyId);
-                let respProviders = await helper.getProviderByCompany(companyId); */
                 let unitOfMeasures = await helper.getAllUnitsMeasure();
                 /* let taxes = await helper.getAllTaxes(); */
                 let typesProduct = await helper.getTypesProduct();
 
 
-                await handleSetLastSku();
+                if (mode === "create") {
+                    await handleSetLastSku();
+                }
                 let categories = respCategoriesFull.data;
-                /* let warehouses = respWarehouses.data;
-                let providers = respProviders.data; */
-
                 setCategories(categories ?? []);
-                /* setWarehouses(warehouses ?? []);
-                setProviders(providers ?? []); */
                 setUnits(unitOfMeasures ?? []);
                 /* setTaxes(taxes ?? []); */
                 setTypesProduct(typesProduct?.data ?? []);
             })
             .catch(error => {
                 console.error('Error fetching categories:', error);
+            })
+            .finally(() => {
+                setIsInitialLoading(false);
             });
     }, []);
 
@@ -271,6 +318,25 @@ export default function LayoutCreateProductTapete(props) {
             });
     }, []);
 
+    if (isInitialLoading) {
+        return (
+            <TopLayoutPage
+                title={mode === "edit" ? "Actualizar producto" : "Crear producto"}
+                pageTitle="Productos"
+                children={
+                    <Row>
+                        <div className="card-body pt-2 mt-1">
+                            <div className="d-flex justify-content-center">
+                                <div className="spinner-border text-primary" role="status">
+                                    <span className="visually-hidden">Cargando...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </Row>
+                }
+            />
+        )
+    }
 
     return (
         <>
@@ -414,11 +480,23 @@ export default function LayoutCreateProductTapete(props) {
             </Fragment >
 
             <TopLayoutPage
-                title={"Producto"}
+                title={mode === "edit" ? "Actualizar producto" : "Crear producto"}
                 pageTitle={"Productos"}
                 to={`/products-list-v2`}
                 children={
                     <Fragment>
+
+                        {error && (
+                            <Alert color="danger" className="mb-4">
+                                {error}
+                            </Alert>
+                        )}
+
+                        {success && (
+                            <Alert color="success" className="mb-4">
+                                {success}
+                            </Alert>
+                        )}
 
                         {/* Datos Básicos */}
                         <CollapsibleSection
@@ -433,7 +511,7 @@ export default function LayoutCreateProductTapete(props) {
                                     <FloatingInput
                                         id="sku"
                                         name="sku"
-                                        value={lastSku}
+                                        value={mode === "edit" ? formData.sku : lastSku}
                                         onChange={handleInputChange}
                                         label="Código"
                                         disabled

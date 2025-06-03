@@ -48,6 +48,7 @@ import CreateClientV2 from "../pages/GridErp/Customers/pages/CreateCustomerV2";
 import ListTypeOfClient from "../pages/GridErp/Customers/pages/ListTypeOfClient";
 import ListTypeOfDocument from "../pages/GridErp/Customers/pages/ListTypeOfDocument";
 import EditCustomerView from "../pages/GridErp/Customers/pages/EditCustomerView";
+import EditProductMatView from "../pages/GridErp/Products/pages/EditProductMatView";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -75,6 +76,7 @@ const authProtectedRoutes = [
         path: "/products-list-v2",
         component: <ImportProductState> <ListProductsV2 /> </ImportProductState>,
     },
+    { path: "/products-edit-tapete/:id", component: <ImportProductState> <EditProductMatView /> </ImportProductState>, },
     {
         path: "/success-product",
         component: <SuccessProductCreateView />,

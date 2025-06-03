@@ -161,7 +161,7 @@ const ListProductsV2 = () => {
         }
     };
 
-    const handleBulkDelete = async (ids) => { 
+    const handleBulkDelete = async (ids) => {
         setError(null);
         try {
             let token = getToken();
@@ -187,11 +187,15 @@ const ListProductsV2 = () => {
         }
     };
 
+    const handleClickEditRow = (id) => {
+        return navigate(`/products-edit-tapete/${id}`)
+    };
+
     const columns = [
         /*  { key: "name", label: "Nombre", type: "text", editable: true, searchable: true }, */
-        { key: "category", label: "Marca", type: "select", editable: true, searchable: true, options: categories},
+        { key: "category", label: "Marca", type: "select", editable: true, searchable: true, options: categories },
         { key: "subCategory", label: "Línea", type: "text", editable: true, searchable: true },
-       /*  { key: "costPrice", label: "Precio de costo", type: "price", editable: true, searchable: true }, */
+        /*  { key: "costPrice", label: "Precio de costo", type: "price", editable: true, searchable: true }, */
         { key: "salePrice", label: "Precio de venta", type: "price", editable: true, searchable: true },
         { key: "createdAt", label: "Creado", type: "date", editable: false, searchable: true },
     ];
@@ -241,6 +245,7 @@ const ListProductsV2 = () => {
                                         refreshData={fetchProducts}
                                         searchable={true}
                                         itemsPerPage={10}
+                                        onClickEditRow={handleClickEditRow}
                                     />
                                 </CardBody>
                             </Card>

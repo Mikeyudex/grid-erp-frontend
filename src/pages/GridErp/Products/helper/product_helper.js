@@ -1,4 +1,5 @@
 import { APIClient } from "../../../../helpers/api_helper";
+import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import * as url from "./url_helper";
 import moment from "moment";
 import 'moment/locale/es';
@@ -114,6 +115,30 @@ export class ProductHelper {
 
         return Object.keys(newErrors).length === 0; // Devuelve true si no hay errores
     }
+
+    getProductById = async (id) => {
+        try {
+            let token = getToken();
+            let response = await fetch(`${url.GET_PRODUCT_BY_ID}/${id}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`,
+                    },
+                }
+            );
+            if (response && response.status === 200) {
+                let data = await response.json();
+                return data;
+            } else {
+                return null;
+            }
+        } catch (error) {
+            console.log(error);
+            return null;
+        }
+    };
 }
 
 export const optionsSnackbarDanger = {

@@ -22,6 +22,7 @@ export const GET_CATEGORIES_PRODUCT = baseUrl + "/products/category/getCategorie
 export const GET_CATEGORIES_PRODUCT_SELECT = baseUrl + "/products/category/getCategoriesFullSelect";
 export const GET_TYPES_PRODUCT = baseUrl + "/products/types-product/getAll";
 export const IMPORT_PRODUCTS = baseUrlImport + "/import/import-products-xlsx";
+export const GET_PRODUCT_BY_ID = baseUrl + "/products/getById";
 
 
 export const GET_WAREHOUSES_BYCOMPANY = baseUrl + "/warehouse/getbyCompany";
