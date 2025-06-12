@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import OrderForm from "../components/order-form"
 import { ToastContainer } from "react-toastify"
-import { Col, Container, Row } from "reactstrap"
+import { Container } from "reactstrap"
 import BreadCrumb from "../../Products/components/BreadCrumb";
 import { ProductHelper } from "../../Products/helper/product_helper"
 import { obtenerAtributosUnicos, transformarDatos } from "../utils/order"
@@ -14,12 +13,10 @@ const productHelper = new ProductHelper();
 
 export default function PurchaseOrderPage() {
     document.title = "Crear pedido | Quality";
-    const [orderItems, setOrderItems] = useState([]);
     const [selectedClient, setSelectedClient] = useState(null);
     const [products, setProducts] = useState([]);
     const [isLoadingProducts, setIsLoadingProducts] = useState(true);
     const [clients, setClients] = useState([]);
-    const [typeOfPieces, setTypeOfPieces] = useState([]);
     const [matMaterialPrices, setMatMaterialPrices] = useState([]);
     const [matTypeOptions, setMatTypeOptions] = useState([]);
     const [materialTypeOptions, setMaterialTypeOptions] = useState([]);
@@ -27,7 +24,7 @@ export default function PurchaseOrderPage() {
     const handleGetProducts = async () => {
         try {
             let response = await productHelper.getProductsLite(1, 100);
-            return response.data;
+            return response;
         } catch (error) {
             console.log(error);
             return [];
@@ -36,18 +33,8 @@ export default function PurchaseOrderPage() {
 
     const handleGetClients = async () => {
         try {
-            let response = await productHelper.getClients(0, 100, ["_id", "name", "lastname", "commercialName", "email", "typeCustomerId", "documento"]);
-            return response.data;
-        } catch (error) {
-            console.log(error);
-            return [];
-        }
-    };
-
-    const handleGetTypeOfPieces = async () => {
-        try {
-            let response = await productHelper.getTypeOfPieces();
-            return response || [];
+            let response = await productHelper.getClients(0, 100, ["_id", "name", "lastname", "commercialName", "email", "typeCustomerId", "documento", "contacts"]);
+            return response;
         } catch (error) {
             console.log(error);
             return [];
@@ -64,26 +51,6 @@ export default function PurchaseOrderPage() {
         }
     }
 
-    /* const addOrderItem = (item) => {
-        setOrderItems([...orderItems, item])
-    }
-
-    const updateOrderItem = (index, item) => {
-        const newItems = [...orderItems]
-        newItems[index] = item
-        setOrderItems(newItems)
-    } */
-
-    /* const removeOrderItem = (index) => {
-        const newItems = [...orderItems]
-        newItems.splice(index, 1)
-        setOrderItems(newItems)
-    } */
-
-    /* const calculateTotal = () => {
-        return orderItems.reduce((total, item) => total + (item.finalPrice || 0), 0)
-    }; */
-
     const handleClientSelect = (client) => {
         setSelectedClient(client)
     };
@@ -97,21 +64,15 @@ export default function PurchaseOrderPage() {
                         id: c._id,
                         name: `${c.name} ${c.lastname}`,
                         company: c.commercialName,
-                        typeCustomerId: c.typeCustomerId,
+                        typeCustomerId: c.typeCustomerId?._id,
+                        typeCustomerName: c.typeCustomerId?.name,
                         documento: c.documento,
+                        contacts: c?.contacts,
                     }));
                 setClients(clients);
             })
             .catch(e => console.log(e))
     }, []);
-
-    /* useEffect(() => {
-        handleGetTypeOfPieces()
-            .then(async (data) => {
-                setTypeOfPieces(data);
-            })
-            .catch(e => console.log(e))
-    }, []); */
 
     useEffect(() => {
         handleGetMatMaterialPrices()
@@ -131,7 +92,6 @@ export default function PurchaseOrderPage() {
         handleGetProducts()
             .then(async (data) => {
                 let products = data;
-                console.log(products);
                 setProducts(products);
             })
             .catch(e => console.log(e))
@@ -160,7 +120,7 @@ export default function PurchaseOrderPage() {
             <div className="page-content">
                 <ToastContainer closeButton={false} limit={1} />
                 <Container fluid>
-                    <BreadCrumb title="Crear Orden de Pedido" pageTitle="Pedidos" />
+                    <BreadCrumb title="Crear Orden de Pedido" pageTitle="Pedidos" to={`/purchase-orders`} />
                     <OrderGrid
                         selectedClient={selectedClient}
                         onClientSelect={handleClientSelect}
@@ -168,6 +128,7 @@ export default function PurchaseOrderPage() {
                         products={products}
                         matTypeOptions={matTypeOptions}
                         materialTypeOptions={materialTypeOptions}
+                        matMaterialPrices={matMaterialPrices}
                     />
                 </Container>
             </div>

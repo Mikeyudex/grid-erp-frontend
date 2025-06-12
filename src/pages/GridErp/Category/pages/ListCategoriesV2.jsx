@@ -17,7 +17,7 @@ import { DrawerCreateCategory } from "../components/DrawerCreateCategory";
 const helper = new CategoryHelper();
 
 const ListCategoriesV2 = () => {
-    document.title = "Categorías | Quality Erp";
+    document.title = "Marcas | Quality Erp";
 
     const { updateCategoryData, categoryData } = useContext(CategoryProductContext);
     const navigate = useNavigate();
@@ -46,7 +46,6 @@ const ListCategoriesV2 = () => {
         helper.getCategories(page, limit)
             .then(async (response) => {
                 let categories = response?.data;
-                let totalRowCount = response?.totalRowCount;
                 if (categories && Array.isArray(categories) && categories.length > 0) {
                     let parseCategories = categories.map((c) => {
                         return {
@@ -58,7 +57,6 @@ const ListCategoriesV2 = () => {
                         }
                     });
                     setCategoryList(parseCategories);
-                    setRowCount(totalRowCount);
                 }
                 return;
             })
@@ -81,7 +79,7 @@ const ListCategoriesV2 = () => {
 
     const handleAddItemToList = (newItem) => {
         setCategoryList((prev) => [...prev, newItem]);
-     }
+    }
 
     const handleUpdate = async (updatedCategory) => {
         setError(null);
@@ -179,8 +177,8 @@ const ListCategoriesV2 = () => {
 
     return (
         <TopLayoutGeneralView
-            titleBreadcrumb="Lista de Categorías"
-            pageTitleBreadcrumb="Categorías"
+            titleBreadcrumb="Lista de Marcas"
+            pageTitleBreadcrumb="Marcas"
             main={
                 <Fragment>
                     <Row>
@@ -188,7 +186,7 @@ const ListCategoriesV2 = () => {
                             <Card>
                                 <CardHeader className="bg-light text-white d-flex justify-content-between align-items-center">
                                     <Button color="light" onClick={handleAddCategory}>
-                                        <FaPlus className="me-1" /> Nueva Categoría
+                                        <FaPlus className="me-1" /> Nueva Marca
                                     </Button>
                                 </CardHeader>
                                 <CardBody>
@@ -213,7 +211,7 @@ const ListCategoriesV2 = () => {
                                         onUpdate={handleUpdate}
                                         onDelete={handleDelete}
                                         onBulkDelete={handleBulkDelete}
-                                        title="Categorías"
+                                        title="Marcas"
                                         loading={loading}
                                         error={error}
                                         refreshData={fetchCategories}

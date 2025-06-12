@@ -132,7 +132,7 @@ export default function EditPurchaseOrder() {
 
                 setPedido(pedidoEncontrado)
                 setOrderItems(
-                    pedidoEncontrado.productos.map((item) => ({
+                    pedidoEncontrado.details.map((item) => ({
                         ...item,
                         productName: item.productName,
                         pieces: item.pieces,
@@ -147,13 +147,15 @@ export default function EditPurchaseOrder() {
                     })),
                 )
                 setSelectedClient({
-                    id: pedidoEncontrado.cliente.id,
-                    name: pedidoEncontrado.cliente.nombre,
-                    company: pedidoEncontrado.cliente.empresa,
-                    email: pedidoEncontrado.cliente.email,
+                    id: pedidoEncontrado.clientId?._id,
+                    name: pedidoEncontrado.clientId?.name,
+                    company: pedidoEncontrado.clientId?.commercialName,
+                    email: pedidoEncontrado.clientId?.email,
                 })
                 setLoading(false)
             } catch (err) {
+                console.log(err);
+                
                 setError("Error al cargar los datos del pedido")
                 setLoading(false)
             }

@@ -17,7 +17,8 @@ import {
   ModalBody,
   ModalFooter,
 } from "reactstrap"
-import { FaEdit, FaTrash, FaSave, FaTimes, FaCheck } from "react-icons/fa"
+import { FaEdit, FaTrash, FaSave, FaTimes, FaCheck, FaSort, FaSortUp, FaSortDown, FaColumns, FaEye, FaEyeSlash } from "react-icons/fa";
+import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap";
 import { RefreshCw, Trash } from "lucide-react"
 import { numberFormatPrice } from "../../pages/GridErp/Products/helper/product_helper"
 
@@ -46,19 +47,100 @@ const DataTable = ({
   const [deleteModal, setDeleteModal] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
   const [bulkDeleteModal, setBulkDeleteModal] = useState(false)
+  const [visibleColumns, setVisibleColumns] = useState([])
+  const [columnDropdownOpen, setColumnDropdownOpen] = useState(false);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: null })
 
   // Efecto para actualizar los datos de la tabla cuando cambian los datos de entrada
   useEffect(() => {
     setTableData(data)
   }, [data])
 
+  // Efecto para inicializar columnas visibles
+  useEffect(() => {
+    if (columns.length > 0 && visibleColumns.length === 0) {
+      // Por defecto, todas las columnas están visibles
+      setVisibleColumns(columns.map((col) => col.key))
+    }
+  }, [columns])
+
   // Manejo de paginación
   const totalPages = Math.ceil(tableData.length / itemsPerPage)
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
 
-  // Filtrado de datos
-  const filteredData = tableData.filter((item) => {
+  // Manejo de ordenamiento
+  const handleSort = (columnKey) => {
+    const column = columns.find((col) => col.key === columnKey)
+    if (!column || !column.sortable) return
+
+    let direction = "asc"
+    if (sortConfig.key === columnKey && sortConfig.direction === "asc") {
+      direction = "desc"
+    } else if (sortConfig.key === columnKey && sortConfig.direction === "desc") {
+      direction = null
+    }
+
+    setSortConfig({ key: columnKey, direction })
+  }
+
+  const getSortedData = (data) => {
+    if (!sortConfig.key || !sortConfig.direction) {
+      return data
+    }
+
+    const column = columns.find((col) => col.key === sortConfig.key)
+    if (!column) return data
+
+    return [...data].sort((a, b) => {
+      const aValue = a[sortConfig.key]
+      const bValue = b[sortConfig.key]
+
+      // Manejar valores nulos/undefined
+      if (aValue === null || aValue === undefined) return sortConfig.direction === "asc" ? 1 : -1
+      if (bValue === null || bValue === undefined) return sortConfig.direction === "asc" ? -1 : 1
+
+      let comparison = 0
+
+      switch (column.type) {
+        case "number":
+        case "percentage":
+          comparison = Number(aValue) - Number(bValue)
+          break
+        case "date":
+          comparison = new Date(aValue) - new Date(bValue)
+          break
+        case "boolean":
+          comparison = aValue === bValue ? 0 : aValue ? -1 : 1
+          break
+        default:
+          // Texto
+          comparison = String(aValue).toLowerCase().localeCompare(String(bValue).toLowerCase())
+      }
+
+      return sortConfig.direction === "asc" ? comparison : -comparison
+    })
+  }
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return <FaSort className="ms-1 text-muted" style={{ fontSize: "0.8em" }} />
+    }
+
+    if (sortConfig.direction === "asc") {
+      return <FaSortUp className="ms-1 text-primary" style={{ fontSize: "0.8em" }} />
+    } else if (sortConfig.direction === "desc") {
+      return <FaSortDown className="ms-1 text-primary" style={{ fontSize: "0.8em" }} />
+    }
+
+    return <FaSort className="ms-1 text-muted" style={{ fontSize: "0.8em" }} />
+  }
+
+  // Aplicar ordenamiento antes del filtrado
+  const sortedData = getSortedData(tableData)
+
+  // Filtrado de datos (usar sortedData en lugar de tableData)
+  const filteredData = sortedData.filter((item) => {
     if (!searchTerm) return true
 
     // Buscar en todas las columnas visibles
@@ -168,6 +250,36 @@ const DataTable = ({
     } catch (error) {
       console.error("Error al eliminar en bulk:", error)
     }
+  }
+
+
+  // Manejo de visibilidad de columnas
+  const toggleColumnVisibility = (columnKey) => {
+    setVisibleColumns((prev) => {
+      if (prev.includes(columnKey)) {
+        // No permitir ocultar todas las columnas
+        if (prev.length === 1) return prev
+        return prev.filter((key) => key !== columnKey)
+      } else {
+        return [...prev, columnKey]
+      }
+    })
+  }
+
+  const showAllColumns = () => {
+    setVisibleColumns(columns.map((col) => col.key))
+  }
+
+  const hideAllColumns = () => {
+    // Mantener al menos una columna visible
+    if (columns.length > 0) {
+      setVisibleColumns([columns[0].key])
+    }
+  }
+
+  // Filtrar columnas visibles
+  const getVisibleColumns = () => {
+    return columns.filter((column) => visibleColumns.includes(column.key))
   }
 
   // Renderizado de celdas
@@ -297,30 +409,81 @@ const DataTable = ({
     )
   }
 
+  // Agregar estilos inline para los headers ordenables
+  const sortableHeaderStyle = `
+    .sortable-header:hover {
+      background-color: #f8f9fa;
+    }
+    .sortable-header {
+      transition: background-color 0.2s ease;
+    }
+  `
+
   return (
     <div className="data-table-container">
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      <style>{sortableHeaderStyle}</style>
+      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
         <h3>{title}</h3>
-        <div className="d-flex">
+        <div className="d-flex align-items-center flex-wrap gap-2">
           {searchable && (
             <Input
               type="search"
               placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="me-2"
               style={{ width: "200px" }}
             />
           )}
 
+          {/* Selector de columnas */}
+          <Dropdown isOpen={columnDropdownOpen} toggle={() => setColumnDropdownOpen(!columnDropdownOpen)}>
+            <DropdownToggle caret color="outline-secondary" size="sm">
+              <FaColumns className="me-1" />
+              Columnas ({visibleColumns.length}/{columns.length})
+            </DropdownToggle>
+            <DropdownMenu end style={{ minWidth: "250px", maxHeight: "300px", overflowY: "auto" }}>
+              <DropdownItem header>Seleccionar columnas</DropdownItem>
+              <DropdownItem divider />
+
+              <div className="px-3 py-2">
+                <div className="d-flex justify-content-between mb-2">
+                  <Button color="link" size="sm" className="p-0 text-decoration-none" onClick={showAllColumns}>
+                    <FaEye className="me-1" />
+                    Mostrar todas
+                  </Button>
+                  <Button color="link" size="sm" className="p-0 text-decoration-none" onClick={hideAllColumns}>
+                    <FaEyeSlash className="me-1" />
+                    Ocultar todas
+                  </Button>
+                </div>
+              </div>
+
+              <DropdownItem divider />
+
+              {columns.map((column) => (
+                <DropdownItem key={column.key} toggle={false} className="py-1">
+                  <FormGroup check className="mb-0">
+                    <Input
+                      type="checkbox"
+                      checked={visibleColumns.includes(column.key)}
+                      onChange={() => toggleColumnVisibility(column.key)}
+                      disabled={visibleColumns.length === 1 && visibleColumns.includes(column.key)}
+                    />
+                    <span className="ms-2">{column.label}</span>
+                  </FormGroup>
+                </DropdownItem>
+              ))}
+            </DropdownMenu>
+          </Dropdown>
+
           {refreshData && (
-            <Button title="Actualizar" color="info" className="d-flex align-items-center gap-2 me-2" onClick={refreshData}>
+            <Button color="info" onClick={refreshData} size="sm">
               <RefreshCw size={18} />
             </Button>
           )}
 
           {selectedRows.length > 0 && (
-            <Button title="Eliminar seleccionados" color="danger" className="d-flex align-items-center gap-2 me-2" onClick={() => setBulkDeleteModal(true)}>
+            <Button color="danger" onClick={() => setBulkDeleteModal(true)} size="sm">
               <Trash size={18} />
             </Button>
           )}
@@ -345,8 +508,21 @@ const DataTable = ({
                       <Input type="checkbox" checked={selectAll} onChange={toggleSelectAll} />
                     </FormGroup>
                   </th>
-                  {columns.map((column) => (
-                    <th key={column.key}>{column.label}</th>
+                  {getVisibleColumns().map((column) => (
+                    <th
+                      key={column.key}
+                      style={{
+                        cursor: column.sortable ? "pointer" : "default",
+                        userSelect: "none",
+                      }}
+                      onClick={() => column.sortable && handleSort(column.key)}
+                      className={column.sortable ? "sortable-header" : ""}
+                    >
+                      <div className="d-flex align-items-center">
+                        {column.label}
+                        {column.sortable && getSortIcon(column.key)}
+                      </div>
+                    </th>
                   ))}
                   <th style={{ width: "100px" }}>Acciones</th>
                 </tr>
@@ -354,7 +530,7 @@ const DataTable = ({
               <tbody>
                 {currentItems.length === 0 ? (
                   <tr>
-                    <td colSpan={columns.length + 2} className="text-center">
+                    <td colSpan={getVisibleColumns().length + 2} className="text-center">
                       No hay datos disponibles
                     </td>
                   </tr>
@@ -370,7 +546,7 @@ const DataTable = ({
                           />
                         </FormGroup>
                       </td>
-                      {columns.map((column) => (
+                      {getVisibleColumns().map((column) => (
                         <td key={`${item._id}-${column.key}`}>{renderCell(item, column)}</td>
                       ))}
                       <td>{renderActions(item)}</td>

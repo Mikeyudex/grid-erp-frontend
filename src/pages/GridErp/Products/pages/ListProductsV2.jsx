@@ -57,7 +57,6 @@ const ListProductsV2 = () => {
         helper.getProducts(page, limit)
             .then(async (response) => {
                 let products = response?.data;
-                let totalRowCount = response?.totalRowCount;
                 if (products && Array.isArray(products) && products.length > 0) {
                     let parseProducts = products.map((p) => {
                         return {
@@ -76,7 +75,6 @@ const ListProductsV2 = () => {
                         }
                     });
                     setProductList(parseProducts);
-                    setRowCount(totalRowCount);
                 }
                 return;
             })

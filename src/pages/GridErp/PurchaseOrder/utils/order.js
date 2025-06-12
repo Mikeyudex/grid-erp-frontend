@@ -12,9 +12,7 @@ export const OrderItem = {
 
 export function transformarDatos(arreglo) {
     const resultado = {
-        BASIC: {},
-        "ESTÁNDAR A": {},
-        "ESTÁNDAR B": {},
+        STANDAR: {},
         PREMIUM: {},
     };
 

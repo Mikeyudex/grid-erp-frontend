@@ -38,7 +38,7 @@ export default function ViewDetailPurchaseOrder() {
         setLoading(true)
         helper.getPurchaseOrderById(id)
             .then(async (response) => {
-                let data = response.data;
+                let data = response;
                 let mappingData = {
                     orderNumber: data?.orderNumber,
                     id: data._id,

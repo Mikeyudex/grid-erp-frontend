@@ -17,21 +17,41 @@ import {
     Alert,
     Label,
     FormGroup,
+    Row,
+    Col,
 } from "reactstrap";
 import { useSnackbar } from 'react-simple-snackbar';
-import { PlusCircle, Trash2, Edit2, User, Search, Check, Save, X, CheckSquare, Square, Edit, CheckCircle } from "lucide-react"
+import {
+    PlusCircle,
+    Trash2,
+    Edit2,
+    User,
+    Search,
+    Check,
+    Save,
+    X,
+    CheckSquare,
+    Square,
+    Edit,
+    CheckCircle,
+    StoreIcon,
+    CreditCard,
+} from "lucide-react"
 import { optionsSnackbarDanger, optionsSnackbarSuccess, ProductHelper } from "../../Products/helper/product_helper"
 import DropdownPortal from "./DropdownPortal"
 import { CREATE_PURCHASE_ORDER } from "../../Products/helper/url_helper"
 import { validatePayload } from "../utils/purchase-order.utils";
 import "./index.css";
-import { purchaseOrderStatus } from "../helper/purchase_helper";
+import { PurchaseHelper, purchaseOrderStatus } from "../helper/purchase_helper";
 import AssignModal from "./assign-modal";
 import { AuthHelper } from "../../Auth/helpers/auth_helper";
+import { CollapsibleSection } from "../../../../Components/Common/CollapsibleSection";
+import moment from "moment";
 
 
 const productHelper = new ProductHelper();
 const authHelper = new AuthHelper();
+const purchaseOrderHelper = new PurchaseHelper();
 
 export default function OrderGrid({
     selectedClient,
@@ -40,6 +60,7 @@ export default function OrderGrid({
     products,
     matTypeOptions,
     materialTypeOptions,
+    matMaterialPrices,
     // Nuevos props para modo edición
     orderItems: initialOrderItems = [],
     onAddItem = null,
@@ -52,6 +73,7 @@ export default function OrderGrid({
     const [clientSearchTerm, setClientSearchTerm] = useState("")
     const [filteredClients, setFilteredClients] = useState(clients);
     const [orderStatus, setOrderStatus] = useState(purchaseOrderStatus.libre);
+    const [selectedContact, setSelectedContact] = useState(null);
 
     // Estado para el modal de piezas
     const [piecesModalOpen, setPiecesModalOpen] = useState(false)
@@ -78,12 +100,25 @@ export default function OrderGrid({
         matType: "",
         materialType: "",
     });
+    const [filteredMaterialTypes, setFilteredMaterialTypes] = useState([]);
 
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
     const [asignacionModalOpen, setAsignacionModalOpen] = useState(false);
     const [zones, setZones] = useState([]);
     const [selectedZoneId, setSelectedZoneId] = useState(null);
+    const [editingZone, setEditingZone] = useState(false);
+    const [editingDateOrder, setEditingDateOrder] = useState(false);
+    const [editingContact, setEditingContact] = useState(false);
+    const [orderDate, setOrderDate] = useState(null);
+    // Estados para controlar las secciones colapsables
+    const [openSections, setOpenSections] = useState({
+        customer: false,
+        products: true,
+        total: false,
+        methodOfPayment: false,
+    });
+
 
     // Actualizar orderItems cuando cambian los initialOrderItems en modo edición
     useEffect(() => {
@@ -92,13 +127,17 @@ export default function OrderGrid({
         }
     }, [initialOrderItems, isEditMode]);
 
+    useEffect(() => {
+        handleGetZones()
+    }, []);
+
     const handleGetZones = async () => {
-        let response = await authHelper.getZones();
-        if (response?.statusCode === 200) {
-            setZones(response?.data);
-        }
-        if (response?.error) {
-            console.log(response?.message);
+        let response = await authHelper.getZonesFetch();
+        let zones = response.data;
+        if (zones && Array.isArray(zones) && zones.length > 0) {
+            setZones(zones);
+        } else {
+            openSnackbarDanger('Ocurrió un error al obtener las sedes.');
         }
     };
 
@@ -121,10 +160,10 @@ export default function OrderGrid({
 
     // Añadir una nueva fila
     const addNewRow = () => {
-        if (!selectedClient) {
+        /* if (!selectedClient) {
             alert("Por favor, seleccione un cliente primero")
             return
-        }
+        } */
         //setOrderItems([...orderItems, createEmptyRow()])
         setProductSelected(null);
         const newRow = createEmptyRow()
@@ -157,16 +196,20 @@ export default function OrderGrid({
         )
     }
 
+    const toggleSection = (section) => {
+        setOpenSections((prev) => ({
+            ...prev,
+            [section]: !prev[section],
+        }))
+    }
+
     const handleGetAdjustedPrice = async (productId, matType, materialType, quantity, typeCustomerId) => {
         try {
             if (!productId || !matType || !materialType || !quantity || !typeCustomerId) {
                 return 0;
             }
             const response = await productHelper.calcularPrecioFinalProducto(productId, matType, materialType, quantity, typeCustomerId);
-            if (response?.statusCode === 200) {
-                return response.data?.precioFinal || 0;
-            }
-            return 0;
+            return response?.precioFinal || 0;
         } catch (error) {
             console.log(error);
             return 0;
@@ -179,10 +222,7 @@ export default function OrderGrid({
                 return 0;
             }
             const response = await productHelper.calcularPrecioFinalProductoDesdePrecioBase(basePrice, matType, materialType, quantity, typeCustomerId);
-            if (response?.statusCode === 200) {
-                return response.data?.precioFinal || 0;
-            }
-            return 0;
+            return response?.precioFinal || 0;
         } catch (error) {
             console.log(error);
             return 0;
@@ -215,6 +255,8 @@ export default function OrderGrid({
 
             handleGetAdjustedPriceFromBasePrice(item.basePrice, item.matType, item.materialType, item.quantity, selectedClient?.typeCustomerId)
                 .then(data => {
+                    console.log(data);
+
                     let adjustedPrice = data;
                     let finalPrice = adjustedPrice * item.quantity;
 
@@ -226,12 +268,11 @@ export default function OrderGrid({
                         finalPrice: finalPrice,
                     };
 
-                    setOrderItems(updatedItems); // ✅ Actualizamos después del cálculo
+                    setOrderItems(updatedItems);
                 });
 
             return;
         }
-
         if (isEditMode && onUpdateItem) {
             // En modo edición, notificar al componente padre
             onUpdateItem(rowIndex, newItems[rowIndex])
@@ -360,7 +401,7 @@ export default function OrderGrid({
 
     const handleSelectClient = (client) => {
         onClientSelect(client)
-        toggleClientModal()
+        toggleClientModal();
     }
 
     const clearProductSelection = (rowIndex) => {
@@ -520,7 +561,6 @@ export default function OrderGrid({
     }
 
     const handleOpenAssignModal = async () => {
-        await handleGetZones();
         setAsignacionModalOpen(true);
     }
 
@@ -598,6 +638,27 @@ export default function OrderGrid({
             openSnackbarDanger('Ocurrió un error :(, intenta más tarde.');
         }
     }
+
+    const handleSelectContact = (contact) => {
+        setSelectedContact(contact);
+    }
+
+    useEffect(() => {
+        addNewRow();
+    }, []);
+
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            return purchaseOrderHelper.handleKeyDown(e, createEmptyRow, setOrderItems);
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, []);
+
 
     return (
         <>
@@ -712,7 +773,10 @@ export default function OrderGrid({
                             type="select"
                             id="bulkMatType"
                             value={bulkEditData.matType}
-                            onChange={(e) => handleBulkEditChange("matType", e.target.value)}
+                            onChange={(e) => {
+                                handleBulkEditChange("matType", e.target.value);
+                                purchaseOrderHelper.filterMaterialByMat(e.target.value, setFilteredMaterialTypes, matMaterialPrices);
+                            }}
                         >
                             <option value="">-- Sin cambios --</option>
                             {(matTypeOptions ?? []).map((mat, idx) => (
@@ -735,7 +799,7 @@ export default function OrderGrid({
                             onChange={(e) => handleBulkEditChange("materialType", e.target.value)}
                         >
                             <option value="">-- Sin cambios --</option>
-                            {(materialTypeOptions ?? []).map((matType, idx) => (
+                            {(filteredMaterialTypes ?? []).map((matType, idx) => (
                                 <option key={idx} value={matType}>
                                     {matType}
                                 </option>
@@ -787,7 +851,7 @@ export default function OrderGrid({
                     {selectedClient ? "Cambiar Cliente" : "Seleccionar Cliente"}
                 </Button>
 
-                <Button
+                {/* <Button
                     color="primary"
                     onClick={addNewRow}
                     className="d-flex align-items-center gap-2"
@@ -795,7 +859,7 @@ export default function OrderGrid({
                 >
                     <PlusCircle size={18} />
                     Añadir Producto
-                </Button>
+                </Button> */}
 
                 <Button
                     color="light"
@@ -815,332 +879,530 @@ export default function OrderGrid({
                 )}
             </div>
 
-            {/* Tabla de Productos */}
-            {orderItems.length > 0 ? (
-                <div className="table-responsive mb-4">
-                    <Table bordered hover>
-                        <thead>
-                            <tr className="text-center bg-light">
-                                <th style={{ width: "3%" }}>
+            <div>
+
+                {/* Datos del cliente */}
+                <CollapsibleSection
+                    id="customer"
+                    title="Datos del Cliente"
+                    icon={User}
+                    isOpen={openSections.customer}
+                    onToggle={toggleSection}
+                >
+                    <div className="p-3 rounded shadow-sm mb-4">
+                        <Row>
+                            <Col md={6}>
+                                <div>
+                                    <span className="fw-medium">Cliente: </span>
+                                    <span>{selectedClient?.name ?? "Sin seleccionar"}</span>
+                                    {selectedClient?.company && <span className="ms-2 text-muted">({selectedClient?.company})</span>}
+                                </div>
+                            </Col>
+                            <Col md={6} className="mb-2">
+                                <div className="d-flex align-items-center">
+                                    <span className="fw-medium me-2">Contacto: </span>
+                                    <div className="p-1 w-100 cursor-pointer"
+                                        onClick={() => setEditingContact(true)}>
+                                        {
+                                            editingContact ? (
+                                                <Input
+                                                    style={{
+                                                        border: 'none !important',
+                                                        borderBottom: '2px solid #ccc !important',
+                                                        backgroundColor: 'transparent',
+                                                        color: '#132649',
+                                                        '&:focus': { border: 'none', boxShadow: 'none' },
+                                                        fontSize: '1em',
+                                                        padding: '3px',
+                                                    }}
+                                                    bsSize="sm"
+                                                    type="select"
+                                                    id="contact"
+                                                    name="contact"
+                                                    value={selectedContact?.contactName}
+                                                    onChange={(e) => {
+                                                        handleSelectContact(selectedClient?.contacts?.find((c) => c.contactName === e.target.value));
+                                                        setEditingContact(false);
+                                                    }}
+                                                    onBlur={() => setEditingContact(false)}
+                                                    className="form-control"
+                                                >
+                                                    <option value="0">Seleccione el contacto</option>
+                                                    {
+                                                        selectedClient?.contacts?.map((contact, idx) => {
+                                                            return (<option key={idx} label={`${contact.contactName} ${contact.contactLastname}`} value={contact.contactName}></option>)
+                                                        })
+                                                    }
+                                                </Input>
+                                            ) :
+                                                (
+                                                    <span>{selectedContact ? `${selectedContact.contactName} ${selectedContact.contactLastname}` : "Sin seleccionar"}</span>
+                                                )
+                                        }
+                                    </div>
+
+
+                                </div>
+                            </Col>
+                        </Row>
+
+                        <Row>
+                            <Col md={6} className="mb-2">
+                                <div>
+                                    <span className="fw-medium">Categoría: </span>
+                                    <span>{selectedClient?.typeCustomerName ?? "Sin seleccionar"}</span>
+                                </div>
+                            </Col>
+                            <Col md={6} className="mb-2">
+                                <div>
+                                    <span className="fw-medium">Vendedor: </span>
+                                    <span>{"Sin seleccionar"}</span>
+                                </div>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col md={6} className="mb-2">
+                                <div className="d-flex align-items-center">
+                                    <span className="fw-medium" style={{ width: "17%" }}>Fecha de pedido: </span>
+                                    <div className="p-1 w-80 cursor-pointer"
+                                        onClick={() => setEditingDateOrder(true)}>
+                                        {
+                                            editingDateOrder ? (
+                                                <Input
+                                                    style={{
+                                                        border: 'none !important',
+                                                        borderBottom: '2px solid #ccc !important',
+                                                        backgroundColor: 'transparent',
+                                                        color: '#132649',
+                                                        '&:focus': { border: 'none', boxShadow: 'none' },
+                                                        fontSize: '1em',
+                                                        padding: '3px',
+                                                    }}
+                                                    type="date"
+                                                    value={orderDate}
+                                                    onChange={(e) => {
+                                                        setOrderDate(e.target.value);
+                                                        setEditingDateOrder(false);
+                                                    }}
+                                                    onBlur={() => setEditingDateOrder(false)}
+                                                    autoFocus
+                                                />
+                                            ) :
+                                                (
+                                                    <span>{orderDate ? moment(orderDate).format("DD/MM/YYYY") : moment().format("DD/MM/YYYY")}</span>
+                                                )
+                                        }
+                                    </div>
+                                </div>
+                            </Col>
+                            <Col md={6} className="mb-2">
+                                <div className="d-flex align-items-center">
+                                    <span className="fw-medium">Sede: </span>
                                     <div
-                                        onClick={toggleSelectAllRows}
-                                        style={{ cursor: "pointer" }}
-                                        className="d-flex justify-content-center"
+                                        className="p-1 w-100 cursor-pointer"
+                                        onClick={() => setEditingZone(true)}
                                     >
-                                        {selectedRows.length === orderItems.length && orderItems.length > 0 ? (
-                                            <CheckSquare size={18} />
+                                        {editingZone ? (
+                                            <Input
+                                                style={{
+                                                    border: 'none !important',
+                                                    borderBottom: '2px solid #ccc !important',
+                                                    backgroundColor: 'transparent',
+                                                    color: '#132649',
+                                                    '&:focus': { border: 'none', boxShadow: 'none' },
+                                                    fontSize: '1em',
+                                                    padding: '3px',
+                                                    marginLeft: "2px"
+                                                }}
+                                                type="select"
+                                                value={selectedZoneId}
+                                                onChange={(e) => {
+                                                    handleSelectZone(e.target.value)
+                                                    setEditingZone(false)
+                                                }}
+                                                onBlur={() => setEditingZone(false)}
+                                                autoFocus
+                                                className="form-control"
+                                            >
+                                                <option value="0">Selecciona una sede</option>
+                                                {zones.map((zone) => (
+                                                    <option key={zone._id} value={zone._id}>{zone.name}</option>
+                                                ))}
+                                            </Input>
+
                                         ) : (
-                                            <Square size={18} />
+                                            <span>{zones.find((z) => z._id === selectedZoneId)?.name ?? "Ninguna"}</span>
                                         )}
                                     </div>
-                                </th>
-                                <th style={{ width: "25%" }}>Producto</th>
-                                <th style={{ width: "5%" }}>Piezas</th>
-                                <th style={{ width: "15%" }}>Tipo Tapete</th>
-                                <th style={{ width: "15%" }}>Material</th>
-                                <th style={{ width: "5%" }}>Cantidad</th>
-                                <th style={{ width: "10%" }}>Precio Unitario</th>
-                                <th style={{ width: "10%" }}>Precio Final</th>
-                                <th style={{ width: "7%" }}>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody style={{ backgroundColor: "#faf9fb" }}>
-                            {orderItems.map((item, index) => (
-                                <Fragment key={index}>
-                                    <tr
-                                        key={index}
-                                        ref={el => rowRefs.current[index] = el}
-                                        className={selectedRows.includes(index) ? "row-selected-to-editing" : ""}
-                                    >
-                                        {/* Checkbox de selección */}
-                                        <td className="text-center align-middle">
+
+                                </div>
+                            </Col>
+                        </Row>
+
+                    </div>
+                </CollapsibleSection >
+            </div >
+
+
+            {/* Datos del producto */}
+            <CollapsibleSection
+                id="products"
+                title="Datos del pedido"
+                icon={StoreIcon}
+                isOpen={openSections.products}
+                onToggle={toggleSection}
+            >
+                {
+                    orderItems.length > 0 && (
+                        <div className="table-responsive mb-4">
+                            <Table bordered hover>
+                                <thead>
+                                    <tr className="text-center bg-light">
+                                        <th style={{ width: "3%" }}>
                                             <div
-                                                onClick={() => toggleRowSelection(index)}
+                                                onClick={toggleSelectAllRows}
                                                 style={{ cursor: "pointer" }}
                                                 className="d-flex justify-content-center"
                                             >
-                                                {selectedRows.includes(index) ? <CheckSquare size={18} /> : <Square size={18} />}
+                                                {selectedRows.length === orderItems.length && orderItems.length > 0 ? (
+                                                    <CheckSquare size={18} />
+                                                ) : (
+                                                    <Square size={18} />
+                                                )}
                                             </div>
-                                        </td>
-                                        {/* Producto */}
-                                        <td>
-                                            <div
-                                                className="p-1 cursor-pointer"
-                                                onClick={() => setEditingCell({ row: index, field: "productName" })}
+                                        </th>
+                                        <th style={{ width: "25%" }}>Producto</th>
+                                        <th style={{ width: "5%" }}>Piezas</th>
+                                        <th style={{ width: "15%" }}>Tipo Tapete</th>
+                                        <th style={{ width: "15%" }}>Material</th>
+                                        <th style={{ width: "5%" }}>Cantidad</th>
+                                        <th style={{ width: "10%" }}>Precio Unitario</th>
+                                        <th style={{ width: "10%" }}>Precio Final</th>
+                                        <th style={{ width: "7%" }}>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody style={{ backgroundColor: "#faf9fb" }}>
+                                    {orderItems.map((item, index) => (
+                                        <Fragment key={index}>
+                                            <tr
+                                                key={index}
+                                                ref={el => rowRefs.current[index] = el}
+                                                className={selectedRows.includes(index) ? "row-selected-to-editing" : ""}
                                             >
-                                                {editingCell?.row === index && editingCell?.field === "productName" ? (
-                                                    <div className="position-relative">
-                                                        <InputGroup>
-                                                            <Input
-                                                                innerRef={inputRef}
-                                                                size={"sm"}
-                                                                type="text"
-                                                                value={productSearchTerm || item.productName}
-                                                                onChange={(e) => setProductSearchTerm(e.target.value)}
-                                                                onFocus={() => {
-                                                                    setProductSearchTerm("")
-                                                                }}
-                                                                onBlur={() => {
-                                                                    setTimeout(() => {
-                                                                        setEditingCell(null)
-                                                                        setProductSearchTerm("")
-                                                                    }, 200)
-                                                                }}
-                                                                autoFocus
-                                                                autoComplete="off"
-                                                                required
-                                                                placeholder="Buscar producto..."
-                                                                className="form-control"
-                                                            />
-                                                            {(productSearchTerm || item.productName) && (
-                                                                <Button
-                                                                    size="sm"
-                                                                    color="secondary"
-                                                                    onMouseDown={(e) => e.preventDefault()}
-                                                                    onClick={() => clearProductSelection(index)}
-                                                                >
-                                                                    <X size={8} />
-                                                                </Button>
-                                                            )}
-                                                        </InputGroup>
-
-                                                        {productSearchTerm && inputRef.current && (
-                                                            <DropdownPortal
-                                                                targetRef={inputRef}
-                                                                onClickOutside={() => {
-                                                                    setEditingCell(null);
-                                                                    setProductSearchTerm("");
-                                                                }}
-                                                            >
-                                                                {filteredProducts.map((product, idx) => (
-                                                                    <div
-                                                                        key={idx}
-                                                                        className="p-1 border-bottom"
-                                                                        onClick={() => {
-                                                                            updateCellValue(index, "productName", product?.name, product);
-                                                                            setProductSearchTerm("");
-                                                                            setEditingCell(null);
-                                                                            setProductSelected(product);
+                                                {/* Checkbox de selección */}
+                                                <td className="text-center align-middle">
+                                                    <div
+                                                        onClick={() => toggleRowSelection(index)}
+                                                        style={{ cursor: "pointer" }}
+                                                        className="d-flex justify-content-center"
+                                                    >
+                                                        {selectedRows.includes(index) ? <CheckSquare size={18} /> : <Square size={18} />}
+                                                    </div>
+                                                </td>
+                                                {/* Producto */}
+                                                <td>
+                                                    <div
+                                                        className="p-1 cursor-pointer"
+                                                        onClick={() => setEditingCell({ row: index, field: "productName" })}
+                                                    >
+                                                        {editingCell?.row === index && editingCell?.field === "productName" ? (
+                                                            <div className="position-relative">
+                                                                <InputGroup>
+                                                                    <Input
+                                                                        innerRef={inputRef}
+                                                                        size={"sm"}
+                                                                        type="text"
+                                                                        value={productSearchTerm || item.productName}
+                                                                        onChange={(e) => setProductSearchTerm(e.target.value)}
+                                                                        onFocus={() => {
+                                                                            setProductSearchTerm("")
                                                                         }}
-                                                                        style={{ cursor: "pointer" }}
+                                                                        onBlur={() => {
+                                                                            setTimeout(() => {
+                                                                                setEditingCell(null)
+                                                                                setProductSearchTerm("")
+                                                                            }, 200)
+                                                                        }}
+                                                                        autoFocus
+                                                                        autoComplete="off"
+                                                                        required
+                                                                        placeholder="Buscar producto..."
+                                                                        className="form-control"
+                                                                    />
+                                                                    {(productSearchTerm || item.productName) && (
+                                                                        <Button
+                                                                            size="sm"
+                                                                            color="secondary"
+                                                                            onMouseDown={(e) => e.preventDefault()}
+                                                                            onClick={() => clearProductSelection(index)}
+                                                                        >
+                                                                            <X size={8} />
+                                                                        </Button>
+                                                                    )}
+                                                                </InputGroup>
+
+                                                                {productSearchTerm && inputRef.current && (
+                                                                    <DropdownPortal
+                                                                        targetRef={inputRef}
+                                                                        onClickOutside={() => {
+                                                                            setEditingCell(null);
+                                                                            setProductSearchTerm("");
+                                                                        }}
                                                                     >
-                                                                        {product?.name}
-                                                                    </div>
-                                                                ))}
-                                                            </DropdownPortal>
+                                                                        {filteredProducts.map((product, idx) => (
+                                                                            <div
+                                                                                key={idx}
+                                                                                className="p-1 border-bottom"
+                                                                                onClick={() => {
+                                                                                    updateCellValue(index, "productName", product?.name, product);
+                                                                                    setProductSearchTerm("");
+                                                                                    setEditingCell(null);
+                                                                                    setProductSelected(product);
+                                                                                }}
+                                                                                style={{ cursor: "pointer" }}
+                                                                            >
+                                                                                {product?.name}
+                                                                            </div>
+                                                                        ))}
+                                                                    </DropdownPortal>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            item.productName || <span className="text-muted">Seleccionar producto</span>
                                                         )}
                                                     </div>
-                                                ) : (
-                                                    item.productName || <span className="text-muted">Seleccionar producto</span>
-                                                )}
-                                            </div>
-                                        </td>
+                                                </td>
 
-                                        {/* Piezas */}
-                                        <td>
-                                            <div
-                                                className="p-1 cursor-pointer d-flex justify-content-between align-items-center"
-                                                onClick={() => openPiecesModal(index)}
-                                                style={{ cursor: "pointer" }}
-                                            >
-                                                <span>{item.pieces}</span>
-                                                <Button color="link" size="sm" className="p-0">
-                                                    <Edit2 size={14} />
-                                                </Button>
-                                            </div>
-                                            {/*   <small className="text-muted d-block" style={{ fontSize: "0.75rem" }}>
+                                                {/* Piezas */}
+                                                <td>
+                                                    <div
+                                                        className="p-1 cursor-pointer d-flex justify-content-between align-items-center"
+                                                        onClick={() => openPiecesModal(index)}
+                                                        style={{ cursor: "pointer" }}
+                                                    >
+                                                        <span>{item.pieces}</span>
+                                                        <Button color="link" size="sm" className="p-0">
+                                                            <Edit2 size={14} />
+                                                        </Button>
+                                                    </div>
+                                                    {/*   <small className="text-muted d-block" style={{ fontSize: "0.75rem" }}>
                                                 {getSelectedPiecesText(item.selectedPieces)}
                                             </small> */}
-                                        </td>
+                                                </td>
 
-                                        {/* Tipo Tapete */}
-                                        <td>
-                                            <div
-                                                className="p-1"
-                                                onClick={() => setEditingCell({ row: index, field: "matType" })}
-                                                style={{ cursor: "pointer" }}
-                                            >
-                                                {editingCell?.row === index && editingCell?.field === "matType" ? (
-                                                    <Input
-                                                        type="select"
-                                                        value={item.matType}
-                                                        onChange={(e) => {
-                                                            updateCellValue(index, "matType", e.target.value)
-                                                            setEditingCell(null)
-                                                        }}
-                                                        onBlur={() => setEditingCell(null)}
-                                                        autoFocus
+                                                {/* Tipo Tapete */}
+                                                <td>
+                                                    <div
+                                                        className="p-1"
+                                                        onClick={() => setEditingCell({ row: index, field: "matType" })}
+                                                        style={{ cursor: "pointer" }}
                                                     >
-                                                        <option value="0">Selecciona una opción</option>
-                                                        {matTypeOptions.map((mat, idx) => (
-                                                            <option key={idx} value={mat}>
-                                                                {mat}
-                                                            </option>
-                                                        ))}
-                                                    </Input>
+                                                        {editingCell?.row === index && editingCell?.field === "matType" ? (
+                                                            <Input
+                                                                type="select"
+                                                                value={item.matType}
+                                                                onChange={(e) => {
+                                                                    updateCellValue(index, "matType", e.target.value)
+                                                                    setEditingCell(null);
+                                                                    purchaseOrderHelper.filterMaterialByMat(e.target.value, setFilteredMaterialTypes, matMaterialPrices);
+                                                                }}
+                                                                onBlur={() => setEditingCell(null)}
+                                                                autoFocus
+                                                            >
+                                                                <option value="0">Selecciona una opción</option>
+                                                                {matTypeOptions.map((mat, idx) => (
+                                                                    <option key={idx} value={mat}>
+                                                                        {mat}
+                                                                    </option>
+                                                                ))}
+                                                            </Input>
 
-                                                ) : (
-                                                    item.matType
-                                                )}
-                                            </div>
-                                        </td>
+                                                        ) : (
+                                                            item.matType
+                                                        )}
+                                                    </div>
+                                                </td>
 
-                                        {/* Material */}
-                                        <td>
-                                            <div
-                                                className="p-1"
-                                                onClick={() => setEditingCell({ row: index, field: "materialType" })}
-                                                style={{ cursor: "pointer" }}
-                                            >
-                                                {editingCell?.row === index && editingCell?.field === "materialType" ? (
-                                                    <Input
-                                                        type="select"
-                                                        value={item.materialType}
-                                                        onChange={(e) => {
-                                                            updateCellValue(index, "materialType", e.target.value)
-                                                            setEditingCell(null)
-                                                        }}
-                                                        onBlur={() => setEditingCell(null)}
-                                                        autoFocus
+                                                {/* Material */}
+                                                <td>
+                                                    <div
+                                                        className="p-1"
+                                                        onClick={() => setEditingCell({ row: index, field: "materialType" })}
+                                                        style={{ cursor: "pointer" }}
                                                     >
-                                                        <option value="0">Selecciona una opción</option>
-                                                        {materialTypeOptions.map((matType, index) => (
-                                                            <option key={index} value={matType}>
-                                                                {matType}
-                                                            </option>
-                                                        ))}
-                                                    </Input>
-                                                ) : (
-                                                    item.materialType
-                                                )}
-                                            </div>
-                                        </td>
+                                                        {editingCell?.row === index && editingCell?.field === "materialType" ? (
+                                                            <Input
+                                                                type="select"
+                                                                value={item.materialType}
+                                                                onChange={(e) => {
+                                                                    updateCellValue(index, "materialType", e.target.value)
+                                                                    setEditingCell(null)
+                                                                }}
+                                                                onBlur={() => setEditingCell(null)}
+                                                                autoFocus
+                                                            >
+                                                                <option value="0">Selecciona una opción</option>
+                                                                {filteredMaterialTypes.map((matType, index) => (
+                                                                    <option key={index} value={matType}>
+                                                                        {matType}
+                                                                    </option>
+                                                                ))}
+                                                            </Input>
+                                                        ) : (
+                                                            item.materialType
+                                                        )}
+                                                    </div>
+                                                </td>
 
-                                        {/* Cantidad */}
-                                        <td>
-                                            <div
-                                                className="p-1"
-                                                onClick={() => setEditingCell({ row: index, field: "quantity" })}
-                                                style={{ cursor: "pointer" }}
-                                            >
-                                                {editingCell?.row === index && editingCell?.field === "quantity" ? (
-                                                    <Input
-                                                        type="number"
-                                                        min="1"
-                                                        value={item.quantity}
-                                                        onChange={(e) => {
-                                                            updateCellValue(index, "quantity", Number.parseInt(e.target.value) || 1)
-                                                        }}
-                                                        onBlur={() => setEditingCell(null)}
-                                                        autoFocus
-                                                    />
-                                                ) : (
-                                                    item.quantity
-                                                )}
-                                            </div>
-                                        </td>
+                                                {/* Cantidad */}
+                                                <td>
+                                                    <div
+                                                        className="p-1"
+                                                        onClick={() => setEditingCell({ row: index, field: "quantity" })}
+                                                        style={{ cursor: "pointer" }}
+                                                    >
+                                                        {editingCell?.row === index && editingCell?.field === "quantity" ? (
+                                                            <Input
+                                                                type="number"
+                                                                min="1"
+                                                                value={item.quantity}
+                                                                onChange={(e) => {
+                                                                    updateCellValue(index, "quantity", Number.parseInt(e.target.value) || 1)
+                                                                }}
+                                                                onBlur={() => setEditingCell(null)}
+                                                                autoFocus
+                                                            />
+                                                        ) : (
+                                                            item.quantity
+                                                        )}
+                                                    </div>
+                                                </td>
 
-                                        {/* Precio Base */}
-                                        <td className="text-end">
-                                            {/*  <div className="p-2">${item.basePrice?.toLocaleString()}</div> */}
-                                            <div
-                                                className="p-1"
-                                                onClick={() => setEditingCell({ row: index, field: "basePrice" })}
-                                                style={{ cursor: "pointer" }}
-                                            >
-                                                {editingCell?.row === index && editingCell?.field === "basePrice" ? (
-                                                    <Input
-                                                        type="number"
-                                                        value={item.basePrice}
-                                                        onChange={(e) => {
-                                                            updateCellValue(index, "basePrice", Number.parseInt(e.target.value) || 1)
-                                                        }}
-                                                        onBlur={() => handleOnChangeBasePrice(index, item.basePrice)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === "Enter") {
-                                                                handleOnChangeBasePrice(index, item.basePrice);
-                                                            }
-                                                        }}
-                                                        autoFocus
-                                                    />
-                                                ) : (
-                                                    <div>${item.basePrice?.toLocaleString()}</div>
-                                                )}
-                                            </div>
-                                        </td>
-                                        {/* Precio ajustado */}
-                                        <td className="text-end">
-                                            <div className="p-1 fw-bold">${item.adjustedPrice?.toLocaleString()}</div>
-                                        </td>
+                                                {/* Precio Base */}
+                                                <td className="text-end">
+                                                    {/*  <div className="p-2">${item.basePrice?.toLocaleString()}</div> */}
+                                                    <div
+                                                        className="p-1"
+                                                        onClick={() => setEditingCell({ row: index, field: "basePrice" })}
+                                                        style={{ cursor: "pointer" }}
+                                                    >
+                                                        {editingCell?.row === index && editingCell?.field === "basePrice" ? (
+                                                            <Input
+                                                                type="number"
+                                                                value={item.basePrice}
+                                                                onChange={(e) => {
+                                                                    updateCellValue(index, "basePrice", Number.parseInt(e.target.value) || 1)
+                                                                }}
+                                                                onBlur={() => handleOnChangeBasePrice(index, item.basePrice)}
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === "Enter") {
+                                                                        handleOnChangeBasePrice(index, item.basePrice);
+                                                                    }
+                                                                }}
+                                                                autoFocus
+                                                            />
+                                                        ) : (
+                                                            <div>${item.basePrice?.toLocaleString()}</div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                {/* Precio ajustado */}
+                                                <td className="text-end">
+                                                    <div className="p-1 fw-bold">${item.adjustedPrice?.toLocaleString()}</div>
+                                                </td>
 
-                                        {/* Acciones */}
-                                        <td>
-                                            <div className="d-flex justify-content-center gap-1">
-                                                <Button
-                                                    color="link"
-                                                    className="p-1 text-primary"
-                                                    onClick={() => openObservationsModal(index)}
-                                                    title="Observaciones"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </Button>
-                                                <Button
-                                                    color="link"
-                                                    className="p-1 text-danger"
-                                                    onClick={() => removeRow(index)}
-                                                    title="Eliminar"
-                                                >
-                                                    <Trash2 size={16} />
-                                                </Button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    {rowError.rowIndex === index && (
-                                        <tr>
-                                            <td colSpan={10} className="text-danger p-1 bg-light border-bottom">
-                                                <div className="inline-error">{rowError.message}</div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                </Fragment>
-                            ))}
-                        </tbody>
-                    </Table>
-                </div>
-            ) : (
-                selectedClient && (
-                    <Alert color="info" className="text-center">
-                        No hay productos en el pedido. Haga clic en "Añadir Producto" para comenzar.
-                    </Alert>
-                )
-            )}
+                                                {/* Acciones */}
+                                                <td>
+                                                    <div className="d-flex justify-content-center gap-1">
+                                                        <Button
+                                                            color="link"
+                                                            className="p-1 text-primary"
+                                                            onClick={() => openObservationsModal(index)}
+                                                            title="Observaciones"
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </Button>
+                                                        <Button
+                                                            color="link"
+                                                            className="p-1 text-danger"
+                                                            onClick={() => removeRow(index)}
+                                                            title="Eliminar"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            {rowError.rowIndex === index && (
+                                                <tr>
+                                                    <td colSpan={10} className="text-danger p-1 bg-light border-bottom">
+                                                        <div className="inline-error">{rowError.message}</div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </Fragment>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </div>
+                        /* ) : (
+                           selectedClient && (
+                               <Alert color="info" className="text-center">
+                                   No hay productos en el pedido. Haga clic en "Añadir Producto" para comenzar.
+                               </Alert>
+                           ) */
+                    )
+                }
+
+            </CollapsibleSection>
+
+            {/* Forma de pago */}
+            <CollapsibleSection
+                id="methodOfPayment"
+                title="Forma de pago"
+                icon={CreditCard}
+                isOpen={openSections.methodOfPayment}
+                onToggle={toggleSection}
+            >
+                <Row>
+
+                    <Col md={6}>
+                        <div>
+                            <span className="fw-medium">Forma de pago: </span>
+                            <span>Pago en efectivo</span>
+                        </div>
+                    </Col>
+                </Row>
+
+
+            </CollapsibleSection>
 
             {/* Total del Pedido */}
-            {orderItems.length > 0 && !isEditMode && (
-                <div className="bg-light p-3 rounded shadow-sm mb-4" style={{ position: "sticky", bottom: '25px', height: '110px' }}>
-                    <div className="d-flex justify-content-between align-items-center">
-                        <h2 className="h5 fw-semibold mb-0">Total del Pedido:</h2>
-                        <span className="h4 fw-bold mb-0">${calculateTotal().toLocaleString()}</span>
-                    </div>
-
-                    <div className="mt-3 d-flex justify-content-between">
-                        <div>
-                            <span className="fw-medium">Cliente: </span>
-                            <span>{selectedClient.name}</span>
-                            {selectedClient.company && <span className="ms-2 text-muted">({selectedClient.company})</span>}
+            {
+                orderItems.length > 0 && !isEditMode && (
+                    <div className="bg-light p-3 rounded shadow-sm mb-4" style={{ position: "sticky", bottom: '25px', height: '110px' }}>
+                        <div className="d-flex justify-content-between align-items-center">
+                            <h2 className="h5 fw-semibold mb-0">Total del Pedido:</h2>
+                            <span className="h4 fw-bold mb-0">${calculateTotal().toLocaleString()}</span>
                         </div>
 
-                        <Button
-                            color="success"
-                            className="d-flex align-items-center gap-2"
-                            onClick={handleSubmit}
-                        >
-                            <Save size={18} />
-                            Finalizar Pedido
-                        </Button>
+                        <div className="mt-3 d-flex justify-content-between">
+                            <div>
+
+                            </div>
+
+                            <Button
+                                color="success"
+                                className="d-flex align-items-center gap-2"
+                                onClick={handleSubmit}
+                            >
+                                <Save size={18} />
+                                Finalizar Pedido
+                            </Button>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
         </>
     )
 }

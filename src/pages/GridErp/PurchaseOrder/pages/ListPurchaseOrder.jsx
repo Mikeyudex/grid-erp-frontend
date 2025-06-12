@@ -1,5 +1,11 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, Fragment } from "react";
 import {
+    Alert,
+    Button,
+    Card,
+    CardBody,
+    CardHeader,
+    Col,
     Container,
     Row,
 } from "reactstrap";
@@ -8,35 +14,49 @@ import { ToastContainer } from "react-toastify";
 
 import "nouislider/distribute/nouislider.css";
 import { optionsSnackbarDanger, optionsSnackbarSuccess, ProductHelper } from "../../Products/helper/product_helper";
-import BreadCrumb from "../../Products/components/BreadCrumb";
 import { PurchaseOrderContext } from "../context/purchaseOrderContext";
+import { TopLayoutGeneralView } from "../../../../Components/Common/TopLayoutGeneralView"
 import { FormatDate } from "../../Products/components/FormatDate";
 import { TableListPurchaseOrder } from "../partials/TableListPurchaseOrder";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { FaPlus } from "react-icons/fa";
+import DataTable from "../../../../Components/Common/DataTableCustom";
 
 const helper = new ProductHelper();
 
 export const ListPurchaseOrder = (props) => {
     document.title = "Ordenes de pedido | Quality";
 
+    const navigate = useNavigate();
     const { updatePurchaseOrderData, purchaseOrderData } = React.useContext(PurchaseOrderContext);
     const [purchaseOrderList, setPurchaseOrderList] = useState([]);
-    const [isLoadingTable, setIsLoadingTable] = useState(true);
-    const [showProgressBarTable, setShowProgressBarTable] = useState(true);
     const [validationErrors, setValidationErrors] = useState({});
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(50);
+    const [reloadData, setReloadData] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-
-    useEffect(() => {
-        helper.getPurchaseOrders(page, limit, ["_id", "itemsQuantity", "totalOrder", "status", "createdAt"])
+    const fetchPurchaseOrders = async () => {
+        setError(null);
+        helper.getPurchaseOrdersFetch(page, limit, ["_id", "itemsQuantity", "totalOrder", "status", "createdAt"])
             .then(async (response) => {
                 let purchaseOrders = response?.data;
                 if (purchaseOrders && Array.isArray(purchaseOrders) && purchaseOrders.length > 0) {
-                    setPurchaseOrderList(purchaseOrders);
-                    updatePurchaseOrderData({ ...purchaseOrderData, purchaseOrderList: [...purchaseOrderData.purchaseOrderList, purchaseOrders] });
+                    let pOrderMap = purchaseOrders.map((po) => {
+                        return {
+                            ...po,
+                            itemsQuantity: po?.details?.reduce((acc, item) => acc + item?.quantityItem, 0),
+                            name : po?.clientId?.name,
+                            commercialName : po?.clientId?.commercialName,
+                            email : po?.clientId?.email,
+                            phone : po?.clientId?.phone,
+                            shippingAddress : po?.clientId?.shippingAddress,
+                        }
+                    });
+                    setPurchaseOrderList(pOrderMap);
                 }
                 return;
             })
@@ -45,132 +65,81 @@ export const ListPurchaseOrder = (props) => {
                 console.log(e);
             })
             .finally(() => {
-                setIsLoadingTable(false);
-                setShowProgressBarTable(false);
+                setLoading(false);
             });
-    }, []);
+    };
 
+    useEffect(() => {
+        fetchPurchaseOrders();
+    }, [page, limit, reloadData]);
 
-    const columns = useMemo(() =>
-        [
-            {
-                header: "#",
-                accessorKey: "orderNumber",
-                enableColumnFilter: true,
-                enableEditing: false,
-                grow: true,
-                size: 30,
-                Cell: ({ cell }) => {
-                    return (
-                        <Link to={`/purchase-orders/view-detail/${cell.row.original._id}`}>
-                            <h6>{cell.row.original.orderNumber}</h6>
-                        </Link>
-                    )
-                }
-            },
-            {
-                header: "Cliente",
-                accessorKey: "clientId.name",
-                enableColumnFilter: true,
-                enableEditing: false,
-                grow: true,
-                size: 30,
-                Cell: ({ cell }) => {
-                    return (
-                        <>
-                            <h6>
-                                {cell.row.original.clientId.name + " " + cell.row.original.clientId.lastname}</h6>
-                            {cell.row.original.clientId.commercialName && <small className="text-muted text-truncate d-block mb-0">
-                                {cell.row.original.clientId.commercialName}
-                            </small>}
-                        </>
-                    )
-                }
-            },
-            {
-                header: "Ciudad",
-                accessorKey: "clientId.billingCity",
-                enableColumnFilter: true,
-                enableEditing: false,
-                grow: true,
-                size: 30,
-                Cell: ({ cell }) => {
-                    return (<h6>{cell.row.original.clientId.billingCity}</h6>)
-                }
-            },
-            {
-                header: "Cantidad",
-                accessorKey: "itemsQuantity",
-                enableColumnFilter: true,
-                enableEditing: false,
-                grow: true,
-                size: 30,
-                Cell: ({ cell }) => {
-                    return (<h6>{cell.row.original.itemsQuantity}</h6>)
-                }
-            },
-            {
-                header: "Total",
-                accessorKey: "totalOrder",
-                enableColumnFilter: false,
-                enableEditing: false,
-                size: 30,
-                Cell: ({ cell }) => {
-                    return (<h6>{cell.row.original.totalOrder.toLocaleString()}</h6>)
-                },
-            },
-            {
-                header: "Estado",
-                accessorKey: "status",
-                enableColumnFilter: true,
-                enableEditing: false,
-                size: 40,
-                Cell: ({ cell }) => {
-                    return (
-                        <h6
-                            className={`${cell.row.original.status === "pendiente" ? "bg-danger-subtle text-danger" : "bg-success-subtle text-success"} badge text-uppercase`}
-                            style={{
-                                color: cell.row.original.status === 'pendiente' ? '#de6c37' : '#0eb6b6',
-                                fontWeight: cell.row.original.status === 'pendiente' ? 'normal' : 'bold',
-                            }}>
-                            {cell.row.original.status}
-                        </h6>)
-                },
-            },
-            {
-                header: "Fecha creación",
-                accessorKey: "createdAt",
-                enableColumnFilter: true,
-                enableEditing: false,
-                size: 50,
-                Cell: ({ cell }) => {
-                    return <FormatDate {...cell} />;
-                },
-            },
-        ],
-        [purchaseOrderList, validationErrors]
-    );
+    const handleClickEditRow = (id) => {
+        let pedido = purchaseOrderList.find((po) => po._id === id);
+        return navigate(`/purchase-orders/edit/${id}`, { state: { pedido } });
+    };
 
+    const handleAddPO = () => {
+        return navigate("/purchase-orders/create")
+    };
+
+    const columns = [
+        { key: "orderNumber", label: "No.", type: "text", editable: false, searchable: true, sortable: true },
+        { key: "name", label: "Nombre", type: "text", editable: false, searchable: true, sortable: true, },
+        { key: "commercialName", label: "Nombre Comercial", type: "text", editable: false, searchable: true, sortable: true, },
+        { key: "email", label: "Email", type: "text", editable: false, searchable: true , sortable: true,},
+        { key: "phone", label: "Teléfono", type: "text", editable: false, searchable: true },
+        { key: "shippingAddress", label: "Dirección", type: "text", editable: false, searchable: true },
+        { key: "itemsQuantity", label: "Cantidad", type: "number", editable: false, searchable: true, sortable: true, },
+        { key: "totalOrder", label: "Total", type: "price", editable: false, searchable: true },
+        { key: "status", label: "Estado", type: "text", editable: false, searchable: true, sortable: true },
+        { key: "createdAt", label: "Fecha creación", type: "date", editable: false, searchable: true, sortable: true },
+    ]
     return (
-        <div className="page-content">
-            <ToastContainer closeButton={false} limit={1} />
-            <Container fluid>
-                <BreadCrumb title="Lista de pedidos" pageTitle="Ordenes de pedido" />
-                <Row>
-                    <div className="card-body pt-2 mt-1">
-                        <TableListPurchaseOrder
-                            columns={columns}
-                            list={(purchaseOrderList || [])}
-                            isLoadingTable={isLoadingTable}
-                            showProgressBarTable={showProgressBarTable}
-                            setList={setPurchaseOrderList}
-                            setValidationErrors={setValidationErrors}
-                            validationErrors={validationErrors}
-                        />
-                    </div>
-                </Row>
-            </Container>
-        </div>
+        < TopLayoutGeneralView
+            titleBreadcrumb="Lista de de pedidos"
+            pageTitleBreadcrumb="Pedidos"
+            main={
+                < Fragment >
+                    <Row>
+                        <Col>
+                            <Card>
+                                <CardHeader className="bg-light text-white d-flex justify-content-between align-items-center">
+                                    <div className="d-flex justify-content-between align-items-center">
+                                        <Button title="Nuevo Pedido" color="light" onClick={handleAddPO}>
+                                            <FaPlus className="me-1" /> Nuevo
+                                        </Button>
+                                    </div>
+
+                                </CardHeader>
+                                <CardBody>
+                                    {error && (
+                                        <Alert color="danger" toggle={() => setError(null)}>
+                                            {error}
+                                        </Alert>
+                                    )}
+
+                                    <DataTable
+                                        data={purchaseOrderList}
+                                        columns={columns}
+                                        onUpdate={() => ({})}
+                                        onDelete={() => ({})}
+                                        onBulkDelete={() => ({})}
+                                        title="Pedidos"
+                                        loading={loading}
+                                        error={error}
+                                        refreshData={fetchPurchaseOrders}
+                                        searchable={true}
+                                        itemsPerPage={10}
+                                        onClickEditRow={handleClickEditRow}
+                                    />
+                                </CardBody>
+                            </Card>
+                        </Col>
+                    </Row>
+                </Fragment >
+            }
+        >
+        </TopLayoutGeneralView >
     );
 };
 

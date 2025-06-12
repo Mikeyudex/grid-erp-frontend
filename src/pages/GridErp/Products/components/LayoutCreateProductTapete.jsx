@@ -49,6 +49,7 @@ export default function LayoutCreateProductTapete({
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
     const [units, setUnits] = useState([]);
+    const [taxes, setTaxes] = useState([]);
     const [typesProduct, setTypesProduct] = useState([]);
     const [typeOfPieces, setTypeOfPieces] = useState([]);
     const [lastSku, setLastSku] = useState("0");
@@ -71,8 +72,7 @@ export default function LayoutCreateProductTapete({
         typeOfPieces: [],
         observations: "",
         barCode: "",
-        taxIncluded: false,
-        taxPercent: '',
+        taxIncluded: false
     });
     const [additionalConfigs, setAdditionalConfigs] = useState({
         hasBarcode: false
@@ -112,7 +112,8 @@ export default function LayoutCreateProductTapete({
                 setError("No se ha seleccionado ningun producto");
                 return;
             }
-            setFormData({
+            setFormData((prevFormData) => ({
+                ...prevFormData,
                 sku: productData?.sku,
                 id_type_product: productData?.id_type_product?._id,
                 id_category: productData?.id_category?._id,
@@ -127,8 +128,8 @@ export default function LayoutCreateProductTapete({
                 observations: productData?.observations,
                 barCode: productData?.barCode,
                 taxIncluded: productData?.taxIncluded,
-                taxPercent: productData?.taxPercent,
-            });
+            }));
+
 
         } catch (error) {
             setError("Error al cargar los datos del cliente")
@@ -236,7 +237,6 @@ export default function LayoutCreateProductTapete({
         payloadModiffied.quantity = formData.quantity ?? 1;
         payloadModiffied.costPrice = Number(formData.costPrice) ?? 0;
         payloadModiffied.salePrice = Number(formData.costPrice) ?? 0;
-        payloadModiffied.taxPercent = Number(formData.taxPercent) ?? 0;
         payloadModiffied.companyId = companyId;
 
         let additionalConfigsModiffied = { ...additionalConfigs, images: fileData.map(({ url }) => url) }
@@ -279,17 +279,16 @@ export default function LayoutCreateProductTapete({
         helper.getCategoriesFullByProduct(companyId)
             .then(async (respCategoriesFull) => {
                 let unitOfMeasures = await helper.getAllUnitsMeasure();
-                /* let taxes = await helper.getAllTaxes(); */
+                let taxes = await helper.getAllTaxes();
                 let typesProduct = await helper.getTypesProduct();
-
 
                 if (mode === "create") {
                     await handleSetLastSku();
                 }
-                let categories = respCategoriesFull.data;
+                let categories = respCategoriesFull?.data;
                 setCategories(categories ?? []);
                 setUnits(unitOfMeasures ?? []);
-                /* setTaxes(taxes ?? []); */
+                setTaxes(taxes ?? []);
                 setTypesProduct(typesProduct?.data ?? []);
             })
             .catch(error => {
@@ -703,7 +702,7 @@ export default function LayoutCreateProductTapete({
                                                 type="checkbox"
                                                 name={"taxIncluded"}
                                                 id={"taxIncluded"}
-                                                value={formData.taxIncluded}
+                                                checked={formData.taxIncluded || false}
                                                 onChange={handleSwitchChange}
                                             />
                                             <span className="slider"></span></label>
@@ -714,15 +713,32 @@ export default function LayoutCreateProductTapete({
 
                             <Row>
                                 <Col md={6}>
-                                    <FloatingInput
-                                        name="taxPercent"
-                                        type="number"
-                                        id="taxPercent"
-                                        value={formData.taxPercent}
+                                    <Input
+                                        style={{
+                                            border: 'none !important',
+                                            borderBottom: '2px solid #ccc !important',
+                                            backgroundColor: 'transparent',
+                                            color: '#132649',
+                                            '&:focus': { border: 'none', boxShadow: 'none' },
+                                            fontSize: '1em',
+                                        }}
+                                        bsSize="md"
+                                        type="select"
+                                        id="taxId"
+                                        name="taxId"
+                                        value={formData.taxId}
                                         onChange={handleInputChange}
-                                        label="Impuesto (Porcentaje IVA)"
-                                    />
-                                    {validationErrors.taxPercent && <span style={{ color: "red" }}>{validationErrors.taxPercent}</span>}
+                                        required
+                                        className="form-control"
+                                    >
+                                        <option value="0">Selecciona el impuesto</option>
+                                        {
+                                            taxes.map((tax) => {
+                                                return (<option key={tax?._id} label={tax?.name} value={tax?._id}></option>)
+                                            })
+                                        }
+                                    </Input>
+                                    {validationErrors.taxId && <span style={{ color: "red" }}>{validationErrors.taxId}</span>}
                                 </Col>
 
                             </Row>

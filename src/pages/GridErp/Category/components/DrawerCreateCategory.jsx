@@ -93,11 +93,11 @@ export function DrawerCreateCategory({
                 handleAddItemToList(data);
             }
             handleCloseDrawer();
-            openSnackbarSuccess('Categoría creada exitosamente');
+            openSnackbarSuccess('Marca creada exitosamente');
         } catch (error) {
             console.log(error);
             setOpenBackdrop(false);
-            openSnackbarDanger('Ocurrió un error al crear la categoría');
+            openSnackbarDanger('Ocurrió un error al crear la marca');
         }
     };
 
@@ -124,10 +124,10 @@ export function DrawerCreateCategory({
                     /* onKeyDown={toggleDrawer(false)} */
                     >
                         <div className='px-3 py-3 mt-2'>
-                            <h5>Crear categoría</h5>
+                            <h5>Crear marca</h5>
                         </div>
                         <Container fluid>
-                            <BackdropGlobal openBackdrop={openBackdrop} handleClose={handleCloseBackdrop} title="Creando categoría..." />
+                            <BackdropGlobal openBackdrop={openBackdrop} handleClose={handleCloseBackdrop} title="Creando marca..." />
                             <Row style={{ height: '75vh' }}>
                                 <Col lg={12} >
                                     <Row>
@@ -141,7 +141,7 @@ export function DrawerCreateCategory({
                                                             <GlobalInputText
                                                                 name={'name'}
                                                                 onChange={handleInputChange}
-                                                                placeholder={'Nombre de la categoría'}
+                                                                placeholder={'Nombre de la marca'}
                                                                 value={formData.name}
                                                                 type={"text"}
                                                                 className={"input-box"}

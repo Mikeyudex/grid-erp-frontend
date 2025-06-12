@@ -1,4 +1,4 @@
-import { APIClient } from "../../../../helpers/api_helper";
+import { APIClient, ApiClientFetch } from "../../../../helpers/api_helper";
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import * as url from "./url_helper";
 import moment from "moment";
@@ -7,6 +7,7 @@ import 'moment/locale/es';
 moment.locale('es');
 
 const api = new APIClient();
+const apiFetch = new ApiClientFetch();
 
 export class ProductHelper {
 
@@ -17,13 +18,13 @@ export class ProductHelper {
 
 
     addProduct = payload => api.create(`${url.ADD_PRODUCT}`, payload);
-    getProducts = (page, limit) => api.get(`${url.GET_PRODUCTS}?page=${page}&limit=${limit}`);
+    getProducts = (page, limit) => apiFetch.get(`${url.GET_PRODUCTS}?page=${page}&limit=${limit}`);
     getProductsLite = (page, limit) => api.get(`${url.GET_PRODUCTS_LITE}?page=${page}&limit=${limit}`);
-    getCategoriesFullByProduct = companyId => api.get(`${url.GET_CATEGORIES_PRODUCT}?companyId=${companyId}`);
+    getCategoriesFullByProduct = companyId => apiFetch.get(`${url.GET_CATEGORIES_PRODUCT}?companyId=${companyId}`);
     getCategoriesFullByCompanySelect = companyId => api.get(`${url.GET_CATEGORIES_PRODUCT_SELECT}?companyId=${companyId}`);
     getLastSku = companyId => api.get(`${url.GET_LAST_SKU}/${companyId}`);
     deleteImageProduct = fileName => api.delete(`${url.DELETE_FILE}/${fileName}`);
-    getTypesProduct = () => api.get(url.GET_TYPES_PRODUCT);
+    getTypesProduct = () => apiFetch.get(url.GET_TYPES_PRODUCT);
 
     //Sync product in marketplace
     syncProductWooCommerce = (payload, companyId) => api.create(`${url.SYNC_PRODUCT_WOOCOMMERCE}/${companyId}`, payload);
@@ -37,16 +38,16 @@ export class ProductHelper {
     getProviderByCompany = companyId => api.get(`${url.GET_PROVIDERS_BYCOMPANY}?companyId=${companyId}`);
 
     //proveedor
-    getAllUnitsMeasure = () => api.get(`${url.GET_UNIT_OF_MEASURE}`);
+    getAllUnitsMeasure = () => apiFetch.get(`${url.GET_UNIT_OF_MEASURE}`);
 
     //Impuestos
-    getAllTaxes = () => api.get(`${url.GET_TAXES_BYCOMPANY}`);
+    getAllTaxes = () => apiFetch.get(`${url.GET_TAXES_BYCOMPANY}`);
 
-    getClients = (page, limit, fields) => api.get(`${url.GET_CLIENTS_BY_FIELDS}?page=${page}&limit=${limit}&fields=${[fields]}`);
+    getClients = (page, limit, fields) => apiFetch.get(`${url.GET_CLIENTS_BY_FIELDS}?page=${page}&limit=${limit}&fields=${[fields]}`);
 
-    getTypeOfPieces = () => api.get(`${url.GET_TYPE_OF_PIECES}`);
+    getTypeOfPieces = () => apiFetch.get(`${url.GET_TYPE_OF_PIECES}`);
 
-    getMatMaterialPrices = () => api.get(`${url.GET_MAT_MATERIAL_PRICES}`);
+    getMatMaterialPrices = () => apiFetch.get(`${url.GET_MAT_MATERIAL_PRICES}`);
 
     addMaterialPrice = payload => api.create(`${url.ADD_MATERIAL_PRICE}`, payload);
 
@@ -54,11 +55,13 @@ export class ProductHelper {
 
     calcularPrecioFinalProductoDesdePrecioBase = (precioBase, tipoTapete, material, cantidad, typeCustomerId) => api.get(`${url.CALCULATE_FINAL_PRICE_FROM_BASE_PRICE}/${precioBase}/${tipoTapete}/${material}/${cantidad}/${typeCustomerId}`);
 
-    getPurchaseOrders = (page, limit, fields) => api.get(`${url.GET_PURCHASE_ORDERS}?page=${page}&limit=${limit}&fields=${[fields]}`);
+    getPurchaseOrders = (page, limit, fields) => apiFetch.get(`${url.GET_PURCHASE_ORDERS}?page=${page}&limit=${limit}&fields=${[fields]}`);
 
-    getPurchaseOrderById = (id) => api.get(`${url.GET_PURCHASE_ORDER_BY_ID}/${id}`);
+    getPurchaseOrderById = (id) => apiFetch.get(`${url.GET_PURCHASE_ORDER_BY_ID}/${id}`);
 
     getPurchaseOrdersFromViewProduction = (page, limit, zoneId) => api.get(`${url.GET_PURCHASE_ORDERS_FROM_VIEW_PRODUCTION}?page=${page}&limit=${limit}&zoneId=${zoneId}`);
+
+    getPurchaseOrdersFetch = async (page, limit, fields) => apiFetch.get(`${url.GET_PURCHASE_ORDERS}?page=${page}&limit=${limit}&fields=${[fields]}`);
 
     validateForm = (setErrors, formData) => {
         const newErrors = {};
@@ -91,9 +94,9 @@ export class ProductHelper {
             newErrors.id_sub_category = 'La subcategoría es requerida';
         } */
 
-        /* if (!formData.taxId || formData.taxId === '') {
+        if (!formData.taxId || formData.taxId === '') {
             newErrors.taxId = 'El impuesto es requerido';
-        } */
+        }
 
         /* if (!formData.quantity || formData.quantity === '' || formData.quantity === 0) {
             newErrors.quantity = 'La cantidad es requerida';

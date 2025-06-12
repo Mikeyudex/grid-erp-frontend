@@ -140,4 +140,97 @@ export const getResourcesByRole = async (roleId) => {
   }
 };
 
+export class ApiClientFetch {
+  /**
+   * Fetches data from given url
+   */
+
+  //  get = (url, params) => {
+  //   return axios.get(url, params);
+  // };
+  get = async (url, params) => {
+    let response;
+
+    let paramKeys = [];
+    let token = getToken();
+
+    if (params) {
+      Object.keys(params).map(key => {
+        paramKeys.push(key + '=' + params[key]);
+        return paramKeys;
+      });
+
+      const queryString = paramKeys && paramKeys.length ? paramKeys.join('&') : "";
+      response = fetch(url + "?" + queryString, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        }
+      });
+    } else {
+      params = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        }
+      }
+      response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        }
+      });
+    }
+
+    let data = await response.json();
+    return data;
+  };
+  /**
+   * post given data to url
+   */
+  create = (url, data, configs = {}) => {
+    return fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+  };
+
+  /**
+   * Updates data
+   */
+  update = (url, data) => {
+    return fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+  };
+
+  put = (url, data) => {
+    return fetch(url, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+  };
+
+  /**
+   * Delete
+   */
+  delete = (url, config) => {
+    return fetch(url, { ...config });
+  };
+
+
+}
+
 export { APIClient, setAuthorization, getLoggedinUser };
