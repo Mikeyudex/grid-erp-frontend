@@ -19,7 +19,7 @@ export class ProductHelper {
 
     addProduct = payload => api.create(`${url.ADD_PRODUCT}`, payload);
     getProducts = (page, limit) => apiFetch.get(`${url.GET_PRODUCTS}?page=${page}&limit=${limit}`);
-    getProductsLite = (page, limit) => api.get(`${url.GET_PRODUCTS_LITE}?page=${page}&limit=${limit}`);
+    getProductsLite = (page, limit) => apiFetch.get(`${url.GET_PRODUCTS_LITE}?page=${page}&limit=${limit}`);
     getCategoriesFullByProduct = companyId => apiFetch.get(`${url.GET_CATEGORIES_PRODUCT}?companyId=${companyId}`);
     getCategoriesFullByCompanySelect = companyId => api.get(`${url.GET_CATEGORIES_PRODUCT_SELECT}?companyId=${companyId}`);
     getLastSku = companyId => api.get(`${url.GET_LAST_SKU}/${companyId}`);
@@ -51,9 +51,9 @@ export class ProductHelper {
 
     addMaterialPrice = payload => api.create(`${url.ADD_MATERIAL_PRICE}`, payload);
 
-    calcularPrecioFinalProducto = (productId, tipoTapete, material, cantidad, typeCustomerId) => api.get(`${url.CALCULATE_FINAL_PRICE}/${productId}/${tipoTapete}/${material}/${cantidad}/${typeCustomerId}`);
+    calcularPrecioFinalProducto = (productId, tipoTapete, material, cantidad, typeCustomerId) => apiFetch.get(`${url.CALCULATE_FINAL_PRICE}/${productId}/${tipoTapete}/${material}/${cantidad}/${typeCustomerId}`);
 
-    calcularPrecioFinalProductoDesdePrecioBase = (precioBase, tipoTapete, material, cantidad, typeCustomerId) => api.get(`${url.CALCULATE_FINAL_PRICE_FROM_BASE_PRICE}/${precioBase}/${tipoTapete}/${material}/${cantidad}/${typeCustomerId}`);
+    calcularPrecioFinalProductoDesdePrecioBase = (precioBase, tipoTapete, material, cantidad, typeCustomerId) => apiFetch.get(`${url.CALCULATE_FINAL_PRICE_FROM_BASE_PRICE}/${precioBase}/${tipoTapete}/${material}/${cantidad}/${typeCustomerId}`);
 
     getPurchaseOrders = (page, limit, fields) => apiFetch.get(`${url.GET_PURCHASE_ORDERS}?page=${page}&limit=${limit}&fields=${[fields]}`);
 

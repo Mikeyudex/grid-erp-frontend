@@ -209,7 +209,7 @@ export default function OrderGrid({
                 return 0;
             }
             const response = await productHelper.calcularPrecioFinalProducto(productId, matType, materialType, quantity, typeCustomerId);
-            return response?.precioFinal || 0;
+            return response?.data?.precioFinal || 0;
         } catch (error) {
             console.log(error);
             return 0;
@@ -222,7 +222,7 @@ export default function OrderGrid({
                 return 0;
             }
             const response = await productHelper.calcularPrecioFinalProductoDesdePrecioBase(basePrice, matType, materialType, quantity, typeCustomerId);
-            return response?.precioFinal || 0;
+            return response?.data?.precioFinal || 0;
         } catch (error) {
             console.log(error);
             return 0;

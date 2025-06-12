@@ -24,7 +24,7 @@ export default function PurchaseOrderPage() {
     const handleGetProducts = async () => {
         try {
             let response = await productHelper.getProductsLite(1, 100);
-            return response;
+            return response?.data;
         } catch (error) {
             console.log(error);
             return [];
@@ -34,7 +34,7 @@ export default function PurchaseOrderPage() {
     const handleGetClients = async () => {
         try {
             let response = await productHelper.getClients(0, 100, ["_id", "name", "lastname", "commercialName", "email", "typeCustomerId", "documento", "contacts"]);
-            return response;
+            return response?.data;
         } catch (error) {
             console.log(error);
             return [];
@@ -57,8 +57,8 @@ export default function PurchaseOrderPage() {
 
     useEffect(() => {
         handleGetClients()
-            .then(async (data) => {
-                let clients = (data || [])
+            .then(async (c) => {
+                let clients = (c || [])
                     .map((c) => ({
                         ...c,
                         id: c._id,
