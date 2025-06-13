@@ -21,8 +21,10 @@ import { TableListPurchaseOrder } from "../partials/TableListPurchaseOrder";
 import { Link, useNavigate } from "react-router-dom";
 import { FaPlus } from "react-icons/fa";
 import DataTable from "../../../../Components/Common/DataTableCustom";
+import { IndexedDBService } from "../../../../helpers/indexedDb/indexed-db-helper";
 
 const helper = new ProductHelper();
+const indexedDb = new IndexedDBService();
 
 export const ListPurchaseOrder = (props) => {
     document.title = "Ordenes de pedido | Quality";
@@ -41,7 +43,8 @@ export const ListPurchaseOrder = (props) => {
 
     const fetchPurchaseOrders = async () => {
         setError(null);
-        helper.getPurchaseOrdersFetch(page, limit, ["_id", "itemsQuantity", "totalOrder", "status", "createdAt"])
+        let userData = await indexedDb.getItemById(localStorage.getItem("userId"));
+        helper.getPurchaseOrdersFetch(page, limit, userData?.zoneId)
             .then(async (response) => {
                 let purchaseOrders = response?.data;
                 if (purchaseOrders && Array.isArray(purchaseOrders) && purchaseOrders.length > 0) {
@@ -49,11 +52,11 @@ export const ListPurchaseOrder = (props) => {
                         return {
                             ...po,
                             itemsQuantity: po?.details?.reduce((acc, item) => acc + item?.quantityItem, 0),
-                            name : po?.clientId?.name,
-                            commercialName : po?.clientId?.commercialName,
-                            email : po?.clientId?.email,
-                            phone : po?.clientId?.phone,
-                            shippingAddress : po?.clientId?.shippingAddress,
+                            name: po?.clientId?.name,
+                            commercialName: po?.clientId?.commercialName,
+                            email: po?.clientId?.email,
+                            phone: po?.clientId?.phone,
+                            shippingAddress: po?.clientId?.shippingAddress,
                         }
                     });
                     setPurchaseOrderList(pOrderMap);
@@ -82,11 +85,15 @@ export const ListPurchaseOrder = (props) => {
         return navigate("/purchase-orders/create")
     };
 
+    const handleClickInfoRow = (po) => {
+        return navigate(`/purchase-orders/view-detail/${po._id}`);
+    };
+
     const columns = [
         { key: "orderNumber", label: "No.", type: "text", editable: false, searchable: true, sortable: true },
         { key: "name", label: "Nombre", type: "text", editable: false, searchable: true, sortable: true, },
         { key: "commercialName", label: "Nombre Comercial", type: "text", editable: false, searchable: true, sortable: true, },
-        { key: "email", label: "Email", type: "text", editable: false, searchable: true , sortable: true,},
+        { key: "email", label: "Email", type: "text", editable: false, searchable: true, sortable: true, },
         { key: "phone", label: "Teléfono", type: "text", editable: false, searchable: true },
         { key: "shippingAddress", label: "Dirección", type: "text", editable: false, searchable: true },
         { key: "itemsQuantity", label: "Cantidad", type: "number", editable: false, searchable: true, sortable: true, },
@@ -131,6 +138,7 @@ export const ListPurchaseOrder = (props) => {
                                         searchable={true}
                                         itemsPerPage={10}
                                         onClickEditRow={handleClickEditRow}
+                                        onClickInfoRow={handleClickInfoRow}
                                     />
                                 </CardBody>
                             </Card>

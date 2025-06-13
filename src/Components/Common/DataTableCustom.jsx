@@ -17,7 +17,7 @@ import {
   ModalBody,
   ModalFooter,
 } from "reactstrap"
-import { FaEdit, FaTrash, FaSave, FaTimes, FaCheck, FaSort, FaSortUp, FaSortDown, FaColumns, FaEye, FaEyeSlash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaSave, FaTimes, FaCheck, FaSort, FaSortUp, FaSortDown, FaColumns, FaEye, FaEyeSlash, FaInfoCircle } from "react-icons/fa";
 import { Dropdown, DropdownToggle, DropdownMenu, DropdownItem } from "reactstrap";
 import { RefreshCw, Trash } from "lucide-react"
 import { numberFormatPrice } from "../../pages/GridErp/Products/helper/product_helper"
@@ -35,6 +35,7 @@ const DataTable = ({
   searchable = true,
   refreshData = null,
   onClickEditRow = null,
+  onClickInfoRow = null,
 }) => {
   // Estados
   const [tableData, setTableData] = useState([])
@@ -396,6 +397,14 @@ const DataTable = ({
 
     return (
       <div className="d-flex">
+
+        {
+          onClickInfoRow &&
+          <Button color="info" size="sm" className="me-1" onClick={() => onClickInfoRow(item)} title="Ver detalles">
+            <FaInfoCircle />
+          </Button>
+        }
+
         <Button color="primary" size="sm" className="me-1" onClick={() => handleEdit(item)} title="Editar">
           <FaEdit />
         </Button>

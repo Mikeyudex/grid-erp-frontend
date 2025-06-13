@@ -29,7 +29,8 @@ export default function ViewDetailPurchaseOrder() {
 
     document.title = "Detalle de pedido | Quality";
     const navigate = useNavigate()
-    const [pedido, setPedido] = useState(null)
+    const [pedido, setPedido] = useState(null);
+    const [rawData, setRawData] = useState(null);
     const [loading, setLoading] = useState(true)
     let { id } = useParams();
 
@@ -38,7 +39,7 @@ export default function ViewDetailPurchaseOrder() {
         setLoading(true)
         helper.getPurchaseOrderById(id)
             .then(async (response) => {
-                let data = response;
+                let data = response?.data;
                 let mappingData = {
                     orderNumber: data?.orderNumber,
                     id: data._id,
@@ -81,6 +82,7 @@ export default function ViewDetailPurchaseOrder() {
                 }
                 if (mappingData) {
                     setPedido(mappingData);
+                    setRawData(data);
                 }
                 return;
             })
@@ -96,7 +98,7 @@ export default function ViewDetailPurchaseOrder() {
 
     const handleEditarPedido = (id, pedido) => {
         return navigate(`/purchase-orders/edit/${id}`, { state: { pedido } });
-      }
+    }
 
     const handleImprimir = () => {
         window.print()
@@ -194,7 +196,7 @@ export default function ViewDetailPurchaseOrder() {
                                     <Button color="light" onClick={handleImprimir}>
                                         <Printer size={18} className="me-2" /> Imprimir
                                     </Button>
-                                    <Button color="primary" onClick={() => handleEditarPedido(pedido.id, pedido)}>
+                                    <Button color="primary" onClick={() => handleEditarPedido(pedido.id, rawData)}>
                                         <Edit size={18} className="me-2" /> Editar Pedido
                                     </Button>
                                 </div>
@@ -202,10 +204,10 @@ export default function ViewDetailPurchaseOrder() {
 
                             <Row className="overflow-auto">
                                 {/* Información del Cliente y Detalles del Pedido */}
-                                <Col md={4} className="mb-4"  style={{maxHeight: "300px"}}>
+                                <Col md={4} className="mb-4" style={{ maxHeight: "300px" }}>
                                     <Card className="shadow-sm h-100">
                                         <CardHeader className="sticky-top card-header-custom">
-                                            <h5 className="mb-0" style={{color: "white"}}>Información del Cliente</h5>
+                                            <h5 className="mb-0" style={{ color: "white" }}>Información del Cliente</h5>
                                         </CardHeader>
                                         <CardBody>
                                             <h6 className="fw-bold">{pedido.cliente.nombre}</h6>
@@ -223,10 +225,10 @@ export default function ViewDetailPurchaseOrder() {
                                     </Card>
                                 </Col>
 
-                                <Col md={4} className="mb-4"  style={{maxHeight: "300px"}}>
+                                <Col md={4} className="mb-4" style={{ maxHeight: "300px" }}>
                                     <Card className="shadow-sm h-100">
                                         <CardHeader className="sticky-top card-header-custom">
-                                            <h5 className="mb-0" style={{color: "white"}}>Detalles del Pedido</h5>
+                                            <h5 className="mb-0" style={{ color: "white" }}>Detalles del Pedido</h5>
                                         </CardHeader>
                                         <CardBody>
                                             <p className="mb-1">
@@ -256,10 +258,10 @@ export default function ViewDetailPurchaseOrder() {
                                     </Card>
                                 </Col>
 
-                                <Col md={4} className="mb-4" style={{maxHeight: "300px"}}>
+                                <Col md={4} className="mb-4" style={{ maxHeight: "300px" }}>
                                     <Card className="shadow-sm h-100 overflow-auto">
                                         <CardHeader className="sticky-top card-header-custom" >
-                                            <h5 className="mb-0" style={{color: "white"}}>Historial del Pedido</h5>
+                                            <h5 className="mb-0" style={{ color: "white" }}>Historial del Pedido</h5>
                                         </CardHeader>
                                         <CardBody className="p-0">
                                             <ListGroup flush>
@@ -287,7 +289,7 @@ export default function ViewDetailPurchaseOrder() {
                             {/* Productos del Pedido */}
                             <Card className="shadow-sm mb-4">
                                 <CardHeader className="card-header-custom">
-                                    <h5 className="mb-0" style={{color: "white"}}>Productos ({pedido.productos.length})</h5>
+                                    <h5 className="mb-0" style={{ color: "white" }}>Productos ({pedido.productos.length})</h5>
                                 </CardHeader>
                                 <div className="table-responsive">
                                     <Table hover className="mb-0">

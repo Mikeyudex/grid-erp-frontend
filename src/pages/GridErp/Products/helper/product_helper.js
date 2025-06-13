@@ -61,7 +61,7 @@ export class ProductHelper {
 
     getPurchaseOrdersFromViewProduction = (page, limit, zoneId) => api.get(`${url.GET_PURCHASE_ORDERS_FROM_VIEW_PRODUCTION}?page=${page}&limit=${limit}&zoneId=${zoneId}`);
 
-    getPurchaseOrdersFetch = async (page, limit, fields) => apiFetch.get(`${url.GET_PURCHASE_ORDERS}?page=${page}&limit=${limit}&fields=${[fields]}`);
+    getPurchaseOrdersFetch = async (page, limit, zoneId) => apiFetch.get(`${url.GET_PURCHASE_ORDERS}?page=${page}&limit=${limit}&zoneId=${zoneId}`);
 
     validateForm = (setErrors, formData) => {
         const newErrors = {};

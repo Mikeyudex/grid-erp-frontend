@@ -130,6 +130,9 @@ export default function EditPurchaseOrder() {
                     return
                 }
 
+                console.log(pedidoEncontrado);
+                
+
                 setPedido(pedidoEncontrado)
                 setOrderItems(
                     pedidoEncontrado.details.map((item) => ({
