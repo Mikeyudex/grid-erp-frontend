@@ -14,7 +14,7 @@ import {
     ListGroup,
     ListGroupItem,
 } from "reactstrap"
-import { ArrowLeft, Printer, FileText, Edit, Clock } from "lucide-react";
+import { ArrowLeft, Printer, FileText, Edit, Clock, MessageSquareShareIcon, LucideContainer } from "lucide-react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProductHelper } from "../../Products/helper/product_helper";
 import { ToastContainer } from "react-toastify";
@@ -98,6 +98,12 @@ export default function ViewDetailPurchaseOrder() {
 
     const handleEditarPedido = (id, pedido) => {
         return navigate(`/purchase-orders/edit/${id}`, { state: { pedido } });
+    }
+
+    const handleLiberarPedido = async (id) => {
+    }
+
+    const handleDespacharPedido = () => {
     }
 
     const handleImprimir = () => {
@@ -193,11 +199,14 @@ export default function ViewDetailPurchaseOrder() {
                                     </div>
                                 </div>
                                 <div className="d-flex gap-2">
-                                    <Button color="light" onClick={handleImprimir}>
-                                        <Printer size={18} className="me-2" /> Imprimir
+                                    <Button title="Editar Pedido" color="primary" onClick={() => handleEditarPedido(pedido.id, rawData)}>
+                                        <Edit size={18} className="me-2" /> Editar
                                     </Button>
-                                    <Button color="primary" onClick={() => handleEditarPedido(pedido.id, rawData)}>
-                                        <Edit size={18} className="me-2" /> Editar Pedido
+                                    <Button title="Liberar Pedido" color="danger" onClick={() => handleLiberarPedido(pedido.id)}>
+                                        <MessageSquareShareIcon size={18} className="me-2" /> Liberar
+                                    </Button>
+                                    <Button title="Despachar Pedido" color="secondary" onClick={handleDespacharPedido}>
+                                        <LucideContainer size={18} className="me-2" /> Despachar
                                     </Button>
                                 </div>
                             </div>

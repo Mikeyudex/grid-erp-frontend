@@ -36,3 +36,38 @@ export const purchaseOrderStatus = {
     fabricacion: 'fabricacion',
     despachado: 'despachado',
 }
+
+// Puntajes por estado de tapete
+export const estadoPuntajes = {
+    Pendiente: 0,
+    Fabricación: 1,
+    Inventario: 2,
+    Entregado: 3,
+}
+
+// Función para calcular el porcentaje de progreso de un pedido
+export const calculateOrderProgress = (productos) => {
+    if (!productos || productos.length === 0) return 0
+
+    const puntajeActual = productos.reduce((total, producto) => {
+        return total + (estadoPuntajes[producto.estado] || 0)
+    }, 0)
+
+    const puntajeEsperado = productos.length * 3 // Máximo puntaje por producto
+
+    return puntajeEsperado > 0 ? (puntajeActual / puntajeEsperado) * 100 : 0
+}
+
+// Función para obtener el color del badge según el porcentaje
+export const getProgressBadgeColor = (percentage) => {
+    if (percentage <= 33) return "danger"
+    if (percentage <= 66) return "warning"
+    return "success"
+}
+
+// Función para obtener el texto del progreso
+export const getProgressText = (percentage) => {
+    if (percentage <= 33) return "Bajo"
+    if (percentage <= 66) return "Medio"
+    return "Alto"
+}

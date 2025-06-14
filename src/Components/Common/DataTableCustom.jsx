@@ -114,6 +114,15 @@ const DataTable = ({
         case "boolean":
           comparison = aValue === bValue ? 0 : aValue ? -1 : 1
           break
+        case "progress":
+          if (column.progressConfig && a[column.progressConfig.itemsKey] && b[column.progressConfig.itemsKey]) {
+            const aItems = a[column.progressConfig.itemsKey] || []
+            const bItems = b[column.progressConfig.itemsKey] || []
+            const aProgress = calculateProgress(aItems, column.progressConfig).percentage
+            const bProgress = calculateProgress(bItems, column.progressConfig).percentage
+            comparison = aProgress - bProgress
+          }
+          break
         default:
           // Texto
           comparison = String(aValue).toLowerCase().localeCompare(String(bValue).toLowerCase())
@@ -371,6 +380,20 @@ const DataTable = ({
         return `${value}%`
       case "price":
         return numberFormatPrice(value)
+      case "progress":
+        if (column.progressConfig && item[column.progressConfig.itemsKey]) {
+          const items = item[column.progressConfig.itemsKey] || []
+          const { currentScore, maxScore, percentage } = calculateProgress(items, column.progressConfig)
+          return (
+            <div className="text-center">
+              <Badge color={getProgressColor(percentage)} pill className="mb-1">
+                {`${item?.status}`.toUpperCase()}
+              </Badge>
+              <div style={{ fontSize: "0.8em", color: "#6c757d" }}>{percentage.toFixed(1)}%</div>
+            </div>
+          )
+        }
+        return "-"
       default:
         return value ?? "-"
     }
@@ -664,6 +687,38 @@ const DataTable = ({
       </Modal>
     </div>
   )
+}
+
+// Funciones auxiliares para el cálculo de progreso
+const calculateProgress = (items, config) => {
+  const stateScores = config.stateScores || {
+    pendiente: 0,
+    fabricacion: 1,
+    inventario: 2,
+    finalizado: 3,
+  }
+
+  const currentScore = items.reduce((total, item) => {
+    const state = item[config.stateKey] || "pendiente"
+    return total + (stateScores[state] || 0)
+  }, 0)
+
+  const maxScore = items.length * Math.max(...Object.values(stateScores))
+  const percentage = maxScore > 0 ? (currentScore / maxScore) * 100 : 0
+
+  return { currentScore, maxScore, percentage }
+}
+
+const getProgressColor = (percentage) => {
+  if (percentage <= 33) return "danger"
+  if (percentage <= 66) return "warning"
+  return "success"
+}
+
+const getProgressLabel = (percentage) => {
+  if (percentage <= 33) return "Bajo"
+  if (percentage <= 66) return "Medio"
+  return "Alto"
 }
 
 export default DataTable

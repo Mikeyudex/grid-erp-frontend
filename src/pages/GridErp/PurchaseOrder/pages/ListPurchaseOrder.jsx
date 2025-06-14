@@ -98,7 +98,24 @@ export const ListPurchaseOrder = (props) => {
         { key: "shippingAddress", label: "Dirección", type: "text", editable: false, searchable: true },
         { key: "itemsQuantity", label: "Cantidad", type: "number", editable: false, searchable: true, sortable: true, },
         { key: "totalOrder", label: "Total", type: "price", editable: false, searchable: true },
-        { key: "status", label: "Estado", type: "text", editable: false, searchable: true, sortable: true },
+        {
+            key: "status",
+            label: "Estado",
+            type: "progress",
+            editable: false,
+            searchable: true,
+            sortable: true,
+            progressConfig: {
+                itemsKey: 'details',
+                stateKey: 'itemStatus',
+                stateScores: {
+                    'pendiente': 0,
+                    'fabricacion': 1,
+                    'inventario': 2,
+                    'finalizado': 3
+                }
+            }
+        },
         { key: "createdAt", label: "Fecha creación", type: "date", editable: false, searchable: true, sortable: true },
     ]
     return (
