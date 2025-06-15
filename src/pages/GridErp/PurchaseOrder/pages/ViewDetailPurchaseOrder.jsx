@@ -13,17 +13,21 @@ import {
     Button,
     ListGroup,
     ListGroupItem,
+    Alert,
 } from "reactstrap"
-import { ArrowLeft, Printer, FileText, Edit, Clock, MessageSquareShareIcon, LucideContainer } from "lucide-react";
+import { ArrowLeft, Printer, FileText, Edit, Clock, MessageSquareShareIcon, LucideContainer, CheckCircle } from "lucide-react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProductHelper } from "../../Products/helper/product_helper";
 import { ToastContainer } from "react-toastify";
 import BreadCrumb from "../../Products/components/BreadCrumb";
 import "../styles/purchase-order.css";
 import { ProductionHelper } from "../../Production/helper/production-helper";
+import { PurchaseHelper } from "../helper/purchase_helper";
+import IsLoading from "../components/IsLoading";
 
 const helper = new ProductHelper();
 const productionHelper = new ProductionHelper();
+const purchaseOrderHelper = new PurchaseHelper();
 
 export default function ViewDetailPurchaseOrder() {
 
@@ -31,65 +35,74 @@ export default function ViewDetailPurchaseOrder() {
     const navigate = useNavigate()
     const [pedido, setPedido] = useState(null);
     const [rawData, setRawData] = useState(null);
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState(true);
+    const [loadingTitle, setLoadingTitle] = useState("Cargando detalles del pedido...");
     let { id } = useParams();
+    const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
+
+    const handleFetchOrders = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            let response = await helper.getPurchaseOrderById(id);
+            let data = response?.data;
+            let mappingData = {
+                orderNumber: data?.orderNumber,
+                id: data._id,
+                fecha: new Date(data?.createdAt),
+                estado: data?.status,
+                cliente: {
+                    id: data?.clientId?._id,
+                    nombre: data?.clientId?.name + " " + data?.clientId?.lastname,
+                    empresa: data?.clientId?.commercialName,
+                    email: data?.clientId?.email,
+                    telefono: data?.clientId?.phone,
+                    direccion: data?.clientId?.shippingAddress + " " + data?.clientId?.shippingCity,
+                },
+                productos: data?.details.map((item) => {
+                    return {
+                        id: item.productId,
+                        productName: item?.productName,
+                        pieces: item?.pieces,
+                        selectedPieces: item?.piecesNames,
+                        matType: item?.matType,
+                        materialType: item?.materialType,
+                        quantity: item?.quantityItem,
+                        basePrice: item?.priceItem,
+                        observations: item?.observations,
+                        finalPrice: item?.priceItem * item?.quantityItem,
+                        totalItem: item?.totalItem,
+                    }
+                }),
+                subtotal: data?.totalOrder,
+                impuestos: data?.tax,
+                total: data?.totalOrder,
+                historial: data?.history.map((item) => {
+                    return {
+                        fecha: new Date(item?.createdAt).toLocaleDateString("es-ES"),
+                        accion: item?.action,
+                        usuario: item?.userName,
+                    }
+                }),
+                fechaEntrega: new Date(data?.deliveryDate),
+            }
+            if (mappingData) {
+                setPedido(mappingData);
+                setRawData(data);
+            }
+            return;
+        } catch (error) {
+            setError("Error al obtener los datos del pedido");
+            console.log(error);
+        } finally {
+            setLoading(false);
+            return;
+        }
+    }
 
     useEffect(() => {
-        // Simulamos la carga de datos desde una API
-        setLoading(true)
-        helper.getPurchaseOrderById(id)
-            .then(async (response) => {
-                let data = response?.data;
-                let mappingData = {
-                    orderNumber: data?.orderNumber,
-                    id: data._id,
-                    fecha: new Date(data?.createdAt),
-                    estado: data?.status,
-                    cliente: {
-                        id: data?.clientId?._id,
-                        nombre: data?.clientId?.name + " " + data?.clientId?.lastname,
-                        empresa: data?.clientId?.commercialName,
-                        email: data?.clientId?.email,
-                        telefono: data?.clientId?.phone,
-                        direccion: data?.clientId?.shippingAddress + " " + data?.clientId?.shippingCity,
-                    },
-                    productos: data?.details.map((item) => {
-                        return {
-                            id: item.productId,
-                            productName: item?.productName,
-                            pieces: item?.pieces,
-                            selectedPieces: item?.piecesNames,
-                            matType: item?.matType,
-                            materialType: item?.materialType,
-                            quantity: item?.quantityItem,
-                            basePrice: item?.priceItem,
-                            observations: item?.observations,
-                            finalPrice: item?.priceItem * item?.quantityItem,
-                            totalItem: item?.totalItem,
-                        }
-                    }),
-                    subtotal: data?.totalOrder,
-                    impuestos: data?.tax,
-                    total: data?.totalOrder,
-                    historial: data?.history.map((item) => {
-                        return {
-                            fecha: new Date(item?.createdAt).toLocaleDateString("es-ES"),
-                            accion: item?.action,
-                            usuario: item?.userName,
-                        }
-                    }),
-                    fechaEntrega: new Date(data?.deliveryDate),
-                }
-                if (mappingData) {
-                    setPedido(mappingData);
-                    setRawData(data);
-                }
-                return;
-            })
-            .catch(e => console.log(e))
-            .finally(() => {
-                setLoading(false);
-            });
+        handleFetchOrders();
     }, [id]);
 
     const handleVolver = () => {
@@ -101,9 +114,25 @@ export default function ViewDetailPurchaseOrder() {
     }
 
     const handleLiberarPedido = async (id) => {
+        try {
+            setLoading(true);
+            setLoadingTitle("Liberando pedido...");
+            setError(null);
+            setSuccess(null);
+            let userId = localStorage.getItem("userId");
+            await purchaseOrderHelper.releaseOrder(id, userId);
+            setSuccess("Pedido liberado con éxito.");
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+            return;
+        }
     }
 
     const handleDespacharPedido = () => {
+        console.log("Botón clickeado");
+
     }
 
     const handleImprimir = () => {
@@ -115,7 +144,6 @@ export default function ViewDetailPurchaseOrder() {
         if (!selectedPieces || selectedPieces.length === 0) {
             return "Ninguna"
         }
-
         return selectedPieces
             .join(", ")
     }
@@ -123,24 +151,10 @@ export default function ViewDetailPurchaseOrder() {
 
     if (loading) {
         return (
-            <div className="page-content">
-                <ToastContainer closeButton={false} limit={1} />
-                <Container fluid>
-                    <BreadCrumb title="Detalle de pedido" pageTitle="Ordenes de pedido" />
-                    <Row>
-                        <div className="card-body pt-2 mt-1">
-                            <Container className="py-5">
-                                <div className="text-center">
-                                    <div className="spinner-border text-primary" role="status">
-                                        <span className="visually-hidden">Cargando...</span>
-                                    </div>
-                                    <p className="mt-3">Cargando detalles del pedido...</p>
-                                </div>
-                            </Container>
-                        </div>
-                    </Row>
-                </Container>
-            </div>
+            <IsLoading
+                loading={loading}
+                title={loadingTitle}
+            />
         )
     }
 
@@ -178,6 +192,22 @@ export default function ViewDetailPurchaseOrder() {
             <ToastContainer closeButton={false} limit={1} />
             <Container fluid>
                 <BreadCrumb title="Detalle de pedido" pageTitle="Ordenes de pedido" />
+                {
+                    success && (
+                        <Alert color="success" className="d-flex align-items-center" isOpen={success} toggle={() => setSuccess(null)}>
+                            <CheckCircle size={24} className="me-2" />
+                            <div>{success}</div>
+                        </Alert>
+                    )
+                }
+                {
+                    error && (
+                        <Alert color="danger" className="d-flex align-items-center" isOpen={error} toggle={() => setError(null)}>
+                            <AlertTriangle size={24} className="me-2" />
+                            <div>{error}</div>
+                        </Alert>
+                    )
+                }
                 <Row>
                     <div className="card-body pt-2 mt-1">
 
@@ -202,10 +232,22 @@ export default function ViewDetailPurchaseOrder() {
                                     <Button title="Editar Pedido" color="primary" onClick={() => handleEditarPedido(pedido.id, rawData)}>
                                         <Edit size={18} className="me-2" /> Editar
                                     </Button>
-                                    <Button title="Liberar Pedido" color="danger" onClick={() => handleLiberarPedido(pedido.id)}>
+                                    <Button
+                                        title="Liberar Pedido"
+                                        color="danger"
+                                        onClick={() => handleLiberarPedido(pedido?.id)}
+                                        disabled={loading || pedido.estado === "libre"}
+                                    >
                                         <MessageSquareShareIcon size={18} className="me-2" /> Liberar
                                     </Button>
-                                    <Button title="Despachar Pedido" color="secondary" onClick={handleDespacharPedido}>
+                                    <Button
+                                        title="Despachar Pedido"
+                                        color="secondary"
+                                        onClick={() => {
+                                            console.log("Botón clickeado");
+                                            console.log("pedido.id:", pedido?.id);
+                                            handleDespacharPedido(pedido?.id);
+                                        }}>
                                         <LucideContainer size={18} className="me-2" /> Despachar
                                     </Button>
                                 </div>
