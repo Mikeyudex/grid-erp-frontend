@@ -19,7 +19,7 @@ import { TopLayoutGeneralView } from "../../../../Components/Common/TopLayoutGen
 import { FormatDate } from "../../Products/components/FormatDate";
 import { TableListPurchaseOrder } from "../partials/TableListPurchaseOrder";
 import { Link, useNavigate } from "react-router-dom";
-import { FaPlus } from "react-icons/fa";
+import { FaBell, FaPlus } from "react-icons/fa";
 import DataTable from "../../../../Components/Common/DataTableCustom";
 import { IndexedDBService } from "../../../../helpers/indexedDb/indexed-db-helper";
 
@@ -89,6 +89,10 @@ export const ListPurchaseOrder = (props) => {
         return navigate(`/purchase-orders/view-detail/${po._id}`);
     };
 
+    const handleFreeOrders = () => {
+        return navigate("/purchase-orders/free-orders")
+    };
+
     const columns = [
         { key: "orderNumber", label: "No.", type: "text", editable: false, searchable: true, sortable: true },
         { key: "name", label: "Nombre", type: "text", editable: false, searchable: true, sortable: true, },
@@ -131,6 +135,9 @@ export const ListPurchaseOrder = (props) => {
                                     <div className="d-flex justify-content-between align-items-center">
                                         <Button title="Nuevo Pedido" color="light" onClick={handleAddPO}>
                                             <FaPlus className="me-1" /> Nuevo
+                                        </Button>
+                                        <Button title="Peiddos Libres" color="light" onClick={handleFreeOrders}>
+                                            <FaBell className="me-1" /> Libres
                                         </Button>
                                     </div>
 

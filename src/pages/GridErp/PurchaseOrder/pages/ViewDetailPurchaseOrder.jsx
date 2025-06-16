@@ -191,7 +191,7 @@ export default function ViewDetailPurchaseOrder() {
         <div className="page-content">
             <ToastContainer closeButton={false} limit={1} />
             <Container fluid>
-                <BreadCrumb title="Detalle de pedido" pageTitle="Ordenes de pedido" />
+                <BreadCrumb title="Detalle de pedido" pageTitle="Ordenes de pedido" to={`/purchase-orders`} />
                 {
                     success && (
                         <Alert color="success" className="d-flex align-items-center" isOpen={success} toggle={() => setSuccess(null)}>
