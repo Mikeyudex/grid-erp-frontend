@@ -15,7 +15,7 @@ import {
     ListGroupItem,
     Alert,
 } from "reactstrap"
-import { ArrowLeft, Printer, FileText, Edit, Clock, MessageSquareShareIcon, LucideContainer, CheckCircle } from "lucide-react";
+import { ArrowLeft, Printer, FileText, Edit, Clock, MessageSquareShareIcon, LucideContainer, CheckCircle, AlertTriangle } from "lucide-react";
 import { useParams, useNavigate } from 'react-router-dom';
 import { ProductHelper } from "../../Products/helper/product_helper";
 import { ToastContainer } from "react-toastify";
@@ -130,9 +130,30 @@ export default function ViewDetailPurchaseOrder() {
         }
     }
 
-    const handleDespacharPedido = () => {
-        console.log("Botón clickeado");
-
+    const handleDespacharPedido = async (id) => {
+        try {
+            setLoading(true);
+            setLoadingTitle("Despachando pedido...");
+            setError(null);
+            setSuccess(null);
+            let userId = localStorage.getItem("userId");
+            let response = await purchaseOrderHelper.dispatchOrder(id, userId);
+            let data = await response.json();
+            let statusCode = data?.statusCode;
+            let errorMessage = data?.message;
+            if (statusCode === 200) {
+                setSuccess("Pedido despachado con éxito.");
+            } else if (statusCode === 400) {
+                setError(errorMessage);
+            } else {
+                setError("Error al despachar el pedido");
+            }
+        } catch (error) {
+            setError(error);
+        } finally {
+            setLoading(false);
+            return;
+        }
     }
 
     const handleImprimir = () => {
@@ -243,200 +264,196 @@ export default function ViewDetailPurchaseOrder() {
                                     <Button
                                         title="Despachar Pedido"
                                         color="secondary"
-                                        onClick={() => {
-                                            console.log("Botón clickeado");
-                                            console.log("pedido.id:", pedido?.id);
-                                            handleDespacharPedido(pedido?.id);
-                                        }}>
-                                        <LucideContainer size={18} className="me-2" /> Despachar
-                                    </Button>
-                                </div>
-                            </div>
-
-                            <Row className="overflow-auto">
-                                {/* Información del Cliente y Detalles del Pedido */}
-                                <Col md={4} className="mb-4" style={{ maxHeight: "300px" }}>
-                                    <Card className="shadow-sm h-100">
-                                        <CardHeader className="sticky-top card-header-custom">
-                                            <h5 className="mb-0" style={{ color: "white" }}>Información del Cliente</h5>
-                                        </CardHeader>
-                                        <CardBody>
-                                            <h6 className="fw-bold">{pedido.cliente.nombre}</h6>
-                                            {pedido.cliente.empresa && <p className="mb-2">{pedido.cliente.empresa}</p>}
-                                            <p className="mb-1">
-                                                <strong>Email:</strong> {pedido.cliente.email}
-                                            </p>
-                                            <p className="mb-1">
-                                                <strong>Teléfono:</strong> {pedido.cliente.telefono}
-                                            </p>
-                                            <p className="mb-0">
-                                                <strong>Dirección:</strong> {pedido.cliente.direccion}
-                                            </p>
-                                        </CardBody>
-                                    </Card>
-                                </Col>
-
-                                <Col md={4} className="mb-4" style={{ maxHeight: "300px" }}>
-                                    <Card className="shadow-sm h-100">
-                                        <CardHeader className="sticky-top card-header-custom">
-                                            <h5 className="mb-0" style={{ color: "white" }}>Detalles del Pedido</h5>
-                                        </CardHeader>
-                                        <CardBody>
-                                            <p className="mb-1">
-                                                <strong>Fecha de Pedido:</strong> {formatDate(pedido.fecha)}
-                                            </p>
-                                            <p className="mb-1">
-                                                <strong>Fecha de Entrega:</strong> {formatDate(pedido.fechaEntrega)}
-                                            </p>
-                                            <p className="mb-3">
-                                                <strong>Estado:</strong>{" "}
-                                                <Badge color={productionHelper.getStatusBadgeColorOrder(pedido.estado)}>{productionHelper.getEstadoTextOrder(pedido.estado)}</Badge>
-                                            </p>
-                                            <h6 className="fw-bold">Resumen de Costos</h6>
-                                            <div className="d-flex justify-content-between mb-1">
-                                                <span>Subtotal:</span>
-                                                <span>${pedido.subtotal.toLocaleString()}</span>
-                                            </div>
-                                            <div className="d-flex justify-content-between mb-1">
-                                                <span>Impuestos (19%):</span>
-                                                <span>${pedido.impuestos.toLocaleString()}</span>
-                                            </div>
-                                            <div className="d-flex justify-content-between fw-bold">
-                                                <span>Total:</span>
-                                                <span>${pedido.total.toLocaleString()}</span>
-                                            </div>
-                                        </CardBody>
-                                    </Card>
-                                </Col>
-
-                                <Col md={4} className="mb-4" style={{ maxHeight: "300px" }}>
-                                    <Card className="shadow-sm h-100 overflow-auto">
-                                        <CardHeader className="sticky-top card-header-custom" >
-                                            <h5 className="mb-0" style={{ color: "white" }}>Historial del Pedido</h5>
-                                        </CardHeader>
-                                        <CardBody className="p-0">
-                                            <ListGroup flush>
-                                                {pedido.historial.map((evento, index) => (
-                                                    <ListGroupItem key={index} className="border-0 border-bottom">
-                                                        <div className="d-flex align-items-center">
-                                                            <div className="me-3">
-                                                                <Clock size={18} className="text-muted" />
-                                                            </div>
-                                                            <div>
-                                                                <div className="fw-medium">{evento.accion}</div>
-                                                                <div className="small text-muted">
-                                                                    {evento.fecha} · {evento.usuario}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </ListGroupItem>
-                                                ))}
-                                            </ListGroup>
-                                        </CardBody>
-                                    </Card>
-                                </Col>
-                            </Row>
-
-                            {/* Productos del Pedido */}
-                            <Card className="shadow-sm mb-4">
-                                <CardHeader className="card-header-custom">
-                                    <h5 className="mb-0" style={{ color: "white" }}>Productos ({pedido.productos.length})</h5>
-                                </CardHeader>
-                                <div className="table-responsive">
-                                    <Table hover className="mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th style={{ width: "5%" }}>#</th>
-                                                <th style={{ width: "25%" }}>Producto</th>
-                                                <th style={{ width: "15%" }}>Piezas</th>
-                                                <th style={{ width: "15%" }}>Tipo / Material</th>
-                                                <th style={{ width: "10%" }}>Cantidad</th>
-                                                <th style={{ width: "15%" }}>Precio Unitario</th>
-                                                <th style={{ width: "15%" }} className="text-end">
-                                                    Precio Total
-                                                </th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {pedido.productos.map((producto, index) => (
-                                                <tr key={producto.id}>
-                                                    <td>{index + 1}</td>
-                                                    <td>
-                                                        <div className="fw-medium">{producto.productName}</div>
-                                                        {producto.observations && <small className="text-muted d-block">{producto.observations}</small>}
-                                                    </td>
-                                                    <td>
-                                                        <div>{producto.pieces} piezas</div>
-                                                        <small className="text-muted d-block">{getSelectedPiecesText(producto.selectedPieces)}</small>
-                                                    </td>
-                                                    <td>
-                                                        <div>{producto.matType}</div>
-                                                        <small className="text-muted d-block">{producto.materialType}</small>
-                                                    </td>
-                                                    <td>{producto.quantity}</td>
-                                                    <td>${producto.basePrice.toLocaleString()}</td>
-                                                    <td className="text-end fw-bold">${producto.finalPrice.toLocaleString()}</td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                        <tfoot className="table-group-divider">
-                                            <tr>
-                                                <td colSpan="6" className="text-end fw-bold">
-                                                    Subtotal:
-                                                </td>
-                                                <td className="text-end fw-bold">${pedido.subtotal.toLocaleString()}</td>
-                                            </tr>
-                                            <tr>
-                                                <td colSpan="6" className="text-end">
-                                                    Impuestos (19%):
-                                                </td>
-                                                <td className="text-end">${pedido.impuestos.toLocaleString()}</td>
-                                            </tr>
-                                            <tr>
-                                                <td colSpan="6" className="text-end fw-bold">
-                                                    Total:
-                                                </td>
-                                                <td className="text-end fw-bold h5 mb-0">${pedido.total.toLocaleString()}</td>
-                                            </tr>
-                                        </tfoot>
-                                    </Table>
-                                </div>
-                            </Card>
-
-                            {/* Notas Adicionales */}
-                            {pedido.notas && (
-                                <Card className="shadow-sm mb-4">
-                                    <CardHeader className="bg-light">
-                                        <h5 className="mb-0">Notas Adicionales</h5>
-                                    </CardHeader>
-                                    <CardBody>
-                                        <p className="mb-0">{pedido.notas}</p>
-                                    </CardBody>
-                                </Card>
-                            )}
-
-                            {/* Botones de Acción */}
-                            <div className="d-flex justify-content-between">
-                                <Button color="light" onClick={handleVolver}>
-                                    <ArrowLeft size={18} className="me-2" /> Volver a Pedidos
+                                        onClick={() => handleDespacharPedido(pedido?.id)}>
+                                    <LucideContainer size={18} className="me-2" /> Despachar
                                 </Button>
-                                <div className="d-flex gap-2">
-                                    <Button color="light" onClick={handleImprimir}>
-                                        <Printer size={18} className="me-2" /> Imprimir
-                                    </Button>
-                                    <Button color="light">
-                                        <FileText size={18} className="me-2" /> Exportar PDF
-                                    </Button>
-                                    <Button color="primary">
-                                        <Edit size={18} className="me-2" /> Editar Pedido
-                                    </Button>
-                                </div>
                             </div>
-                        </Container>
                     </div>
-                </Row>
+
+                    <Row className="overflow-auto">
+                        {/* Información del Cliente y Detalles del Pedido */}
+                        <Col md={4} className="mb-4" style={{ maxHeight: "300px" }}>
+                            <Card className="shadow-sm h-100">
+                                <CardHeader className="sticky-top card-header-custom">
+                                    <h5 className="mb-0" style={{ color: "white" }}>Información del Cliente</h5>
+                                </CardHeader>
+                                <CardBody>
+                                    <h6 className="fw-bold">{pedido.cliente.nombre}</h6>
+                                    {pedido.cliente.empresa && <p className="mb-2">{pedido.cliente.empresa}</p>}
+                                    <p className="mb-1">
+                                        <strong>Email:</strong> {pedido.cliente.email}
+                                    </p>
+                                    <p className="mb-1">
+                                        <strong>Teléfono:</strong> {pedido.cliente.telefono}
+                                    </p>
+                                    <p className="mb-0">
+                                        <strong>Dirección:</strong> {pedido.cliente.direccion}
+                                    </p>
+                                </CardBody>
+                            </Card>
+                        </Col>
+
+                        <Col md={4} className="mb-4" style={{ maxHeight: "300px" }}>
+                            <Card className="shadow-sm h-100">
+                                <CardHeader className="sticky-top card-header-custom">
+                                    <h5 className="mb-0" style={{ color: "white" }}>Detalles del Pedido</h5>
+                                </CardHeader>
+                                <CardBody>
+                                    <p className="mb-1">
+                                        <strong>Fecha de Pedido:</strong> {formatDate(pedido.fecha)}
+                                    </p>
+                                    <p className="mb-1">
+                                        <strong>Fecha de Entrega:</strong> {formatDate(pedido.fechaEntrega)}
+                                    </p>
+                                    <p className="mb-3">
+                                        <strong>Estado:</strong>{" "}
+                                        <Badge color={productionHelper.getStatusBadgeColorOrder(pedido.estado)}>{productionHelper.getEstadoTextOrder(pedido.estado)}</Badge>
+                                    </p>
+                                    <h6 className="fw-bold">Resumen de Costos</h6>
+                                    <div className="d-flex justify-content-between mb-1">
+                                        <span>Subtotal:</span>
+                                        <span>${pedido.subtotal.toLocaleString()}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between mb-1">
+                                        <span>Impuestos (19%):</span>
+                                        <span>${pedido.impuestos.toLocaleString()}</span>
+                                    </div>
+                                    <div className="d-flex justify-content-between fw-bold">
+                                        <span>Total:</span>
+                                        <span>${pedido.total.toLocaleString()}</span>
+                                    </div>
+                                </CardBody>
+                            </Card>
+                        </Col>
+
+                        <Col md={4} className="mb-4" style={{ maxHeight: "300px" }}>
+                            <Card className="shadow-sm h-100 overflow-auto">
+                                <CardHeader className="sticky-top card-header-custom" >
+                                    <h5 className="mb-0" style={{ color: "white" }}>Historial del Pedido</h5>
+                                </CardHeader>
+                                <CardBody className="p-0">
+                                    <ListGroup flush>
+                                        {pedido.historial.map((evento, index) => (
+                                            <ListGroupItem key={index} className="border-0 border-bottom">
+                                                <div className="d-flex align-items-center">
+                                                    <div className="me-3">
+                                                        <Clock size={18} className="text-muted" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="fw-medium">{evento.accion}</div>
+                                                        <div className="small text-muted">
+                                                            {evento.fecha} · {evento.usuario}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ListGroupItem>
+                                        ))}
+                                    </ListGroup>
+                                </CardBody>
+                            </Card>
+                        </Col>
+                    </Row>
+
+                    {/* Productos del Pedido */}
+                    <Card className="shadow-sm mb-4">
+                        <CardHeader className="card-header-custom">
+                            <h5 className="mb-0" style={{ color: "white" }}>Productos ({pedido.productos.length})</h5>
+                        </CardHeader>
+                        <div className="table-responsive">
+                            <Table hover className="mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style={{ width: "5%" }}>#</th>
+                                        <th style={{ width: "25%" }}>Producto</th>
+                                        <th style={{ width: "15%" }}>Piezas</th>
+                                        <th style={{ width: "15%" }}>Tipo / Material</th>
+                                        <th style={{ width: "10%" }}>Cantidad</th>
+                                        <th style={{ width: "15%" }}>Precio Unitario</th>
+                                        <th style={{ width: "15%" }} className="text-end">
+                                            Precio Total
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {pedido.productos.map((producto, index) => (
+                                        <tr key={producto.id}>
+                                            <td>{index + 1}</td>
+                                            <td>
+                                                <div className="fw-medium">{producto.productName}</div>
+                                                {producto.observations && <small className="text-muted d-block">{producto.observations}</small>}
+                                            </td>
+                                            <td>
+                                                <div>{producto.pieces} piezas</div>
+                                                <small className="text-muted d-block">{getSelectedPiecesText(producto.selectedPieces)}</small>
+                                            </td>
+                                            <td>
+                                                <div>{producto.matType}</div>
+                                                <small className="text-muted d-block">{producto.materialType}</small>
+                                            </td>
+                                            <td>{producto.quantity}</td>
+                                            <td>${producto.basePrice.toLocaleString()}</td>
+                                            <td className="text-end fw-bold">${producto.finalPrice.toLocaleString()}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                                <tfoot className="table-group-divider">
+                                    <tr>
+                                        <td colSpan="6" className="text-end fw-bold">
+                                            Subtotal:
+                                        </td>
+                                        <td className="text-end fw-bold">${pedido.subtotal.toLocaleString()}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="6" className="text-end">
+                                            Impuestos (19%):
+                                        </td>
+                                        <td className="text-end">${pedido.impuestos.toLocaleString()}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colSpan="6" className="text-end fw-bold">
+                                            Total:
+                                        </td>
+                                        <td className="text-end fw-bold h5 mb-0">${pedido.total.toLocaleString()}</td>
+                                    </tr>
+                                </tfoot>
+                            </Table>
+                        </div>
+                    </Card>
+
+                    {/* Notas Adicionales */}
+                    {pedido.notas && (
+                        <Card className="shadow-sm mb-4">
+                            <CardHeader className="bg-light">
+                                <h5 className="mb-0">Notas Adicionales</h5>
+                            </CardHeader>
+                            <CardBody>
+                                <p className="mb-0">{pedido.notas}</p>
+                            </CardBody>
+                        </Card>
+                    )}
+
+                    {/* Botones de Acción */}
+                    <div className="d-flex justify-content-between">
+                        <Button color="light" onClick={handleVolver}>
+                            <ArrowLeft size={18} className="me-2" /> Volver a Pedidos
+                        </Button>
+                        <div className="d-flex gap-2">
+                            <Button color="light" onClick={handleImprimir}>
+                                <Printer size={18} className="me-2" /> Imprimir
+                            </Button>
+                            <Button color="light">
+                                <FileText size={18} className="me-2" /> Exportar PDF
+                            </Button>
+                            <Button color="primary">
+                                <Edit size={18} className="me-2" /> Editar Pedido
+                            </Button>
+                        </div>
+                    </div>
             </Container>
         </div>
+                </Row >
+            </Container >
+        </div >
 
     )
 }

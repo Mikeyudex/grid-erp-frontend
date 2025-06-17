@@ -11,6 +11,7 @@ export class PurchaseHelper {
     assignOrderToZone = async (orderId, zoneId, userId) => api.put(`${url.ASSIGN_ORDER_TO_ZONE}/${orderId}/${zoneId}/${userId}`);
     changeStatusByItem = async (orderId, itemId, userId, data) => api.put(`${url.CHANGE_STATUS_PURCHASE_ORDER_BY_ITEM}/${orderId}/${itemId}/${userId}`, data);
     releaseOrder = async (orderId, userId) => apiFetch.update(`${url.RELEASE_ORDER}/${orderId}/${userId}`);
+    dispatchOrder = async (orderId, userId) => apiFetch.update(`${url.DISPATCH_ORDER}/${orderId}/${userId}`);
 
     filterMaterialByMat = (matType, setFilteredMaterialTypes, matMaterialPrices) => {
         if (matType) {

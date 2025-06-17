@@ -10,3 +10,4 @@ export const CHANGE_STATUS_PURCHASE_ORDER_BY_ITEM = baseUrl + "/purchase-order/u
 export const ASSIGN_ITEM_TO_PRODUCTION_OPERATOR = baseUrl + "/purchase-order/assign-item-to-production-operator";
 export const ASSIGN_ORDER_TO_ZONE = baseUrl + "/purchase-order/assign-order-to-zone";
 export const RELEASE_ORDER = baseUrl + "/purchase-order/release-order";
+export const DISPATCH_ORDER = baseUrl + "/purchase-order/dispatch-order";
