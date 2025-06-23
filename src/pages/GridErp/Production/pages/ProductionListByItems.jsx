@@ -14,10 +14,6 @@ import {
     Input,
     InputGroup,
     Form,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
     Alert,
     Pagination,
     PaginationItem,
@@ -26,6 +22,8 @@ import {
     DropdownToggle,
     DropdownMenu,
     DropdownItem,
+    FormGroup,
+    UncontrolledTooltip,
 } from "reactstrap"
 import {
     Search,
@@ -42,7 +40,11 @@ import {
     ChevronLeft,
     ChevronRightIcon,
     Download,
-} from "lucide-react"
+    Info,
+    Eye,
+    SlashIcon as EyeSlash,
+} from "lucide-react";
+import { Dropdown } from "reactstrap"
 
 // Importar el helper para las operaciones de API
 import { PurchaseHelper } from "../../PurchaseOrder/helper/purchase_helper"
@@ -62,12 +64,29 @@ const productionHelper = new ProductionHelper();
 const authHelper = new AuthHelper();
 const indexedDBService = new IndexedDBService();
 
+// Configuración de columnas
+const defaultColumns = [
+    { key: "id", label: "ID", visible: true },
+    { key: "ciudad", label: "Ciudad", visible: true },
+    { key: "cliente", label: "Cliente", visible: true },
+    { key: "commercialName", label: "N. Ccial", visible: true },
+    { key: "marca", label: "Marca", visible: true },
+    { key: "linea", label: "Línea", visible: true },
+    { key: "tipo", label: "Tipo Tap.", visible: true },
+    { key: "material", label: "Material", visible: true },
+    { key: "piezas", label: "Piezas", visible: true },
+    { key: "cantidad", label: "Cantidad", visible: true },
+    { key: "estado", label: "Estado", visible: true },
+    { key: "asignado", label: "Sede", visible: true },
+]
+
 export default function ProductionListByItems() {
     document.title = "Ordenes de Producción - Items | Quality";
     const [selectedItems, setSelectedItems] = useState([])
     const [searchTerm, setSearchTerm] = useState("")
     const [filteredItems, setFilteredItems] = useState([])
-    const [filterEstado, setFilterEstado] = useState("")
+    const [filterEstados, setFilterEstados] = useState([]);
+    const [filterStatus, setFilterStatus] = useState("");
     const [asignacionModalOpen, setAsignacionModalOpen] = useState(false)
     const [asignacionZonaModalOpen, setAsignacionZonaModalOpen] = useState(false)
     const [agentesProduccion, setAgentesProduccion] = useState([])
@@ -81,6 +100,13 @@ export default function ProductionListByItems() {
     const [zones, setZones] = useState([]);
     const [selectedZoneId, setSelectedZoneId] = useState(null);
     const [selectedPedidos, setSelectedPedidos] = useState([]);
+    const [visibleColumns, setVisibleColumns] = useState(defaultColumns)
+    const [columnDropdownOpen, setColumnDropdownOpen] = useState(false)
+    const [estadoDropdownOpen, setEstadoDropdownOpen] = useState(false);
+    const [pendingItems, setPendingItems] = useState(0);
+    const [fabricacionItems, setFabricacionItems] = useState(0);
+    const [inventarioItems, setInventarioItems] = useState(0);
+    const [entregadoItems, setEntregadoItems] = useState(0);
 
     // Estados para operaciones asíncronas
     const [isLoading, setIsLoading] = useState(false)
@@ -104,6 +130,7 @@ export default function ProductionListByItems() {
         id: "",
         ciudad: "",
         cliente: "",
+        commercialName: "",
         producto: "",
         marca: "",
         linea: "",
@@ -111,9 +138,77 @@ export default function ProductionListByItems() {
         material: "",
         piezas: "",
         cantidad: "",
-        estado: filterEstado,
+        estado: filterEstados,
         asignado: "",
+        status: filterStatus,
     })
+
+    // Estados disponibles para filtro
+    const estadosDisponibles = [
+        { value: "pendiente", label: "Pendiente" },
+        { value: "fabricacion", label: "Fabricación" },
+        { value: "inventario", label: "Inventario" },
+        { value: "finalizado", label: "Finalizado" },
+    ]
+
+    // Función para truncar texto
+    const truncateText = (text, maxLength = 30) => {
+        if (!text) return ""
+        return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
+    }
+
+    // Función para renderizar celda con tooltip
+    const renderCellWithTooltip = (content, fullContent, id, truncate = 10) => {
+        /* const shouldTruncate = fullContent && fullContent.length > 30
+        console.log(shouldTruncate);
+        
+        if (!shouldTruncate) {
+            return <span>{content}</span>
+        } */
+
+        return (
+            <div className="d-flex align-items-center">
+                <span className="me-2">{truncateText(fullContent, truncate)}</span>
+                <Info size={14} className="text-muted" id={`tooltip-${id}`} style={{ cursor: "help" }} />
+                <UncontrolledTooltip placement="top" target={`tooltip-${id}`}>
+                    {fullContent}
+                </UncontrolledTooltip>
+            </div>
+        )
+    }
+
+    // Manejo de visibilidad de columnas
+    const toggleColumnVisibility = (columnKey) => {
+        setVisibleColumns((prev) => prev.map((col) => (col.key === columnKey ? { ...col, visible: !col.visible } : col)))
+    }
+
+    const showAllColumns = () => {
+        setVisibleColumns((prev) => prev.map((col) => ({ ...col, visible: true })))
+    }
+
+    const hideAllColumns = () => {
+        // Mantener al menos una columna visible
+        setVisibleColumns((prev) => prev.map((col, index) => ({ ...col, visible: index === 0 })))
+    }
+
+    const getVisibleColumns = () => {
+        return visibleColumns.filter((col) => col.visible)
+    }
+
+    // Manejo de filtro múltiple por estado
+    const toggleEstadoFilter = (estado) => {
+        setFilterEstados((prev) => {
+            if (prev.includes(estado)) {
+                return prev.filter((e) => e !== estado)
+            } else {
+                return [...prev, estado]
+            }
+        })
+    }
+
+    const clearEstadoFilters = () => {
+        setFilterEstados([])
+    }
 
     // Función para manejar el ordenamiento
     const handleSort = (field) => {
@@ -182,16 +277,35 @@ export default function ProductionListByItems() {
     useEffect(() => {
         if (!agentesProduccion || agentesProduccion.length === 0) return;
         setIsLoading(true);
+        setPendingItems(0);
+        setFabricacionItems(0);
+        setInventarioItems(0);
+        setEntregadoItems(0);
         handleGetPurchaseOrders()
             .then(async (data) => {
                 let purchaseOrders = data;
                 let items = [];
                 for (const po of purchaseOrders) {
                     for (const item of po.details) {
+                        switch (item.itemStatus) {
+                            case "pendiente":
+                                setPendingItems(prev => prev + 1);
+                                break;
+                            case "fabricacion":
+                                setFabricacionItems(prev => prev + 1);
+                                break;
+                            case "inventario":
+                                setInventarioItems(prev => prev + 1);
+                                break;
+                            case "entregado":
+                                setEntregadoItems(prev => prev + 1);
+                                break;
+                        }
                         items.push({
                             id: po.orderNumber,
                             fecha: po.createdAt,
                             cliente: po.cliente,
+                            commercialName: po.cliente?.empresa,
                             productId: item.productId,
                             nombre: item.productName,
                             tipo: item.matType,
@@ -202,7 +316,7 @@ export default function ProductionListByItems() {
                             estado: item.itemStatus,
                             asignado: {
                                 id: po?.zoneId?._id || null,
-                                nombre: po?.zoneId?.name || null,
+                                nombre: po?.zoneId?.name || "Libre",
                             },
                             marca: item?.marca,
                             linea: item?.productName,
@@ -231,11 +345,10 @@ export default function ProductionListByItems() {
         if (term) {
             filtered = filtered.filter(
                 (item) =>
-                    (String(item?.id).includes(term) ||
-                        item?.cliente?.nombre.toLowerCase().includes(term) ||
-                        item?.cliente?.ciudad.toLowerCase().includes(term) ||
-                        (item.cliente.empresa && item.cliente.empresa.toLowerCase().includes(term))) &&
-                    (filterEstado === "" || item.estado === filterEstado),
+                (String(item?.id).includes(term) ||
+                    item?.cliente?.nombre.toLowerCase().includes(term) ||
+                    item?.cliente?.ciudad.toLowerCase().includes(term) ||
+                    (item.cliente.empresa && item.cliente.empresa.toLowerCase().includes(term)))
             )
         }
 
@@ -254,6 +367,10 @@ export default function ProductionListByItems() {
                     item.cliente.nombre.toLowerCase().includes(columnFiltersItems.cliente.toLowerCase()) ||
                     (item.cliente.empresa && item.cliente.empresa.toLowerCase().includes(columnFiltersItems.cliente.toLowerCase())),
             )
+        }
+
+        if (columnFiltersItems.commercialName) {
+            filtered = filtered.filter((item) => item.commercialName.toLowerCase().includes(columnFiltersItems.commercialName.toLowerCase()))
         }
 
         if (columnFiltersItems.producto) {
@@ -286,13 +403,17 @@ export default function ProductionListByItems() {
             filtered = filtered.filter((item) => item.cantidad.toString().includes(columnFiltersItems.cantidad))
         }
 
-        if (columnFiltersItems.estado) {
-            filtered = filtered.filter((item) => item.estado === columnFiltersItems.estado)
+        if (filterEstados.length > 0) {
+            filtered = filtered.filter((pedido) => filterEstados.includes(pedido.estado))
+        }
+
+        if (filterStatus) {
+            filtered = filtered.filter((pedido) => pedido.estado === filterStatus)
         }
 
         if (columnFiltersItems.asignado) {
             filtered = filtered.filter(
-                (item) => item.asignado && item.asignado.nombre.toLowerCase().includes(columnFiltersItems.asignado.toLowerCase()),
+                (item) => item?.asignado && item.asignado?.nombre && item.asignado.nombre.toLowerCase().includes(columnFiltersItems.asignado.toLowerCase()),
             )
         }
 
@@ -328,7 +449,12 @@ export default function ProductionListByItems() {
                 } else if (sortField === "cliente") {
                     valueA = a.cliente.nombre
                     valueB = b.cliente.nombre
-                } else if (sortField === "producto") {
+                }
+                else if (sortField === "commercialName") {
+                    valueA = a.commercialName
+                    valueB = b.commercialName
+                }
+                else if (sortField === "producto") {
                     valueA = a.producto
                     valueB = b.producto
                 } else if (sortField === "marca") {
@@ -357,6 +483,9 @@ export default function ProductionListByItems() {
                 } else if (sortField === "asignado") {
                     valueA = a.asignado ? a.asignado.nombre : ""
                     valueB = b.asignado ? b.asignado.nombre : ""
+                }else if (sortField === "status") {
+                    valueA = a.status
+                    valueB = b.status
                 }
 
                 // Para campos de texto, usar localeCompare
@@ -371,13 +500,14 @@ export default function ProductionListByItems() {
         setFilteredItems(filtered)
     }, [
         searchTerm,
-        filterEstado,
+        filterEstados,
         filtroFechaActivo,
         fechaInicio,
         fechaFin,
         sortField,
         sortDirection,
-        columnFiltersItems
+        columnFiltersItems,
+        filterStatus
     ])
 
     // Función para manejar cambios en los filtros de columna
@@ -388,21 +518,10 @@ export default function ProductionListByItems() {
         }))
     }
 
-    // Función para manejar el filtro de estado
-    const handleFilterChange = (e) => {
-        const estado = e.target.value
-        setFilterEstado(estado)
-        setColumnFilters({
-            ...columnFiltersItems,
-            estado: estado,
-        })
-    }
-
-
     // Función para limpiar todos los filtros
     const clearAllFilters = () => {
         setSearchTerm("")
-        setFilterEstado("")
+        setFilterEstados([])
         setColumnFilters({
             id: "",
             ciudad: "",
@@ -414,8 +533,9 @@ export default function ProductionListByItems() {
             material: "",
             piezas: "",
             cantidad: "",
-            estado: "",
+            estado: [],
             asignado: "",
+            status: "",
         })
         limpiarFiltroFechas();
         setCurrentPage(1);
@@ -767,53 +887,6 @@ export default function ProductionListByItems() {
                 viewName={"productos"}
             />
 
-            {/* Modal de Asignación de zona */}
-            {/* <ModalAsignacionXZona
-                asignacionZonaModalOpen={asignacionZonaModalOpen}
-                setAsignacionZonaModalOpen={setAsignacionZonaModalOpen}
-                productosSeleccionadosInfo={productosSeleccionadosInfo}
-                zonas={zones}
-                handleAsignarProductosXZona={handleAsignarProductosXZona}
-                setSelectedZoneId={setSelectedZoneId}
-                selectedZoneId={selectedZoneId}
-                isLoading={isLoading}
-                errorMessage={errorMessage}
-                successMessage={successMessage}
-                selectedPedidos={selectedPedidos}
-            /> */}
-
-            {/* Filtros */}
-            <Card className="shadow-sm mb-4">
-
-                <CardBody>
-                    <Row>
-                        <Col md={8}>
-                            <Form onSubmit={handleSearch}>
-                                <InputGroup>
-                                    <Input
-                                        placeholder="Buscar por ID, producto, cliente o empresa..."
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                    />
-                                    <Button color="primary" title="Buscar">
-                                        <Search size={18} />
-                                    </Button>
-                                </InputGroup>
-                            </Form>
-                        </Col>
-                        <Col md={4}>
-                            <Input type="select" value={filterEstado} onChange={handleFilterChange}>
-                                <option value="">Todos los estados</option>
-                                <option value="pendiente">Pendiente</option>
-                                <option value="fabricacion">Fabricación</option>
-                                <option value="inventario">Inventario</option>
-                                <option value="finalizado">Finalizado</option>
-                            </Input>
-                        </Col>
-                    </Row>
-                </CardBody>
-            </Card>
-
             {selectedItems.length > 0 && (
                 <Alert color="info" className="d-flex justify-content-between align-items-center mb-4">
                     <div className="d-flex align-items-center">
@@ -833,9 +906,119 @@ export default function ProductionListByItems() {
                 </Alert>
             )}
 
+            {/* Filtros */}
+            <Card className="shadow-sm mb-4">
+
+                <CardHeader className="bg-light">
+                    <div className="d-flex justify-content-between align-items-center">
+                        <h5 className="mb-0">Filtros</h5>
+                        <div className="d-flex gap-2">
+                            {/* Selector de columnas */}
+                            <Dropdown isOpen={columnDropdownOpen} toggle={() => setColumnDropdownOpen(!columnDropdownOpen)}>
+                                <DropdownToggle caret color="outline-secondary" size="sm">
+                                    <Eye className="me-1" size={14} />
+                                    Columnas ({getVisibleColumns().length}/{visibleColumns.length})
+                                </DropdownToggle>
+                                <DropdownMenu end style={{ minWidth: "250px", maxHeight: "300px", overflowY: "auto" }}>
+                                    <DropdownItem header>Seleccionar columnas</DropdownItem>
+                                    <DropdownItem divider />
+
+                                    <div className="px-3 py-2">
+                                        <div className="d-flex justify-content-between mb-2">
+                                            <Button color="link" size="sm" className="p-0 text-decoration-none" onClick={showAllColumns}>
+                                                <Eye className="me-1" size={12} />
+                                                Mostrar todas
+                                            </Button>
+                                            <Button color="link" size="sm" className="p-0 text-decoration-none" onClick={hideAllColumns}>
+                                                <EyeSlash className="me-1" size={12} />
+                                                Ocultar todas
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <DropdownItem divider />
+
+                                    {visibleColumns.map((column) => (
+                                        <DropdownItem key={column.key} toggle={false} className="py-1">
+                                            <FormGroup check className="mb-0">
+                                                <Input
+                                                    type="checkbox"
+                                                    checked={column.visible}
+                                                    onChange={() => toggleColumnVisibility(column.key)}
+                                                    disabled={getVisibleColumns().length === 1 && column.visible}
+                                                />
+                                                <span className="ms-2">{column.label}</span>
+                                            </FormGroup>
+                                        </DropdownItem>
+                                    ))}
+                                </DropdownMenu>
+                            </Dropdown>
+
+                            <Button color="secondary" size="sm" onClick={clearAllFilters}>
+                                <RefreshCw size={14} className="me-1" /> Limpiar filtros
+                            </Button>
+                           {/*  <Button color="light" size="sm">
+                                <Filter size={16} className="me-2" /> Más Filtros
+                            </Button> */}
+                        </div>
+                    </div>
+                </CardHeader>
+
+                <CardBody>
+                    <Row>
+                        <Col md={8}>
+                            <div>
+                                <span><strong>Pendiente:</strong> {pendingItems}</span>
+                                <span> | </span>
+                                <span> <strong>Fabricación:</strong> {fabricacionItems}</span>
+                                <span> | </span>
+                                <span><strong>Inventario:</strong> {inventarioItems}</span>
+                                <span> | </span>
+                                <span> <strong>Entregado:</strong> {entregadoItems}</span>
+                            </div>
+                        </Col>
+                        <Col md={4}>
+                            {/* Filtro múltiple por estado */}
+                            <Dropdown isOpen={estadoDropdownOpen} toggle={() => setEstadoDropdownOpen(!estadoDropdownOpen)}>
+                                <DropdownToggle caret color="outline-primary" className="w-100 text-start">
+                                    {filterEstados.length === 0
+                                        ? "Todos los estados"
+                                        : `${filterEstados.length} estado(s) seleccionado(s)`}
+                                </DropdownToggle>
+                                <DropdownMenu className="w-100" style={{ minWidth: "250px" }}>
+                                    <DropdownItem header>Filtrar por estado</DropdownItem>
+                                    <DropdownItem divider />
+
+                                    <div className="px-3 py-2">
+                                        <Button color="link" size="sm" className="p-0 text-decoration-none" onClick={clearEstadoFilters}>
+                                            Limpiar selección
+                                        </Button>
+                                    </div>
+
+                                    <DropdownItem divider />
+
+                                    {estadosDisponibles.map((estado) => (
+                                        <DropdownItem key={estado.value} toggle={false} className="py-1">
+                                            <FormGroup check className="mb-0">
+                                                <Input
+                                                    type="checkbox"
+                                                    checked={filterEstados.includes(estado.value)}
+                                                    onChange={() => toggleEstadoFilter(estado.value)}
+                                                />
+                                                <span className="ms-2">{estado.label}</span>
+                                            </FormGroup>
+                                        </DropdownItem>
+                                    ))}
+                                </DropdownMenu>
+                            </Dropdown>
+                        </Col>
+                    </Row>
+                </CardBody>
+            </Card>
+
             <Card className="shadow-sm mb-5">
                 <div className="table-responsive">
-                    <Table hover style={{ minHeight: '19rem' }} className="mb-0">
+                    <Table hover /* style={{ minHeight: '19rem' }} */ className="mb-0">
                         <thead>
                             <tr>
                                 <th style={{ width: "2%" }}>
@@ -851,147 +1034,200 @@ export default function ProductionListByItems() {
                                         )}
                                     </div>
                                 </th>
-                                <th style={{ width: "6%" }} onClick={() => handleSort("pedidoId")} className="cursor-pointer">
-                                    # Pedido {sortField === "pedidoId" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                <th style={{ width: "8%" }} onClick={() => handleSort("ciudad")} className="cursor-pointer">
-                                    Ciudad {sortField === "ciudad" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                <th style={{ width: "12%" }} onClick={() => handleSort("cliente")} className="cursor-pointer">
-                                    Cliente {sortField === "cliente" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                {/* <th style={{ width: "12%" }} onClick={() => handleSort("producto")} className="cursor-pointer">
-                                    Producto {sortField === "producto" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th> */}
-                                <th style={{ width: "8%" }} onClick={() => handleSort("marca")} className="cursor-pointer">
-                                    Marca {sortField === "marca" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                <th style={{ width: "8%" }} onClick={() => handleSort("linea")} className="cursor-pointer">
-                                    Línea {sortField === "linea" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                <th style={{ width: "8%" }} onClick={() => handleSort("tipo")} className="cursor-pointer">
-                                    Tipo Tapete {sortField === "tipo" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                <th style={{ width: "8%" }} onClick={() => handleSort("material")} className="cursor-pointer">
-                                    Material {sortField === "material" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                <th style={{ width: "6%" }} onClick={() => handleSort("piezas")} className="cursor-pointer">
-                                    Piezas {sortField === "piezas" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                <th style={{ width: "6%" }} onClick={() => handleSort("cantidad")} className="cursor-pointer">
-                                    Cant. {sortField === "cantidad" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                <th style={{ width: "8%" }} onClick={() => handleSort("estado")} className="cursor-pointer">
-                                    Estado {sortField === "estado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
-                                <th style={{ width: "10%" }} onClick={() => handleSort("asignado")} className="cursor-pointer">
-                                    Sede asignada {sortField === "asignado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                </th>
+                                {
+                                    getVisibleColumns().map((column) => {
+                                        switch (column.key) {
+                                            case "id":
+                                                return <th onClick={() => handleSort("pedidoId")} className="cursor-pointer">
+                                                    {column.label} {sortField === "pedidoId" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "ciudad":
+                                                return <th  onClick={() => handleSort("ciudad")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "ciudad" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "cliente":
+                                                return <th onClick={() => handleSort("cliente")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "cliente" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "commercialName":
+                                                return <th onClick={() => handleSort("commercialName")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "commercialName" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "producto":
+                                                return <th  onClick={() => handleSort("producto")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "producto" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "marca":
+                                                return <th  onClick={() => handleSort("marca")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "marca" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "linea":
+                                                return <th  onClick={() => handleSort("linea")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "linea" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "tipo":
+                                                return <th  onClick={() => handleSort("tipo")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "tipo" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "material":
+                                                return <th  onClick={() => handleSort("material")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "material" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "piezas":
+                                                return <th  onClick={() => handleSort("piezas")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "piezas" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "cantidad":
+                                                return <th  onClick={() => handleSort("cantidad")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "cantidad" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "estado":
+                                                return <th  onClick={() => handleSort("estado")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "estado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                            case "asignado":
+                                                return <th  onClick={() => handleSort("asignado")} className="cursor-pointer">
+                                                    {column.label}  {sortField === "asignado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
+                                                </th>
+                                        }
+                                    })}
+                                <th></th>
                             </tr>
                             {/* Fila de filtros por columna */}
-                            <tr className="bg-light">
-                                <th></th>
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.id}
-                                        onChange={(e) => handleColumnFilterChange("id", e.target.value)}
-                                    />
-                                </th>
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.ciudad}
-                                        onChange={(e) => handleColumnFilterChange("ciudad", e.target.value)}
-                                    />
-                                </th>
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.cliente}
-                                        onChange={(e) => handleColumnFilterChange("cliente", e.target.value)}
-                                    />
-                                </th>
-                                {/* <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.producto}
-                                        onChange={(e) => handleColumnFilterChange("producto", e.target.value)}
-                                    />
-                                </th> */}
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.marca}
-                                        onChange={(e) => handleColumnFilterChange("marca", e.target.value)}
-                                    />
-                                </th>
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.linea}
-                                        onChange={(e) => handleColumnFilterChange("linea", e.target.value)}
-                                    />
-                                </th>
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.tipo}
-                                        onChange={(e) => handleColumnFilterChange("tipo", e.target.value)}
-                                    />
-                                </th>
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.material}
-                                        onChange={(e) => handleColumnFilterChange("material", e.target.value)}
-                                    />
-                                </th>
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.piezas}
-                                        onChange={(e) => handleColumnFilterChange("piezas", e.target.value)}
-                                    />
-                                </th>
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.cantidad}
-                                        onChange={(e) => handleColumnFilterChange("cantidad", e.target.value)}
-                                    />
-                                </th>
-                                <th>{/* El filtro de estado ya está implementado en el dropdown */}</th>
-                                <th>
-                                    <Input
-                                        type="text"
-                                        bsSize="sm"
-                                        placeholder="Buscar..."
-                                        value={columnFiltersItems.asignado}
-                                        onChange={(e) => handleColumnFilterChange("asignado", e.target.value)}
-                                    />
-                                </th>
-                            </tr>
+                            {
+                                <>
+                                    <tr className="bg-light">
+                                        <th></th>
+                                        {
+                                            getVisibleColumns().map((column) => {
+                                                switch (column.key) {
+                                                    case "id":
+                                                        return <th key={`filter-${column.key}`}>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.id}
+                                                                onChange={(e) => handleColumnFilterChange("id", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "ciudad":
+                                                        return <th key={`filter-${column.key}`}>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.ciudad}
+                                                                onChange={(e) => handleColumnFilterChange("ciudad", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "cliente":
+                                                        return <th key={`filter-${column.key}`}>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.cliente}
+                                                                onChange={(e) => handleColumnFilterChange("cliente", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "commercialName":
+                                                        return <th key={`filter-${column.key}`}>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.commercialName}
+                                                                onChange={(e) => handleColumnFilterChange("commercialName", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "marca":
+                                                        return <th key={`filter-${column.key}`}>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.marca}
+                                                                onChange={(e) => handleColumnFilterChange("marca", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "linea":
+                                                        return <th>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.linea}
+                                                                onChange={(e) => handleColumnFilterChange("linea", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "tipo":
+                                                        return <th>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.tipo}
+                                                                onChange={(e) => handleColumnFilterChange("tipo", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "material":
+                                                        return <th key={`filter-${column.key}`}>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.material}
+                                                                onChange={(e) => handleColumnFilterChange("material", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "piezas":
+                                                        return <th key={`filter-${column.key}`}>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.piezas}
+                                                                onChange={(e) => handleColumnFilterChange("piezas", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "cantidad":
+                                                        return <th>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.cantidad}
+                                                                onChange={(e) => handleColumnFilterChange("cantidad", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "estado":
+                                                        return <th key={`filter-${column.key}`}>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.estado}
+                                                                onChange={(e) => handleColumnFilterChange("estado", e.target.value)}
+                                                            />
+                                                        </th>
+                                                    case "asignado":
+                                                        return <th key={`filter-${column.key}`}>
+                                                            <Input
+                                                                type="text"
+                                                                bsSize="sm"
+                                                                placeholder="Buscar..."
+                                                                value={columnFiltersItems.asignado}
+                                                                onChange={(e) => handleColumnFilterChange("asignado", e.target.value)}
+                                                            />
+                                                        </th>
+                                                }
+
+                                            })
+                                        }
+                                    </tr>
+                                </>
+                            }
                         </thead>
                         <tbody>
                             {currentItems.length > 0 ? (
@@ -1006,35 +1242,112 @@ export default function ProductionListByItems() {
                                                 {selectedItems.includes(item.itemId) ? <CheckSquare size={18} /> : <Square size={18} />}
                                             </div>
                                         </td>
-                                        <td>#{item.id}</td>
-                                        <td>{item?.cliente?.ciudad}</td>
-                                        <td>
-                                            <div className="fw-medium">{item.cliente.nombre}</div>
-                                            {item.cliente.empresa && <small className="text-muted">{item.cliente.empresa}</small>}
-                                        </td>
-                                        {/*   <td>{item.nombre}</td> */}
-                                        <td>{item.marca}</td>
-                                        <td>{item.linea}</td>
-                                        <td>{item.tipo}</td>
-                                        <td>{item.material}</td>
-                                        <td>{item.piezas}</td>
-                                        <td>{item.cantidad}</td>
-                                        <td>
-                                            <Badge color={productionHelper.getStatusBadgeColorItem(item.estado)}>{productionHelper.getEstadoTextItem(item.estado)}</Badge>
-                                        </td>
-                                        <td>
-                                            {item.asignado ? (
-                                                <div>
-                                                    <div className="fw-medium">{item.asignado.nombre}</div>
-                                                    {/* <small className="text-muted d-flex align-items-center">
-                                                        <Clock size={12} className="me-1" />
-                                                        {item.asignado.fecha ? formatDate(item.asignado.fecha) : "No asignado"}
-                                                    </small> */}
-                                                </div>
-                                            ) : (
-                                                <span className="text-muted">Libre</span>
-                                            )}
-                                        </td>
+                                        {
+                                            getVisibleColumns().map((column) => {
+                                                switch (column.key) {
+                                                    case "id":
+                                                        return <td key={column.key} className="align-middle">
+                                                            <span className="text-muted">{item.id}</span>
+                                                        </td>
+                                                    case "ciudad":
+                                                        return <td key={column.key} className="align-middle">
+                                                            {item?.cliente?.ciudad || "-"}
+                                                        </td>
+                                                    case "cliente":
+                                                        return <td key={column.key} className="align-middle">
+                                                            {
+                                                                renderCellWithTooltip(
+                                                                    truncateText(item?.cliente?.nombre, 5) || "-",
+                                                                    item?.cliente?.nombre,
+                                                                    `cliente-${item.itemId}`,
+                                                                    5
+                                                                )
+                                                            }
+                                                        </td>
+                                                    case "commercialName":
+                                                        return <td key={column.key} className="align-middle">
+                                                            {
+                                                                renderCellWithTooltip(
+                                                                    truncateText(item?.cliente?.empresa, 10) || "-",
+                                                                    item?.cliente?.empresa,
+                                                                    `empresa-${item.itemId}`,
+                                                                    10
+                                                                )
+                                                            }
+                                                        </td>
+                                                    case "marca":
+                                                        return <td key={column.key} className="align-middle">
+                                                            {
+                                                                renderCellWithTooltip(
+                                                                    truncateText(item.marca, 7) || "-",
+                                                                    item.marca,
+                                                                    `marca-${item.itemId}`,
+                                                                    7
+                                                                )
+                                                            }
+                                                        </td>
+                                                    case "linea":
+                                                        return <td key={column.key} className="align-middle">
+                                                            {
+                                                                renderCellWithTooltip(
+                                                                    truncateText(item.linea, 5) || "-",
+                                                                    item.linea,
+                                                                    `linea-${item.itemId}`,
+                                                                    5
+                                                                )
+                                                            }
+                                                        </td>
+                                                    case "tipo":
+                                                        return <td key={column.key} className="align-middle">
+                                                            {
+                                                                renderCellWithTooltip(
+                                                                    truncateText(item.tipo, 5) || "-",
+                                                                    item.tipo,
+                                                                    `tipo-${item.itemId}`,
+                                                                    5
+                                                                )
+                                                            }
+                                                        </td>
+                                                    case "material":
+                                                        return <td key={column.key} className="align-middle">
+                                                            {
+                                                                renderCellWithTooltip(
+                                                                    truncateText(item.material, 5) || "-",
+                                                                    item.material,
+                                                                    `material-${item.itemId}`,
+                                                                    5
+                                                                )
+                                                            }
+                                                        </td>
+                                                    case "piezas":
+                                                        return <td key={column.key} className="align-middle">
+                                                            {item.piezas || "-"}
+                                                        </td>
+                                                    case "cantidad":
+                                                        return <td key={column.key} className="align-middle">
+                                                            {item.cantidad || "-"}
+                                                        </td>
+                                                    case "estado":
+                                                        return <td key={column.key} className="align-middle">
+                                                            <Badge color={productionHelper.getStatusBadgeColorItem(item.estado)}>{productionHelper.getEstadoTextItem(item.estado)}</Badge>
+                                                        </td>
+                                                    case "asignado":
+                                                        return (
+                                                            <td key={column.key} className="align-middle">
+                                                                {item?.asignado?.nombre ? (
+                                                                    <div>
+                                                                        <div className="fw-medium fs-12">{item.asignado.nombre}</div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-muted fs-12">Libre</span>
+                                                                )}
+                                                            </td>
+                                                        )
+                                                    default:
+                                                        return <td key={column.key}>-</td>
+                                                }
+                                            })
+                                        }
                                     </tr>
                                 ))
                             ) : (
@@ -1050,7 +1363,7 @@ export default function ProductionListByItems() {
             </Card>
 
             {/* Badges de filtros activos */}
-            {(filtroFechaActivo || filterEstado || Object.values(columnFiltersItems).some((x) => x)) && (
+            {(filtroFechaActivo || filterEstados.length > 0 || Object.values(columnFiltersItems).some((x) => x)) && (
                 <div className="mt-2 mb-5 d-flex flex-wrap gap-2">
                     {filtroFechaActivo && (
                         <Badge color="light" className="d-flex align-items-center p-2 text-dark">
@@ -1061,19 +1374,10 @@ export default function ProductionListByItems() {
                             <Button close size="sm" onClick={limpiarFiltroFechas} className="ms-2" />
                         </Badge>
                     )}
-                    {filterEstado && (
+                    {filterEstados.length > 0 && (
                         <Badge color="light" className="d-flex align-items-center p-2 text-dark">
-                            <small>Estado: {productionHelper.getEstadoTextItem(filterEstado)}</small>
-                            {/*  <Button close size="sm" onClick={() => setFilterEstado("")} className="ms-2" /> */}
-                            <Button
-                                close
-                                size="sm"
-                                onClick={() => {
-                                    setFilterEstado("")
-                                    handleColumnFilterChange("estado", "")
-                                }}
-                                className="ms-2"
-                            />
+                            <small>Estados: {filterEstados.map((e) => productionHelper.getEstadoTextItem(e)).join(", ")}</small>
+                            <Button close size="sm" onClick={clearEstadoFilters} className="ms-2" />
                         </Badge>
                     )}
                     {Object.entries(columnFiltersItems).map(([key, value]) => {
@@ -1120,7 +1424,7 @@ export default function ProductionListByItems() {
                                         Acciones <ChevronDown size={14} className="ms-1" />
                                     </DropdownToggle>
                                     <DropdownMenu>
-                                       {/*  <DropdownItem onClick={openAsignacionModal}>
+                                        {/*  <DropdownItem onClick={openAsignacionModal}>
                                             <User size={14} className="me-2" /> Asignar zona a pedidos
                                         </DropdownItem> */}
                                         <DropdownItem onClick={openCambioEstadoModal}>
