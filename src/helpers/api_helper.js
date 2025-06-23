@@ -191,10 +191,12 @@ export class ApiClientFetch {
    * post given data to url
    */
   create = (url, data, configs = {}) => {
+    let token = getToken();
     return fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
@@ -204,20 +206,24 @@ export class ApiClientFetch {
    * Updates data
    */
   update = (url, data) => {
+    let token = getToken();
     return fetch(url, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });
   };
 
   put = (url, data) => {
+    let token = getToken();
     return fetch(url, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
     });

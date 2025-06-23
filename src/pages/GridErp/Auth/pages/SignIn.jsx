@@ -48,23 +48,23 @@ const SignIn = () => {
 
         try {
             const response = await authHelper.login(formData);
-
-            if (response?.error) {
-                setMessageAlert(response?.message);
+            const data = await response?.json();
+            if (!response.ok) {
+                setMessageAlert(response.statusText);
                 setIsOpenModal(true);
                 setTypeModal('danger');
             } else {
-                if (!response?.data?.access_token) {
+                if (!data?.data?.access_token) {
                     throw new Error('Error al autenticar');
                 }
-                let token = response?.data?.access_token;
+                let token = data?.data?.access_token;
                 //guardar el token en una cookie
                 document.cookie = `jwt-quality=${token}`;
-                let user = response?.data?.user;
+                let user = data?.data?.user;
                 localStorage.setItem('userId', user?.id);
                 localStorage.setItem('userEmail', user?.email);
 
-                setMessageAlert(response?.message);
+                setMessageAlert(data?.message);
                 setIsOpenModal(true);
                 setTypeModal('success');
 

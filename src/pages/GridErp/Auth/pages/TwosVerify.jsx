@@ -50,21 +50,22 @@ const TwosVerify = () => {
         setLoading(true);
         try {
             const response = await authHelper.verifyOtp({ otp: otp, email: localStorage.getItem('userEmail') });
-            if (response?.error) {
-                setMessageAlert(response?.error);
+            const data = await response?.json();
+            if (!response.ok) {
+                setMessageAlert(response.statusText);
                 setIsOpenModal(true);
                 setTypeModal('danger');
             } else {
-                let isValid = response?.data?.isValid;
+                let isValid = data?.data?.isValid;
                 if (isValid) {
-                    setMessageAlert(response?.message);
+                    setMessageAlert(data?.message);
                     setIsOpenModal(true);
                     setTypeModal('success');
                     return setTimeout(() => {
                         navigate('/home');
                     }, 2000);
                 } else {
-                    setMessageAlert(response?.message);
+                    setMessageAlert(data?.message);
                     setIsOpenModal(true);
                     setTypeModal('danger');
                     return;

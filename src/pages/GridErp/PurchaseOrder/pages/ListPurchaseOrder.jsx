@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, Fragment } from "react";
 import {
     Alert,
+    Badge,
     Button,
     Card,
     CardBody,
@@ -26,7 +27,9 @@ import { IndexedDBService } from "../../../../helpers/indexedDb/indexed-db-helpe
 const helper = new ProductHelper();
 const indexedDb = new IndexedDBService();
 
-export const ListPurchaseOrder = (props) => {
+export const ListPurchaseOrder = ({
+    status = "asignado",
+}) => {
     document.title = "Ordenes de pedido | Quality";
 
     const navigate = useNavigate();
@@ -40,6 +43,7 @@ export const ListPurchaseOrder = (props) => {
     const [reloadData, setReloadData] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [countFreeOrders, setCountFreeOrders] = useState(0);
 
     const fetchPurchaseOrders = async () => {
         setError(null);
@@ -72,8 +76,53 @@ export const ListPurchaseOrder = (props) => {
             });
     };
 
+    const handleFetchPurchaseOrdersFree = async () => {
+        setError(null);
+        setLoading(true);
+        try {
+            let data = await helper.getPurchaseOrdersFree(page, limit);
+            if (data && Array.isArray(data) && data.length > 0) {
+                let pOrderMap = data.map((po) => {
+                    return {
+                        ...po,
+                        itemsQuantity: po?.details?.reduce((acc, item) => acc + item?.quantityItem, 0),
+                        name: po?.clientId?.name,
+                        commercialName: po?.clientId?.commercialName,
+                        email: po?.clientId?.email,
+                        phone: po?.clientId?.phone,
+                        shippingAddress: po?.clientId?.shippingAddress,
+                    }
+                });
+                setPurchaseOrderList(pOrderMap);
+            }
+            return;
+
+        } catch (error) {
+            console.log(error);
+            openSnackbarDanger('Ocurrió un error :(, intenta más tarde.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchCountFreeOrders = async () => {
+        try {
+            let data = await helper.getCountPurchaseOrdersByStatus("libre");
+            if (data && data?.data !== undefined) {
+                setCountFreeOrders(data.data);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    };
+
     useEffect(() => {
-        fetchPurchaseOrders();
+        if (status === "asignado") {
+            fetchPurchaseOrders();
+        } else {
+            handleFetchPurchaseOrdersFree();
+        }
+        fetchCountFreeOrders();
     }, [page, limit, reloadData]);
 
     const handleClickEditRow = (id) => {
@@ -124,7 +173,7 @@ export const ListPurchaseOrder = (props) => {
     ]
     return (
         < TopLayoutGeneralView
-            titleBreadcrumb="Lista de de pedidos"
+            titleBreadcrumb={status === "asignado" ? "Pedidos Asignados" : "Pedidos Libres"}
             pageTitleBreadcrumb="Pedidos"
             main={
                 < Fragment >
@@ -136,9 +185,18 @@ export const ListPurchaseOrder = (props) => {
                                         <Button title="Nuevo Pedido" color="light" onClick={handleAddPO}>
                                             <FaPlus className="me-1" /> Nuevo
                                         </Button>
-                                        <Button title="Peiddos Libres" color="light" onClick={handleFreeOrders}>
-                                            <FaBell className="me-1" /> Libres
-                                        </Button>
+                                        {
+                                            status === "asignado" && (
+                                                <Button
+                                                    title="Pedidos Libres"
+                                                    color="light"
+                                                    onClick={handleFreeOrders}
+                                                    disabled={countFreeOrders === 0}
+                                                >
+                                                    <FaBell className="me-1" /> Libres <Badge pill color="danger">{countFreeOrders}</Badge>
+                                                </Button>
+                                            )
+                                        }
                                     </div>
 
                                 </CardHeader>
@@ -155,7 +213,7 @@ export const ListPurchaseOrder = (props) => {
                                         onUpdate={() => ({})}
                                         onDelete={() => ({})}
                                         onBulkDelete={() => ({})}
-                                        title="Pedidos"
+                                        title={status === "asignado" ? "Pedidos Asignados" : "Pedidos Libres"}
                                         loading={loading}
                                         error={error}
                                         refreshData={fetchPurchaseOrders}

@@ -63,6 +63,10 @@ export class ProductHelper {
 
     getPurchaseOrdersFetch = async (page, limit, zoneId) => apiFetch.get(`${url.GET_PURCHASE_ORDERS}?page=${page}&limit=${limit}&zoneId=${zoneId}`);
 
+    getPurchaseOrdersFree = async (page, limit) => apiFetch.get(`${url.GET_PURCHASE_ORDERS_FREE}?page=${page}&limit=${limit}`);
+
+    getCountPurchaseOrdersByStatus = async (status) => apiFetch.get(`${url.GET_COUNT_PURCHASE_ORDERS_BY_STATUS}?status=${status}`);
+
     validateForm = (setErrors, formData) => {
         const newErrors = {};
 

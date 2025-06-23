@@ -49,6 +49,7 @@ import ListTypeOfClient from "../pages/GridErp/Customers/pages/ListTypeOfClient"
 import ListTypeOfDocument from "../pages/GridErp/Customers/pages/ListTypeOfDocument";
 import EditCustomerView from "../pages/GridErp/Customers/pages/EditCustomerView";
 import EditProductMatView from "../pages/GridErp/Products/pages/EditProductMatView";
+import { ListFreeOrders } from "../pages/GridErp/PurchaseOrder/pages/ListFreeOrders";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -123,6 +124,7 @@ const authProtectedRoutes = [
 
     // Purchase Order
     { path: "/purchase-orders", component: <ListPurchaseOrder /> },
+    { path: "/purchase-orders/free-orders", component: <ListFreeOrders /> },
     { path: "/purchase-orders/create", component: <PurchaseOrderPage /> },
     { path: "/purchase-orders/edit/:id", component: <EditPurchaseOrder /> },
     { path: "/purchase-orders/view-detail/:id", component: <ViewDetailPurchaseOrder /> },
