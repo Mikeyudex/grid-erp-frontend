@@ -159,13 +159,6 @@ export default function ProductionListByItems() {
 
     // Función para renderizar celda con tooltip
     const renderCellWithTooltip = (content, fullContent, id, truncate = 10) => {
-        /* const shouldTruncate = fullContent && fullContent.length > 30
-        console.log(shouldTruncate);
-        
-        if (!shouldTruncate) {
-            return <span>{content}</span>
-        } */
-
         return (
             <div className="d-flex align-items-center">
                 <span className="me-2">{truncateText(fullContent, truncate)}</span>
@@ -483,7 +476,7 @@ export default function ProductionListByItems() {
                 } else if (sortField === "asignado") {
                     valueA = a.asignado ? a.asignado.nombre : ""
                     valueB = b.asignado ? b.asignado.nombre : ""
-                }else if (sortField === "status") {
+                } else if (sortField === "status") {
                     valueA = a.status
                     valueB = b.status
                 }
@@ -957,7 +950,7 @@ export default function ProductionListByItems() {
                             <Button color="secondary" size="sm" onClick={clearAllFilters}>
                                 <RefreshCw size={14} className="me-1" /> Limpiar filtros
                             </Button>
-                           {/*  <Button color="light" size="sm">
+                            {/*  <Button color="light" size="sm">
                                 <Filter size={16} className="me-2" /> Más Filtros
                             </Button> */}
                         </div>
@@ -1042,7 +1035,7 @@ export default function ProductionListByItems() {
                                                     {column.label} {sortField === "pedidoId" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "ciudad":
-                                                return <th  onClick={() => handleSort("ciudad")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("ciudad")} className="cursor-pointer">
                                                     {column.label}  {sortField === "ciudad" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "cliente":
@@ -1054,39 +1047,39 @@ export default function ProductionListByItems() {
                                                     {column.label}  {sortField === "commercialName" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "producto":
-                                                return <th  onClick={() => handleSort("producto")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("producto")} className="cursor-pointer">
                                                     {column.label}  {sortField === "producto" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "marca":
-                                                return <th  onClick={() => handleSort("marca")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("marca")} className="cursor-pointer">
                                                     {column.label}  {sortField === "marca" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "linea":
-                                                return <th  onClick={() => handleSort("linea")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("linea")} className="cursor-pointer">
                                                     {column.label}  {sortField === "linea" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "tipo":
-                                                return <th  onClick={() => handleSort("tipo")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("tipo")} className="cursor-pointer">
                                                     {column.label}  {sortField === "tipo" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "material":
-                                                return <th  onClick={() => handleSort("material")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("material")} className="cursor-pointer">
                                                     {column.label}  {sortField === "material" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "piezas":
-                                                return <th  onClick={() => handleSort("piezas")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("piezas")} className="cursor-pointer">
                                                     {column.label}  {sortField === "piezas" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "cantidad":
-                                                return <th  onClick={() => handleSort("cantidad")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("cantidad")} className="cursor-pointer">
                                                     {column.label}  {sortField === "cantidad" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "estado":
-                                                return <th  onClick={() => handleSort("estado")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("estado")} className="cursor-pointer">
                                                     {column.label}  {sortField === "estado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                             case "asignado":
-                                                return <th  onClick={() => handleSort("asignado")} className="cursor-pointer">
+                                                return <th onClick={() => handleSort("asignado")} className="cursor-pointer">
                                                     {column.label}  {sortField === "asignado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
                                                 </th>
                                         }
@@ -1322,6 +1315,10 @@ export default function ProductionListByItems() {
                                                     case "piezas":
                                                         return <td key={column.key} className="align-middle">
                                                             {item.piezas || "-"}
+                                                            <Info size={14} className="text-muted ms-1" id={`tooltip-${column.key}`} style={{ cursor: "help" }} />
+                                                            <UncontrolledTooltip placement="top" target={`tooltip-${column.key}`}>
+                                                                {item?.piecesNames.join(", ")}
+                                                            </UncontrolledTooltip>
                                                         </td>
                                                     case "cantidad":
                                                         return <td key={column.key} className="align-middle">
