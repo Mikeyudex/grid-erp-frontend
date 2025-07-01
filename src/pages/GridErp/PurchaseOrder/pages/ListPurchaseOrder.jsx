@@ -81,8 +81,9 @@ export const ListPurchaseOrder = ({
         setLoading(true);
         try {
             let data = await helper.getPurchaseOrdersFree(page, limit);
-            if (data && Array.isArray(data) && data.length > 0) {
-                let pOrderMap = data.map((po) => {
+            let freeOrders = data?.data;
+            if (freeOrders && Array.isArray(freeOrders) && freeOrders.length > 0) {
+                let pOrderMap = freeOrders.map((po) => {
                     return {
                         ...po,
                         itemsQuantity: po?.details?.reduce((acc, item) => acc + item?.quantityItem, 0),

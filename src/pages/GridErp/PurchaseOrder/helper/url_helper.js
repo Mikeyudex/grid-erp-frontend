@@ -11,3 +11,4 @@ export const ASSIGN_ITEM_TO_PRODUCTION_OPERATOR = baseUrl + "/purchase-order/ass
 export const ASSIGN_ORDER_TO_ZONE = baseUrl + "/purchase-order/assign-order-to-zone";
 export const RELEASE_ORDER = baseUrl + "/purchase-order/release-order";
 export const DISPATCH_ORDER = baseUrl + "/purchase-order/dispatch-order";
+export const AUTO_ASIGN_ORDER = baseUrl + "/purchase-order/auto-assign-order";
