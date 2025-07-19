@@ -50,6 +50,7 @@ import ListTypeOfDocument from "../pages/GridErp/Customers/pages/ListTypeOfDocum
 import EditCustomerView from "../pages/GridErp/Customers/pages/EditCustomerView";
 import EditProductMatView from "../pages/GridErp/Products/pages/EditProductMatView";
 import { ListFreeOrders } from "../pages/GridErp/PurchaseOrder/pages/ListFreeOrders";
+import ListAccounts from "../pages/GridErp/Accounts/pages/ListAccounts";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -147,6 +148,9 @@ const authProtectedRoutes = [
 
     //zones
     { path: "/zones", component: <ZonesListPage /> },
+
+    //Accounting
+    { path: "/accounts", component: <ListAccounts /> },
 ]
 
 const publicRoutes = [

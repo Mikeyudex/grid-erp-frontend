@@ -7,7 +7,7 @@ import withRouter from '../Components/Common/withRouter';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
-import RightSidebar from '../Components/Common/RightSidebar';
+import {SocketNotifier} from '../Components/Common/SocketNotifier';
 
 //import actions
 import {
@@ -138,13 +138,13 @@ const Layout = (props) => {
                     layoutModeType={layoutModeType}
                     onChangeLayoutMode={onChangeLayoutMode} />
                 <Sidebar layoutType={layoutType} />
+                <SocketNotifier />
                 <div className="main-content">{props.children}
                     <Footer />
                 </div>
             </div>
             {/* <RightSidebar /> */}
         </React.Fragment>
-
     );
 };
 

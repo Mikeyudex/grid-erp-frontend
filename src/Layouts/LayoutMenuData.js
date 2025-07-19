@@ -13,6 +13,7 @@ const Navdata = () => {
   const [isCustomers, setIsCustomers] = useState(false);
   const [isPurchaseOrders, setIsPurchaseOrders] = useState(false);
   const [isProduction, setIsProduction] = useState(false);
+  const [isAccounting, setIsAccounting] = useState(false);
 
 
   const [isAuth, setIsAuth] = useState(false);
@@ -57,12 +58,16 @@ const Navdata = () => {
     if (iscurrentState !== "Producción") {
       setIsProduction(false);
     }
+    if (iscurrentState !== "Cuentas") {
+      setIsAccounting(false);
+    }
   }, [
     history,
     iscurrentState,
     isDashboard,
     isCustomers,
-    isProduction
+    isProduction,
+    isAccounting
   ]);
 
   const menuItems = [
@@ -288,6 +293,37 @@ const Navdata = () => {
           link: "/warehouses",
           parentId: "warehouse",
         },
+      ],
+    },
+    {
+      label: "Contabilidad",
+      isHeader: true,
+    },
+    {
+      id: "accounting-accounts",
+      label: "Cuentas",
+      icon: "ri-money-dollar-circle-line",
+      link: "/#",
+      click: function (e) {
+        e.preventDefault();
+        setIsAccounting(!isAccounting);
+        setIscurrentState("Cuentas");
+        updateIconSidebar(e);
+      },
+      stateVariables: isAccounting,
+      subItems: [
+        {
+          id: "account-list",
+          label: "Lista",
+          link: "/accounts",
+          parentId: "production-orders",
+        },
+        {
+          id: "account-create",
+          label: "Crear",
+          link: "/accounts-create",
+          parentId: "accounting-accounts",
+        }
       ],
     },
     {

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Dropdown, DropdownMenu, DropdownToggle, Form } from 'reactstrap';
+import { useSelector, useDispatch } from "react-redux";
+import { createSelector } from 'reselect';
 
 //import images
 import logoSm from "../assets/images/logo-sm.png";
@@ -21,9 +23,10 @@ import NotificationDropdown from '../Components/Common/NotificationDropdown';
 import ProfileDropdown from '../Components/Common/ProfileDropdown';
 import LightDark from '../Components/Common/LightDark';
 
+import { URL_BASE_WEBSOCKET } from '../helpers/url_helper';
 import { changeSidebarVisibility } from '../slices/thunks';
-import { useSelector, useDispatch } from "react-redux";
-import { createSelector } from 'reselect';
+import { HeaderConnectedUsers } from '../Components/Common/Header-connected-users';
+
 
 const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
     const dispatch = useDispatch();
@@ -92,7 +95,7 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
 
                                 <Link to="/" className="logo logo-light">
                                     <span className="logo-sm">
-                                        <img src={logoQualityTextoBlanco} alt="" height="22"/>
+                                        <img src={logoQualityTextoBlanco} alt="" height="22" />
                                     </span>
                                     <span className="logo-lg">
                                         <img src={logoQualityTextoBlanco} alt="" height="30" width="80" />
@@ -117,6 +120,14 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
                         </div>
 
                         <div className="d-flex align-items-center">
+
+                            <HeaderConnectedUsers
+                                websocketUrl={`${URL_BASE_WEBSOCKET}`}
+                                maxVisibleAvatars={5}
+                                showConnectionStatus={false}
+                                currentUserId={localStorage.getItem('userId')}
+                            />
+
 
                             <Dropdown isOpen={search} toggle={toogleSearch} className="d-md-none topbar-head-dropdown header-item">
                                 <DropdownToggle type="button" tag="button" className="btn btn-icon btn-topbar btn-ghost-secondary rounded-circle">
