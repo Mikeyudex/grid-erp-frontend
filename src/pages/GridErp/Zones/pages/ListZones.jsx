@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useContext, Fragment } from "react"
 import { Row, Col, Card, CardHeader, CardBody, Button, Alert } from "reactstrap";
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaCreditCard } from "react-icons/fa";
 import DataTable from "../../../../Components/Common/DataTableCustom";
 
 import { BASE_URL } from "../../../../helpers/url_helper";
 import { TopLayoutGeneralView } from "../../../../Components/Common/TopLayoutGeneralView";
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import ModalAddZone from "../components/ModalAddZone";
+import ModalRelatedAccount from "../components/ModalRelatedAccount";
+import ToastComponent from "../../../../Components/Common/Toast";
 
 const ZonesListPage = () => {
     document.title = "Sedes | Quality";
@@ -18,6 +20,13 @@ const ZonesListPage = () => {
     const [error, setError] = useState(null)
     const [openModalAdd, setOpenModalAdd] = useState(false);
     const [reloadData, setReloadData] = useState(false);
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [openModalAddAccount, setOpenModalAddAccount] = useState(false);
+    const [accountList, setAccountList] = useState([]);
+
+    const [messsageAlert, setMesssageAlert] = useState('');
+    const [typeModal, setTypeModal] = useState('success');
+    const [isOpenModal, setIsOpenModal] = useState(false);
 
     // Columnas para la tabla
     const columns = [
@@ -25,7 +34,6 @@ const ZonesListPage = () => {
         { key: "shortCode", label: "Código corto", type: "text", editable: true, searchable: true },
         { key: "createdAt", label: "Creado", type: "date", editable: false, searchable: true },
     ]
-
 
     // Cargar datos
     const fetchZones = async () => {
@@ -60,9 +68,43 @@ const ZonesListPage = () => {
             });
     }
 
+    const fetchAccounts = async () => {
+
+        let token = getToken();
+        fetch(`${BASE_URL}/accounting/account/getAll`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        })
+            .then(async (response) => {
+                if (!response.ok) {
+                    throw new Error("Error al obtener las cuentas");
+                }
+                let data = await response.json();
+                let accounts = data?.data ?? [];
+                if (accounts && Array.isArray(accounts) && accounts.length > 0) {
+                    setAccountList(accounts);
+                }
+                return;
+            })
+            .catch(err => {
+                console.error("Error:", err)
+                setError(err.message)
+                setIsOpenModal(true);
+                setMesssageAlert(err.message);
+                setTypeModal('danger');
+            })
+    }
+
     useEffect(() => {
         fetchZones();
     }, [reloadData]);
+
+    useEffect(() => {
+        fetchAccounts();
+    }, []);
 
     // Manejadores de eventos
     const handleUpdate = async (updatedItem) => {
@@ -171,6 +213,25 @@ const ZonesListPage = () => {
         setZoneList((prev) => [...prev, newItem]);
     }
 
+    const handleOpenModalAddAccount = () => {
+        setMesssageAlert('');
+        setTypeModal('');
+        setIsOpenModal(false);
+        if (selectedRows.length === 0) {
+            setMesssageAlert('Seleccione una sede');
+            setTypeModal('danger');
+            setIsOpenModal(true);
+            return;
+        }
+        if (selectedRows.length > 1) {
+            setMesssageAlert('Seleccione una sola sede');
+            setTypeModal('danger');
+            setIsOpenModal(true);
+            return;
+        };
+        setOpenModalAddAccount(!openModalAddAccount);
+    }
+
     return (
         <TopLayoutGeneralView
             titleBreadcrumb="Lista de Sedes"
@@ -181,13 +242,43 @@ const ZonesListPage = () => {
                         isOpen={openModalAdd}
                         closeModal={handleCloseModalAdd}
                         handleAddItemToList={handleAddItemToList} />
+
+                    <ModalRelatedAccount
+                        isOpen={openModalAddAccount}
+                        closeModal={() => setOpenModalAddAccount(false)}
+                        accountList={accountList}
+                        selectedRows={selectedRows}
+                        setReloadData={setReloadData}
+                    />
                     <Row>
+                        {
+                            isOpenModal && (
+                                < ToastComponent
+                                    text={messsageAlert}
+                                    duration={4000}
+                                    gravity="top"
+                                    position="right"
+                                    stopOnFocus={true}
+                                    close={true}
+                                    className={typeModal === 'success' ? "toastify-success" : "toastify-danger"}
+                                    style={typeModal === 'success' ? { background: "linear-gradient(to right, #00b09b, #96c93d)" } : { background: "linear-gradient(to right, #e55353, #f06595)" }}
+                                />
+                            )
+                        }
                         <Col>
                             <Card>
-                                <CardHeader className="bg-light text-white d-flex justify-content-between align-items-center">
+                                <CardHeader className="bg-light text-white d-flex justify-content-start align-items-center">
                                     <Button color="light" onClick={handleOpenModalAdd}>
                                         <FaPlus className="me-1" /> Nueva Sede
                                     </Button>
+                                    {
+                                        selectedRows.length > 0 && (
+                                            <Button color="light" onClick={handleOpenModalAddAccount}>
+                                                <FaCreditCard className="me-1" /> Asociar cuenta bancaria
+                                            </Button>
+                                        )
+                                    }
+
                                 </CardHeader>
                                 <CardBody>
                                     {error && (
@@ -208,6 +299,7 @@ const ZonesListPage = () => {
                                         refreshData={fetchZones}
                                         searchable={true}
                                         itemsPerPage={10}
+                                        handleSetSelectedRows={setSelectedRows}
                                     />
                                 </CardBody>
                             </Card>

@@ -4,24 +4,14 @@ import { Dropdown, DropdownMenu, DropdownToggle, Form } from 'reactstrap';
 import { useSelector, useDispatch } from "react-redux";
 import { createSelector } from 'reselect';
 
-//import images
-import logoSm from "../assets/images/logo-sm.png";
-import logoDark from "../assets/images/logo-dark.png";
-import logoLight from "../assets/images/logo-light.png";
-
 //Logo Quality
-import logoQuality from "../assets/images/logo-quality.png";
 import logoQualityTextoBlanco from "../assets/images/logo-quality-4.jpeg";
 
 //import Components
-import SearchOption from '../Components/Common/SearchOption';
-import LanguageDropdown from '../Components/Common/LanguageDropdown';
-import WebAppsDropdown from '../Components/Common/WebAppsDropdown';
-import MyCartDropdown from '../Components/Common/MyCartDropdown';
 import FullScreenDropdown from '../Components/Common/FullScreenDropdown';
-import NotificationDropdown from '../Components/Common/NotificationDropdown';
+
 import ProfileDropdown from '../Components/Common/ProfileDropdown';
-import LightDark from '../Components/Common/LightDark';
+
 
 import { URL_BASE_WEBSOCKET } from '../helpers/url_helper';
 import { changeSidebarVisibility } from '../slices/thunks';

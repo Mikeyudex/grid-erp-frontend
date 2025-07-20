@@ -35,6 +35,7 @@ const DataTable = ({
   refreshData = null,
   onClickEditRow = null,
   onClickInfoRow = null,
+  handleSetSelectedRows = null,
 }) => {
   // Estados
   const [tableData, setTableData] = useState([])
@@ -232,13 +233,26 @@ const DataTable = ({
         return [...prev, id]
       }
     })
+    if (handleSetSelectedRows) {
+      handleSetSelectedRows((prev) => {
+        if (prev.includes(id)) {
+          return prev.filter((rowId) => rowId !== id)
+        } else {
+          return [...prev, id]
+        }
+      })
+    }
   }
 
   const toggleSelectAll = () => {
     if (selectAll) {
-      setSelectedRows([])
+      setSelectedRows([]);
+      handleSetSelectedRows([]);
     } else {
-      setSelectedRows(currentItems.map((item) => item._id))
+      setSelectedRows(currentItems.map((item) => item._id));
+      if(handleSetSelectedRows) {
+        handleSetSelectedRows(currentItems.map((item) => item._id))
+      }
     }
     setSelectAll(!selectAll)
   }

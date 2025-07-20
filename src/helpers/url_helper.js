@@ -42,6 +42,7 @@ export const ADD_WAREHOUSE = "/warehouse/create";
 //Zones
 export const GET_ZONES = "/users/zones/getAll";
 export const ADD_ZONE = "/users/zones/create";
+export const ADD_ACCOUNT_TO_ZONE = "/users/zones/addAccounts";
 
 // Calendar
 export const GET_EVENTS = "/events";
