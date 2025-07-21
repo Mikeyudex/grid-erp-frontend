@@ -176,6 +176,7 @@ export const ListPurchaseOrder = ({
         < TopLayoutGeneralView
             titleBreadcrumb={status === "asignado" ? "Pedidos Asignados" : "Pedidos Libres"}
             pageTitleBreadcrumb="Pedidos"
+            to={`/purchase-orders`}
             main={
                 < Fragment >
                     <Row>

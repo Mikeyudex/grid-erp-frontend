@@ -7,9 +7,11 @@ import BreadCrumb from "../../Products/components/BreadCrumb";
 import { ProductHelper } from "../../Products/helper/product_helper"
 import { obtenerAtributosUnicos, transformarDatos } from "../utils/order"
 import OrderGrid from "../components/order-item-grid"
+import { AccountHelper } from "../../Accounts/helpers/account_helper";
 
 
 const productHelper = new ProductHelper();
+const accountHelper = new AccountHelper();
 
 export default function PurchaseOrderPage() {
     document.title = "Crear pedido | Quality";
@@ -20,6 +22,7 @@ export default function PurchaseOrderPage() {
     const [matMaterialPrices, setMatMaterialPrices] = useState([]);
     const [matTypeOptions, setMatTypeOptions] = useState([]);
     const [materialTypeOptions, setMaterialTypeOptions] = useState([]);
+    const [accountList, setAccountList] = useState([]);
 
     const handleGetProducts = async () => {
         try {
@@ -50,6 +53,16 @@ export default function PurchaseOrderPage() {
             return [];
         }
     }
+
+    const handleGetAccounts = async () => {
+        try {
+            let response = await accountHelper.getAccounts();
+            return response?.data;
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    };
 
     const handleClientSelect = (client) => {
         setSelectedClient(client)
@@ -84,6 +97,15 @@ export default function PurchaseOrderPage() {
                 setMaterialTypeOptions(materialTypeOptions);
                 let transformedData = transformarDatos(data);
                 setMatMaterialPrices(transformedData);
+            })
+            .catch(e => console.log(e))
+    }, []);
+
+    useEffect(() => {
+        handleGetAccounts()
+            .then(async (data) => {
+                let accounts = data;
+                setAccountList(accounts);
             })
             .catch(e => console.log(e))
     }, []);
@@ -129,6 +151,7 @@ export default function PurchaseOrderPage() {
                         matTypeOptions={matTypeOptions}
                         materialTypeOptions={materialTypeOptions}
                         matMaterialPrices={matMaterialPrices}
+                        accountList={accountList}
                     />
                 </Container>
             </div>

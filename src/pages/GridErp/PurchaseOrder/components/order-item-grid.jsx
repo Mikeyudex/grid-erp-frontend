@@ -37,7 +37,7 @@ import {
     StoreIcon,
     CreditCard,
 } from "lucide-react"
-import { optionsSnackbarDanger, optionsSnackbarSuccess, ProductHelper } from "../../Products/helper/product_helper"
+import { ProductHelper } from "../../Products/helper/product_helper"
 import DropdownPortal from "./DropdownPortal"
 import { CREATE_PURCHASE_ORDER } from "../../Products/helper/url_helper"
 import { validatePayload } from "../utils/purchase-order.utils";
@@ -47,6 +47,9 @@ import AssignModal from "./assign-modal";
 import { AuthHelper } from "../../Auth/helpers/auth_helper";
 import { CollapsibleSection } from "../../../../Components/Common/CollapsibleSection";
 import moment from "moment";
+import { getToken } from "../../../../helpers/jwt-token-access/get_token";
+import { BASE_URL, UPLOAD_FILE } from "../../../../helpers/url_helper";
+import ToastComponent from "../../../../Components/Common/Toast";
 
 
 const productHelper = new ProductHelper();
@@ -67,6 +70,7 @@ export default function OrderGrid({
     onUpdateItem = null,
     onRemoveItem = null,
     isEditMode = false,
+    accountList,
 }) {
     const [orderItems, setOrderItems] = useState(initialOrderItems)
     const [clientModalOpen, setClientModalOpen] = useState(false)
@@ -101,9 +105,6 @@ export default function OrderGrid({
         materialType: "",
     });
     const [filteredMaterialTypes, setFilteredMaterialTypes] = useState([]);
-
-    const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
-    const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
     const [asignacionModalOpen, setAsignacionModalOpen] = useState(false);
     const [zones, setZones] = useState([]);
     const [selectedZoneId, setSelectedZoneId] = useState(null);
@@ -118,6 +119,22 @@ export default function OrderGrid({
         total: false,
         methodOfPayment: false,
     });
+
+    // Estados para formas de pago (agregar después de los otros estados)
+    const [paymentMethods, setPaymentMethods] = useState([]);
+    const [messsageAlert, setMesssageAlert] = useState('');
+    const [typeModal, setTypeModal] = useState('success');
+    const [isOpenModal, setIsOpenModal] = useState(false);
+
+    // Función para crear una nueva forma de pago vacía
+    const createEmptyPaymentMethod = () => {
+        return {
+            cuenta: "",
+            fecha: new Date().toISOString().split("T")[0], // Fecha actual por defecto
+            valor: 0,
+            soporte: null,
+        }
+    }
 
 
     // Actualizar orderItems cuando cambian los initialOrderItems en modo edición
@@ -137,7 +154,9 @@ export default function OrderGrid({
         if (zones && Array.isArray(zones) && zones.length > 0) {
             setZones(zones);
         } else {
-            openSnackbarDanger('Ocurrió un error al obtener las sedes.');
+            setMesssageAlert('Ocurrió un error al obtener las sedes.');
+            setTypeModal('danger');
+            setIsOpenModal(true);
         }
     };
 
@@ -566,6 +585,9 @@ export default function OrderGrid({
 
     //crear un nuevo pedido
     const handleSubmit = async () => {
+        setMesssageAlert('');
+        setTypeModal('');
+        setIsOpenModal(false);
         try {
             let payload = {
                 clientId: selectedClient._id,
@@ -591,9 +613,16 @@ export default function OrderGrid({
                 }),
                 createdBy: localStorage.getItem("userId"),
                 zoneId: selectedZoneId,
+                methodOfPayment: paymentMethods.map((m) => {
+                    return {
+                        accountId: m.cuenta,
+                        paymentDate: m.fecha,
+                        value: m.valor,
+                        paymentSupport: m.soporte,
+                        typeOperation: "ventas"
+                    }
+                }),
             }
-            console.log(payload);
-
             const validation = validatePayload(payload);
 
             if (!validation.valid) {
@@ -628,14 +657,18 @@ export default function OrderGrid({
             if (response && response.status === 201) {
                 let data = await response.json();
                 handleCleanTable();
-                openSnackbarSuccess(data?.message);
+                setMesssageAlert(data?.message);
+                setTypeModal('success');
+                setIsOpenModal(true);
                 setSelectedRows([]);
                 setEditingRowIndex(null);
                 setSelectedZoneId(null);
             }
         } catch (error) {
             console.log(error);
-            openSnackbarDanger('Ocurrió un error :(, intenta más tarde.');
+            setMesssageAlert('Ocurrió un error :(, intenta más tarde.');
+            setTypeModal('danger');
+            setIsOpenModal(true);
         }
     }
 
@@ -659,9 +692,78 @@ export default function OrderGrid({
         };
     }, []);
 
+    // Agregar nueva forma de pago
+    const addPaymentMethod = () => {
+        setPaymentMethods([...paymentMethods, createEmptyPaymentMethod()])
+    }
+
+    // Eliminar forma de pago
+    const removePaymentMethod = (index) => {
+        const newMethods = [...paymentMethods]
+        newMethods.splice(index, 1)
+        setPaymentMethods(newMethods)
+    }
+
+    // Actualizar forma de pago
+    const updatePaymentMethod = (index, field, value) => {
+        const newMethods = [...paymentMethods]
+        newMethods[index] = {
+            ...newMethods[index],
+            [field]: value,
+        }
+        setPaymentMethods(newMethods)
+    }
+
+    // Manejar carga de archivos
+    const handleFileUpload = async (index, file) => {
+        if (file) {
+            let formData = new FormData();
+            formData.append("file", file);
+            let token = getToken();
+            let response = await fetch(`${BASE_URL}${UPLOAD_FILE}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: formData,
+            });
+            let data = await response.json();
+            let url = data?.url;
+            if (url) {
+                url = `${BASE_URL}${url}`;
+            }
+            const newMethods = [...paymentMethods]
+            newMethods[index] = {
+                ...newMethods[index],
+                soporte: url,
+            }
+            setPaymentMethods(newMethods)
+        }
+    }
+
+    // Calcular total de pagos (actualizar para usar 'valor' en lugar de 'monto')
+    const calculateTotalPayments = () => {
+        return paymentMethods.reduce((total, method) => total + (method.valor || 0), 0)
+    }
+
 
     return (
         <>
+            {
+                isOpenModal && (
+                    < ToastComponent
+                        text={messsageAlert}
+                        duration={4000}
+                        gravity="top"
+                        position="right"
+                        stopOnFocus={true}
+                        close={true}
+                        className={typeModal === 'success' ? "toastify-success" : "toastify-danger"}
+                        style={typeModal === 'success' ? { background: "linear-gradient(to right, #00b09b, #96c93d)" } : { background: "linear-gradient(to right, #e55353, #f06595)" }}
+                    />
+                )
+            }
+
             {/* Modal de Selección de Cliente */}
             <Modal isOpen={clientModalOpen} toggle={toggleClientModal}>
                 <ModalHeader toggle={toggleClientModal}>Seleccionar Cliente</ModalHeader>
@@ -1356,26 +1458,150 @@ export default function OrderGrid({
 
             </CollapsibleSection>
 
-            {/* Forma de pago */}
-            <CollapsibleSection
-                id="methodOfPayment"
-                title="Forma de pago"
-                icon={CreditCard}
-                isOpen={openSections.methodOfPayment}
-                onToggle={toggleSection}
-            >
+            <CollapsibleSection id="methodOfPayment" title="Formas de pago" icon={CreditCard} isOpen={openSections.methodOfPayment} onToggle={toggleSection}>
                 <Row>
+                    <Col md={12}>
+                        {orderItems.length > 0 && (
+                            <div className="bg-light p-4 rounded shadow-sm mb-4">
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <h2 className="h5 fw-semibold mb-0">Formas de Pago</h2>
+                                    <Button color="primary" size="sm" onClick={addPaymentMethod} className="d-flex align-items-center gap-2">
+                                        <PlusCircle size={16} />
+                                        Agregar Pago
+                                    </Button>
+                                </div>
 
-                    <Col md={6}>
-                        <div>
-                            <span className="fw-medium">Forma de pago: </span>
-                            <span>Pago en efectivo</span>
-                        </div>
+                                {paymentMethods.length > 0 ? (
+                                    <div className="table-responsive mb-3">
+                                        <Table bordered hover size="sm">
+                                            <thead>
+                                                <tr className="bg-white">
+                                                    <th style={{ width: "25%" }}>Cuenta</th>
+                                                    <th style={{ width: "20%" }}>Fecha</th>
+                                                    <th style={{ width: "20%" }}>Valor</th>
+                                                    <th style={{ width: "25%" }}>Soporte</th>
+                                                    <th style={{ width: "10%" }} className="text-center">
+                                                        Acciones
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {paymentMethods.map((method, index) => (
+                                                    <tr key={index}>
+                                                        <td>
+                                                            <Input
+                                                                type="select"
+                                                                value={method.cuenta}
+                                                                onChange={(e) => updatePaymentMethod(index, "cuenta", e.target.value)}
+                                                                size="sm"
+                                                            >
+                                                                <option value="">Seleccionar cuenta...</option>
+                                                                {accountList.map((cuenta, idx) => (
+                                                                    <option key={idx} value={cuenta?._id}>
+                                                                        {cuenta?.name}
+                                                                    </option>
+                                                                ))}
+                                                            </Input>
+                                                        </td>
+                                                        <td>
+                                                            <Input
+                                                                type="date"
+                                                                value={method.fecha}
+                                                                onChange={(e) => updatePaymentMethod(index, "fecha", e.target.value)}
+                                                                size="sm"
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <Input
+                                                                type="number"
+                                                                min="0"
+                                                                step="1000"
+                                                                value={method.valor}
+                                                                onChange={(e) => updatePaymentMethod(index, "valor", Number(e.target.value) || 0)}
+                                                                placeholder="$0"
+                                                                size="sm"
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <div className="d-flex align-items-center gap-2">
+                                                                <Input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={(e) => handleFileUpload(index, e.target.files[0])}
+                                                                    size="sm"
+                                                                    style={{ display: "none" }}
+                                                                    id={`file-input-${index}`}
+                                                                />
+                                                                <Button
+                                                                    color="outline-secondary"
+                                                                    size="sm"
+                                                                    onClick={() => document.getElementById(`file-input-${index}`).click()}
+                                                                    className="d-flex align-items-center gap-1"
+                                                                >
+                                                                    <PlusCircle size={14} />
+                                                                    {method.soporte ? "Cambiar" : "Subir"}
+                                                                </Button>
+                                                                {method.soporte && (
+                                                                    <div className="d-flex align-items-center gap-1">
+                                                                        <span className="small text-success">✓ Archivo</span>
+                                                                        <Button
+                                                                            color="link"
+                                                                            size="sm"
+                                                                            className="p-0 text-danger"
+                                                                            onClick={() => updatePaymentMethod(index, "soporte", null)}
+                                                                            title="Eliminar archivo"
+                                                                        >
+                                                                            <Trash2 size={12} />
+                                                                        </Button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </td>
+                                                        <td className="text-center">
+                                                            <Button
+                                                                color="link"
+                                                                className="p-1 text-danger"
+                                                                onClick={() => removePaymentMethod(index)}
+                                                                title="Eliminar"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </Button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                            <tfoot className="table-group-divider">
+                                                <tr>
+                                                    <td colSpan="2" className="text-end fw-bold">
+                                                        Total Pagado:
+                                                    </td>
+                                                    <td className="fw-bold">${calculateTotalPayments().toLocaleString()}</td>
+                                                    <td colSpan="2"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colSpan="2" className="text-end fw-bold">
+                                                        Saldo Pendiente:
+                                                    </td>
+                                                    <td
+                                                        className={`fw-bold ${(calculateTotal() - calculateTotalPayments()) > 0 ? "text-danger" : "text-success"}`}
+                                                    >
+                                                        ${(calculateTotal() - calculateTotalPayments()).toLocaleString()}
+                                                    </td>
+                                                    <td colSpan="2"></td>
+                                                </tr>
+                                            </tfoot>
+                                        </Table>
+                                    </div>
+                                ) : (
+                                    <Alert color="info" className="text-center mb-3">
+                                        No hay formas de pago registradas. Haga clic en "Agregar Pago" para comenzar.
+                                    </Alert>
+                                )}
+                            </div>
+                        )}
                     </Col>
                 </Row>
-
-
-            </CollapsibleSection>
+            </CollapsibleSection >
 
             {/* Total del Pedido */}
             {

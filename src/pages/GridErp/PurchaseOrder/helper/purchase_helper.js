@@ -1,4 +1,5 @@
 import { APIClient, ApiClientFetch } from "../../../../helpers/api_helper";
+import { BASE_URL, UPLOAD_FILE } from "../../../../helpers/url_helper";
 import * as url from "./url_helper";
 
 

@@ -28,6 +28,9 @@ export const SOCIAL_LOGIN = "/social-login";
 
 export const VALIDATE_TOKEN = "/auth/validatetoken";
 
+//Upload files
+export const UPLOAD_FILE = "/upload";
+
 //PROFILE
 export const POST_EDIT_JWT_PROFILE = "/post-jwt-profile";
 export const POST_EDIT_PROFILE = "/user";

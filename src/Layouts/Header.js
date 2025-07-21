@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { createSelector } from 'reselect';
 
 //Logo Quality
-import logoQualityTextoBlanco from "../assets/images/logo-quality-4.jpeg";
+import logoQualityTextoBlanco from "../assets/images/logo-quality_final.png";
 
 //import Components
 import FullScreenDropdown from '../Components/Common/FullScreenDropdown';
