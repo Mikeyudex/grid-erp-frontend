@@ -589,12 +589,21 @@ export default function OrderGrid({
         setTypeModal('');
         setIsOpenModal(false);
         try {
+            
+            if(paymentMethods.length === 0){
+                setMesssageAlert('Debe agregar al menos un método de pago');
+                setTypeModal('danger');
+                setIsOpenModal(true);
+                return;
+            }
+
             if ((calculateTotal() - calculateTotalPayments()) > 0) {
                 setMesssageAlert('No se puede finalizar el pedido, tiene saldo pendiente');
                 setTypeModal('danger');
                 setIsOpenModal(true);
                 return;
             }
+
             let payload = {
                 clientId: selectedClient._id,
                 itemsQuantity: orderItems.length,
