@@ -589,6 +589,12 @@ export default function OrderGrid({
         setTypeModal('');
         setIsOpenModal(false);
         try {
+            if ((calculateTotal() - calculateTotalPayments()) > 0) {
+                setMesssageAlert('No se puede finalizar el pedido, tiene saldo pendiente');
+                setTypeModal('danger');
+                setIsOpenModal(true);
+                return;
+            }
             let payload = {
                 clientId: selectedClient._id,
                 itemsQuantity: orderItems.length,
@@ -691,6 +697,10 @@ export default function OrderGrid({
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, []);
+
+    const handleClickAddItem = () => {
+        return purchaseOrderHelper.handleCreateEmptyRow(createEmptyRow, setOrderItems);
+    }
 
     // Agregar nueva forma de pago
     const addPaymentMethod = () => {
@@ -1455,6 +1465,15 @@ export default function OrderGrid({
                            ) */
                     )
                 }
+
+                <Button
+                    size="sm"
+                    title="Añadir item"
+                    color="primary"
+                    onClick={handleClickAddItem}
+                    className="d-flex align-items-center gap-2">
+                    <PlusCircle size={16} />
+                </Button>
 
             </CollapsibleSection>
 

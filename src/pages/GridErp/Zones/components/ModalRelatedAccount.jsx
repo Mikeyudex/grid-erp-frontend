@@ -37,7 +37,8 @@ const ModalRelatedAccount = ({ isOpen, closeModal, accountList, selectedRows, se
     const fetchAccountsRelated = async () => {
         try {
             setIsLoadingAccounts(true);
-            const accounts = await zoneHelper.getAccountsFromZone(selectedRows[0]);
+            const response = await zoneHelper.getAccountsFromZone(selectedRows[0]);
+            const accounts = response?.data;
             if (accounts && Array.isArray(accounts) && accounts.length > 0) {
                 setAccountsRelated(accounts);
             }
@@ -96,7 +97,7 @@ const ModalRelatedAccount = ({ isOpen, closeModal, accountList, selectedRows, se
     }, [selectedRows]);
 
     useEffect(() => {
-        // Inicializar formData con las cuentas ya relacionadas
+        // Inicializar formData con las cuentas ya relacionadas    
         if (accountsRelated.length > 0) {
             setFormData({
                 accountIds: accountsRelated.map(a => a._id),

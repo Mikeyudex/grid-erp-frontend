@@ -30,9 +30,13 @@ export class PurchaseHelper {
         if (['input', 'textarea', 'select'].includes(tag)) return;
 
         // Lógica para crear nueva fila
+        this.handleCreateEmptyRow(createEmptyRow, setOrderItems);
+    };
+
+    handleCreateEmptyRow = (createEmptyRow, setOrderItems) => {
         const newRow = createEmptyRow();
         setOrderItems(prev => [...prev, newRow]);
-    };
+    }
 }
 
 export const purchaseOrderStatus = {

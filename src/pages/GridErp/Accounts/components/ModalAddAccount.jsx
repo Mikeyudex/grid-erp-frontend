@@ -4,6 +4,7 @@ import { useSnackbar } from 'react-simple-snackbar';
 import { styles } from '../pages/styles';
 import { optionsSnackbarDanger, optionsSnackbarSuccess } from '../../Products/helper/product_helper';
 import { AccountHelper } from '../helpers/account_helper';
+import { typeBankAccountOptions, bankAccountOptions } from '../../../../helpers/options';
 
 const helper = new AccountHelper();
 
@@ -24,6 +25,7 @@ const ModalAddAccount = ({ isOpen, closeModal }) => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
+
         setFormData((prevFormData) => ({
             ...prevFormData,
             [name]: value,
@@ -119,16 +121,23 @@ const ModalAddAccount = ({ isOpen, closeModal }) => {
                     <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
                         <div style={styles.formGroup}>
                             <label className='form-label' htmlFor="quantity">*Tipo de cuenta:</label>
-                            <input
+                            <select
                                 name={'typeAccount'}
                                 onChange={handleInputChange}
                                 placeholder={'Tipo de cuenta'}
-                                value={formData.typeAccount}
-                                type={"text"}
+                                type={"select"}
                                 className={"input-box"}
                                 id={'typeAccount'}
                                 required={true}
-                            />
+                            >
+
+                            {typeBankAccountOptions.map((typeAccount, idx) => (
+                                <option key={idx} value={typeAccount.value}>
+                                    {typeAccount.label}
+                                </option>
+                            ))}
+                            </select>
+
                             {errors.typeAccount && (<span className="form-product-input-error">{errors.typeAccount}</span>)}
                         </div>
                     </div>
@@ -138,15 +147,20 @@ const ModalAddAccount = ({ isOpen, closeModal }) => {
                     <div style={{ flex: "1 1 30%", minWidth: "200px" }}>
                         <div style={styles.formGroup}>
                             <label className='form-label' htmlFor="bankAccount">*Banco:</label>
-                            <input
+                            <select
                                 name={'bankAccount'}
                                 onChange={handleInputChange}
                                 placeholder={'Banco'}
-                                value={formData.bankAccount}
                                 className={"input-box"}
                                 id={'bankAccount'}
                                 required={true}
-                            />
+                            >
+                                {bankAccountOptions.map((bankAccount, idx) => (
+                                    <option key={idx} value={bankAccount.label}>
+                                        {bankAccount.label}
+                                    </option>
+                                ))}
+                            </select>
                             {errors.bankAccount && (<span className="form-product-input-error">{errors.bankAccount}</span>)}
                         </div>
                     </div>

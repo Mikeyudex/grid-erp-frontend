@@ -23,6 +23,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { FaBell, FaPlus } from "react-icons/fa";
 import DataTable from "../../../../Components/Common/DataTableCustom";
 import { IndexedDBService } from "../../../../helpers/indexedDb/indexed-db-helper";
+import { BASE_URL } from "../../../../helpers/url_helper";
+import { BULK_DELETE_PURCHASE_ORDER, DELETE_PURCHASE_ORDER } from "../helper/url_helper";
+import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 
 const helper = new ProductHelper();
 const indexedDb = new IndexedDBService();
@@ -143,6 +146,63 @@ export const ListPurchaseOrder = ({
         return navigate("/purchase-orders/free-orders")
     };
 
+    const handleDeleteOrder = async (id) => {
+        try {
+            setError(null);
+            if (!id) {
+                setError("No se ha seleccionado ninguna orden");
+                return false
+            }
+            let token = getToken();
+            const response = await fetch(`${DELETE_PURCHASE_ORDER}/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+            })
+
+            if (!response.ok) {
+                throw new Error("Error al eliminar la orden")
+            }
+
+            // Actualizar estado local
+            setPurchaseOrderList((prev) => prev.filter((item) => item._id !== id))
+            return true
+        } catch (err) {
+            console.error("Error:", err)
+            setError(err.message)
+            return false
+        }
+    }
+
+    const handleBulkDelete = async (ids) => {
+        setError(null);
+        try {
+            let token = getToken();
+            const response = await fetch(`${BULK_DELETE_PURCHASE_ORDER}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify({ ids }),
+            })
+
+            if (!response.ok) {
+                throw new Error("Error al eliminar las ordenes seleccionadas")
+            }
+
+            // Actualizar estado local
+            setPurchaseOrderList((prev) => prev.filter((item) => !ids.includes(item._id)))
+            return true
+        } catch (err) {
+            console.error("Error:", err)
+            setError(err.message)
+            return false
+        }
+    }
+
     const columns = [
         { key: "orderNumber", label: "No.", type: "text", editable: false, searchable: true, sortable: true },
         { key: "name", label: "Nombre", type: "text", editable: false, searchable: true, sortable: true, },
@@ -213,8 +273,8 @@ export const ListPurchaseOrder = ({
                                         data={purchaseOrderList}
                                         columns={columns}
                                         onUpdate={() => ({})}
-                                        onDelete={() => ({})}
-                                        onBulkDelete={() => ({})}
+                                        onDelete={handleDeleteOrder}
+                                        onBulkDelete={handleBulkDelete}
                                         title={status === "asignado" ? "Pedidos Asignados" : "Pedidos Libres"}
                                         loading={loading}
                                         error={error}
