@@ -59,36 +59,18 @@ const ListAccounts = () => {
     }, [reload]);
 
     // Manejadores de eventos
-    const handleUpdate = async (updatedMatMaterialPrice) => {
+    const handleUpdate = async (updatedAccount) => {
         try {
             setError(null);
-            if (!updatedMatMaterialPrice) {
-                setError("No se ha seleccionado ninguna tipo de material");
+            if (!updatedAccount) {
+                setError("No se ha seleccionado ninguna cuenta");
                 return false
             }
-            let token = getToken();
-            const response = await fetch(`${BASE_URL}/precios-tapete-material/${updatedMatMaterialPrice._id}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    tipo_tapete: updatedMatMaterialPrice?.tipo_tapete,
-                    tipo_material: updatedMatMaterialPrice?.tipo_material,
-                    precioBase: updatedMatMaterialPrice?.precioBase,
-                }),
-            })
-
-            if (!response.ok) {
-                throw new Error("Error al actualizar el tipo de cliente")
-            }
-
+            await helper.updateAccount(updatedAccount)
             // Actualizar estado local
-            setMatMaterialPriceList((prev) =>
-                prev.map((item) => (item._id === updatedMatMaterialPrice._id ? updatedMatMaterialPrice : item))
+            setAccountList((prev) =>
+                prev.map((item) => (item._id === updatedAccount._id ? updatedAccount : item))
             )
-            updateMatMaterialPriceData({ ...matMaterialPriceData, reloadTableMatMaterialPriceList: !matMaterialPriceData.reloadTableMatMaterialPriceList });
             return true
         } catch (err) {
             console.error("Error:", err)
@@ -101,24 +83,13 @@ const ListAccounts = () => {
         try {
             setError(null);
             if (!id) {
-                setError("No se ha seleccionado ninguna tipo de material");
+                setError("No se ha seleccionado ninguna cuenta");
                 return false
             }
-            let token = getToken();
-            const response = await fetch(`${BASE_URL}/precios-tapete-material/${id}`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-            })
-
-            if (!response.ok) {
-                throw new Error("Error al eliminar el tipo de cliente")
-            }
+            await helper.deleteAccount(id)
 
             // Actualizar estado local
-            setMatMaterialPriceList((prev) => prev.filter((item) => item._id !== id))
+            setAccountList((prev) => prev.filter((item) => item._id !== id))
 
             return true
         } catch (err) {
@@ -131,22 +102,10 @@ const ListAccounts = () => {
     const handleBulkDelete = async (ids) => {
         setError(null);
         try {
-            let token = getToken();
-            const response = await fetch(`${BASE_URL}/precios-tapete-material/bulkDelete`, {
-                method: "DELETE",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`,
-                },
-                body: JSON.stringify({ ids }),
-            })
-
-            if (!response.ok) {
-                throw new Error("Error al eliminar los tipos de material seleccionados")
-            }
+            await helper.bulkDeleteAccounts(ids)
 
             // Actualizar estado local
-            setMatMaterialPriceList((prev) => prev.filter((item) => !ids.includes(item._id)))
+            setAccountList((prev) => prev.filter((item) => !ids.includes(item._id)))
             return true
         } catch (err) {
             console.error("Error:", err)
@@ -163,6 +122,10 @@ const ListAccounts = () => {
         setOpenModalAdd(!openModalAdd);
     }
 
+    const handleReload = () => {
+        setReload(!reload);
+    }
+
     return (
         <TopLayoutGeneralView
             titleBreadcrumb="Lista de cuentas"
@@ -171,7 +134,9 @@ const ListAccounts = () => {
                 <Fragment>
                     <ModalAddAccount
                         isOpen={openModalAdd}
-                        closeModal={handleCloseModalAdd} />
+                        closeModal={handleCloseModalAdd} 
+                        handleReload={handleReload}
+                        />
                     <Row>
                         <Col>
                             <Card>

@@ -8,7 +8,7 @@ import { typeBankAccountOptions, bankAccountOptions } from '../../../../helpers/
 
 const helper = new AccountHelper();
 
-const ModalAddAccount = ({ isOpen, closeModal }) => {
+const ModalAddAccount = ({ isOpen, closeModal , handleReload }) => {
 
     const [openSnackbarSuccess, closeSnackbarSuccess] = useSnackbar(optionsSnackbarSuccess);
     const [openSnackbarDanger, closeSnackbarDanger] = useSnackbar(optionsSnackbarDanger);
@@ -55,6 +55,7 @@ const ModalAddAccount = ({ isOpen, closeModal }) => {
 
             handleCloseModal();
             openSnackbarSuccess('Registro creado exitosamente');
+            handleReload();
         } catch (error) {
             console.log(error);
             openSnackbarDanger('Ocurrió un error al crear el registro');

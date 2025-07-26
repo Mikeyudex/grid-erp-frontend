@@ -52,7 +52,7 @@ export class AccountHelper {
 
     async updateAccount(account) {
         let token = getToken();
-        return fetch(`${this.baseUrl}/${account._id}`, {
+        return fetch(`${this.baseUrl}/update/${account._id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ export class AccountHelper {
 
     async deleteAccount(id) {
         let token = getToken();
-        return fetch(`${this.baseUrl}/${id}`, {
+        return fetch(`${this.baseUrl}/delete/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

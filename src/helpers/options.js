@@ -1,7 +1,8 @@
 export const typeBankAccountOptions = [
     {value: 0, label: "Selecciona una opción"},
     {value: "Ahorros", label: "Ahorros"},
-    {value: "Corriente", label: "Corriente"}
+    {value: "Corriente", label: "Corriente"},
+    {value: "Efectivo", label: "Efectivo"},
 ]
 
 export const bankAccountOptions = [
@@ -37,4 +38,5 @@ export const bankAccountOptions = [
     {value: 29, label: "Simple S.A"},
     {value: 30, label: "Nequi"},
     {value: 31, label: "Daviplata"},
+    {value: 32, label: "Efectivo"},
 ]
