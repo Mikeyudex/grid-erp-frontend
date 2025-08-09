@@ -51,6 +51,7 @@ import EditCustomerView from "../pages/GridErp/Customers/pages/EditCustomerView"
 import EditProductMatView from "../pages/GridErp/Products/pages/EditProductMatView";
 import { ListFreeOrders } from "../pages/GridErp/PurchaseOrder/pages/ListFreeOrders";
 import ListAccounts from "../pages/GridErp/Accounts/pages/ListAccounts";
+import RegisterPaymentPage from "../pages/GridErp/Payments/registro/page";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -140,6 +141,9 @@ const authProtectedRoutes = [
     { path: "/production/create", component: <ProductionListPage /> },
     { path: "/production/edit", component: <ProductionListPage /> },
     { path: "/production/view-detail/:id", component: <ProductionListPage /> },
+
+    //payments
+    { path: "/payments-register", component: <RegisterPaymentPage /> },
 
     // Uploads
     { path: "/uploads", component: <UploadHistoryPage /> },

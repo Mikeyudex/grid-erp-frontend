@@ -300,8 +300,8 @@ const Navdata = () => {
       isHeader: true,
     },
     {
-      id: "accounting-accounts",
-      label: "Cuentas",
+      id: "accounting",
+      label: "Contabilidad",
       icon: "ri-money-dollar-circle-line",
       link: "/#",
       click: function (e) {
@@ -314,10 +314,22 @@ const Navdata = () => {
       subItems: [
         {
           id: "account-list",
-          label: "Lista",
+          label: "Cuentas",
           link: "/accounts",
-          parentId: "production-orders",
-        }
+          parentId: "accounting",
+        },
+        {
+          id: "payment-list",
+          label: "Pagos",
+          link: "/payments",
+          parentId: "accounting",
+        },
+        {
+          id: "payment-register",
+          label: "Registrar pagos",
+          link: "/payments-register",
+          parentId: "accounting",
+        },
       ],
     },
     {
