@@ -18,20 +18,24 @@ import {
   Button,
   Table,
 } from 'reactstrap'
+import moment from 'moment'
 import { registerPayment } from './actions'
 import { PaymentHelper } from '../payments-helper'
 import { TopLayoutGeneralView } from '../../../../Components/Common/TopLayoutGeneralView'
+import { handleFileUpload } from '../../../../helpers/upload_file_helper'
+import ToastComponent from '../../../../Components/Common/Toast'
 
 const paymentHelper = new PaymentHelper()
 
+const TYPE_OF_OPERATION = [
+  { value: 'recibos', label: 'Recibo' },
+  { value: 'anticipo', label: 'Anticipo' },
+  { value: 'ventas', label: 'Ventas' },
+]
 export default function PaymentRegistrationForm() {
   const [isPending, startTransition] = useTransition()
 
-  const [clients, setClients] = useState([
-    { _id: 'client1', name: 'Cliente A' },
-    { _id: 'client2', name: 'Cliente B' },
-    { _id: 'client3', name: 'Cliente C (Sin deudas)' },
-  ])
+  const [clients, setClients] = useState([])
   const [selectedClientId, setSelectedClientId] = useState('')
   const [accounts, setAccounts] = useState([])
   const [debts, setDebts] = useState([])
@@ -39,9 +43,13 @@ export default function PaymentRegistrationForm() {
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0])
   const [value, setValue] = useState('')
   const [accountId, setAccountId] = useState('')
+  const [typeOperation, setTypeOperation] = useState('')
   const [observations, setObservations] = useState('')
   const [paymentSupportFile, setPaymentSupportFile] = useState(null)
   const [paymentSupportFileName, setPaymentSupportFileName] = useState('')
+  const [messsageAlert, setMesssageAlert] = useState('');
+  const [typeModal, setTypeModal] = useState('success');
+  const [isOpenModal, setIsOpenModal] = useState(false);
 
   useEffect(() => {
     const loadAccounts = async () => {
@@ -56,15 +64,32 @@ export default function PaymentRegistrationForm() {
   }, [])
 
   useEffect(() => {
+    paymentHelper.getClients()
+      .then(setClients)
+      .catch(console.error)
+  }, []);
+
+  useEffect(() => {
+    paymentHelper.getAccounts()
+      .then(setAccounts)
+      .catch(console.error)
+  }, []);
+
+  useEffect(() => {
+    setMesssageAlert('');
+    setTypeModal('');
+    setIsOpenModal(false);
     if (selectedClientId) {
       const loadDebts = async () => {
         try {
-          const fetchedDebts = await paymentHelper.getOutstandingDebts(selectedClientId)
-          setDebts(fetchedDebts)
+          const responseDebts = await paymentHelper.getOutstandingDebts(selectedClientId)
+          setDebts(responseDebts?.data ?? [])
           setSelectedDebtId('none')
         } catch (error) {
           console.error('Error al cargar deudas:', error)
-
+          setMesssageAlert('Ocurrió un error al cargar las deudas.');
+          setTypeModal('danger');
+          setIsOpenModal(true);
         }
       }
       loadDebts()
@@ -74,10 +99,11 @@ export default function PaymentRegistrationForm() {
     }
   }, [selectedClientId])
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     const file = event.target.files[0]
     if (file) {
-      setPaymentSupportFile(file)
+      let { url } = await handleFileUpload(file)
+      setPaymentSupportFile(url)
       setPaymentSupportFileName(file.name)
     } else {
       setPaymentSupportFile(null)
@@ -86,39 +112,47 @@ export default function PaymentRegistrationForm() {
   }
 
   const handleSubmit = async (event) => {
-    event.preventDefault()
+    event.preventDefault();
+    setMesssageAlert('');
+    setTypeModal('');
+    setIsOpenModal(false);
 
-    if (!selectedClientId || !paymentDate || !accountId || !value || parseFloat(value) <= 0) {
-      alert("Por favor, complete todos los campos obligatorios (Cliente, Fecha, Cuenta, Valor).")
+    if (!selectedClientId || !paymentDate || !accountId || !typeOperation || !value || parseFloat(value) <= 0) {
+      alert("Por favor, complete todos los campos obligatorios (Cliente, Fecha, Cuenta, tipo de operación, Valor).")
       return
     }
-
-    const formData = new FormData()
-    formData.append('clientId', selectedClientId)
-    formData.append('selectedDebtId', selectedDebtId)
-    formData.append('paymentDate', paymentDate)
-    formData.append('accountId', accountId)
-    formData.append('value', value)
-    formData.append('observations', observations)
-    if (paymentSupportFile) {
-      formData.append('paymentSupport', paymentSupportFile)
+    let payload = {
+      clientId: selectedClientId,
+      debtId: selectedDebtId === 'none' ? null : selectedDebtId,
+      paymentDate: moment(paymentDate).toISOString(),
+      accountId: accountId,
+      typeOperation: typeOperation,
+      value: value,
+      observations: observations,
+      paymentSupport: paymentSupportFile,
     }
 
     startTransition(async () => {
-      const result = await registerPayment(formData)
+      const result = await registerPayment(payload)
       if (result.success) {
-        alert(result.message)
+        setMesssageAlert(result.message);
+        setTypeModal('success');
+        setIsOpenModal(true);
+
         // Resetear formulario
         setSelectedClientId('')
         setSelectedDebtId('none')
         setPaymentDate(new Date().toISOString().split('T')[0])
         setValue('')
         setAccountId('')
+        setTypeOperation('')
         setObservations('')
         setPaymentSupportFile(null)
         setPaymentSupportFileName('')
       } else {
-        console.log(result.message)
+        setMesssageAlert(result.message);
+        setTypeModal('danger');
+        setIsOpenModal(true);
       }
     })
   }
@@ -129,9 +163,23 @@ export default function PaymentRegistrationForm() {
     <TopLayoutGeneralView
       titleBreadcrumb={"Registro de Pagos"}
       pageTitleBreadcrumb="Pagos"
-      to={`/payments`}
+      to={`/payments-list`}
       main={
         <Container className="py-4">
+          {
+            isOpenModal && (
+              < ToastComponent
+                text={messsageAlert}
+                duration={4000}
+                gravity="top"
+                position="right"
+                stopOnFocus={true}
+                close={true}
+                className={typeModal === 'success' ? "toastify-success" : "toastify-danger"}
+                style={typeModal === 'success' ? { background: "linear-gradient(to right, #00b09b, #96c93d)" } : { background: "linear-gradient(to right, #e55353, #f06595)" }}
+              />
+            )
+          }
           <Row className="justify-content-center">
             <Col md="8" lg="6">
               <Card>
@@ -155,7 +203,7 @@ export default function PaymentRegistrationForm() {
                         <option value="">Seleccione un cliente</option>
                         {clients.map((client) => (
                           <option key={client._id} value={client._id}>
-                            {client.name}
+                            {client.name || 'Cliente sin nombre'} {client?.lastname ? `${client.lastname}` : ''} {`(${client.commercialName || 'Sin nombre comercial'})`}
                           </option>
                         ))}
                       </Input>
@@ -232,7 +280,7 @@ export default function PaymentRegistrationForm() {
                             step="0.01"
                             value={value}
                             onChange={(e) => setValue(e.target.value)}
-                            placeholder="Ej: 150.00"
+                            placeholder="Ej: 150.000"
                             required
                             disabled={isPending}
                           />
@@ -251,10 +299,28 @@ export default function PaymentRegistrationForm() {
                         disabled={isPending}
                       >
                         <option value="">Seleccione la cuenta</option>
-                        <option value="cash">Efectivo</option>
                         {accounts.map((account) => (
                           <option key={account._id} value={account._id}>
                             {account.name}
+                          </option>
+                        ))}
+                      </Input>
+                    </FormGroup>
+
+                    <FormGroup>
+                      <Label for="typeOperation">Tipo de Operación</Label>
+                      <Input
+                        id="typeOperation"
+                        type="select"
+                        value={typeOperation}
+                        onChange={(e) => setTypeOperation(e.target.value)}
+                        required
+                        disabled={isPending}
+                      >
+                        <option value="">Seleccione el tipo de Operación</option>
+                        {TYPE_OF_OPERATION.map((type_of_operation) => (
+                          <option key={type_of_operation.value} value={type_of_operation.value}>
+                            {type_of_operation.label}
                           </option>
                         ))}
                       </Input>

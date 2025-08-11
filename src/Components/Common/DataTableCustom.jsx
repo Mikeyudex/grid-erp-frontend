@@ -366,6 +366,8 @@ const DataTable = ({
               </Input>
             </FormGroup>
           )
+        case "custom": // Nuevo caso para renderizado personalizado
+          return column.render ? column.render(value, item) : value || "-"
         default:
           return value
       }

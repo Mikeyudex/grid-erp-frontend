@@ -321,7 +321,7 @@ const Navdata = () => {
         {
           id: "payment-list",
           label: "Pagos",
-          link: "/payments",
+          link: "/payments-list",
           parentId: "accounting",
         },
         {
