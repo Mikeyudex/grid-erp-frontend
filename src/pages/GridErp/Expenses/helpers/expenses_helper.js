@@ -2,14 +2,15 @@ import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import { BASE_URL } from "../../../../helpers/url_helper";
 
 
-export class DebtHelper {
+
+export class ExpensesHelper {
     constructor() {
-        this.baseUrl = `${BASE_URL}/debt`;
+        this.baseUrl = `${BASE_URL}/accounting/type-of-expense`;
     }
 
-    async getDebts(page = 1, limit = 10, search = '') {
+    async getTypeOfExpenses() {
         let token = getToken();
-        return fetch(`${this.baseUrl}?page=${page}&limit=${limit}&search=${search}`, {
+        return fetch(`${this.baseUrl}/getAll`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -21,9 +22,9 @@ export class DebtHelper {
             .catch(err => console.log(err));
     }
 
-    async getDebtsByCustomerAndStatus(page = 1, limit = 10, search = '', customerId = null, status = null) {
+    async getTypeOfExpense(id) {
         let token = getToken();
-        return fetch(`${this.baseUrl}/customer/${customerId}?page=${page}&limit=${limit}&search=${search}&status=${status}`, {
+        return fetch(`${this.baseUrl}/getById/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -35,53 +36,39 @@ export class DebtHelper {
             .catch(err => console.log(err));
     }
 
-    async getDebt(id) {
+    async createTypeOfExpense(typeOfExpense) {
         let token = getToken();
-        return fetch(`${this.baseUrl}/${id}`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                "Authorization": `Bearer ${token}`,
-            },
-        })
-            .then(response => response.json())
-            .then(data => data)
-            .catch(err => console.log(err));
-    }
-
-    async createDebt(debt) {
-        let token = getToken();
-        return fetch(`${this.baseUrl}`, {
+        return fetch(`${this.baseUrl}/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 "Authorization": `Bearer ${token}`,
             },
-            body: JSON.stringify(debt),
+            body: JSON.stringify(typeOfExpense),
         })
             .then(response => response.json())
             .then(data => data)
             .catch(err => console.log(err));
     }
 
-    async updateDebt(debt) {
+    async updateTypeExpense(typeOfExpense) {
         let token = getToken();
-        return fetch(`${this.baseUrl}/${debt._id}`, {
+        return fetch(`${this.baseUrl}/update/${typeOfExpense._id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 "Authorization": `Bearer ${token}`,
             },
-            body: JSON.stringify(debt),
+            body: JSON.stringify(typeOfExpense),
         })
             .then(response => response.json())
             .then(data => data)
             .catch(err => console.log(err));
     }
 
-    async deleteDebt(id) {
+    async deleteTypeExpense(id) {
         let token = getToken();
-        return fetch(`${this.baseUrl}/${id}`, {
+        return fetch(`${this.baseUrl}/delete/${id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -93,7 +80,7 @@ export class DebtHelper {
             .catch(err => console.log(err));
     }
 
-    async bulkDeleteDebts(ids) {
+    async bulkDeleteTypeExpenses(ids) {
         let token = getToken();
         return fetch(`${this.baseUrl}/bulkDelete`, {
             method: 'DELETE',

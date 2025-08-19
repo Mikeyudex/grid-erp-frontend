@@ -24,6 +24,7 @@ import { PaymentHelper } from '../payments-helper'
 import { TopLayoutGeneralView } from '../../../../Components/Common/TopLayoutGeneralView'
 import { handleFileUpload } from '../../../../helpers/upload_file_helper'
 import ToastComponent from '../../../../Components/Common/Toast'
+import { numberFormatPrice } from '../../Products/helper/product_helper'
 
 const paymentHelper = new PaymentHelper()
 
@@ -31,6 +32,7 @@ const TYPE_OF_OPERATION = [
   { value: 'recibos', label: 'Recibo' },
   { value: 'anticipo', label: 'Anticipo' },
   { value: 'ventas', label: 'Ventas' },
+  { value: 'credito', label: 'Crédito' },
 ]
 export default function PaymentRegistrationForm() {
   const [isPending, startTransition] = useTransition()
@@ -122,7 +124,7 @@ export default function PaymentRegistrationForm() {
       return
     }
     let payload = {
-      clientId: selectedClientId,
+      customerId: selectedClientId,
       debtId: selectedDebtId === 'none' ? null : selectedDebtId,
       paymentDate: moment(paymentDate).toISOString(),
       accountId: accountId,
@@ -225,26 +227,36 @@ export default function PaymentRegistrationForm() {
                               <tr key={debt._id}>
                                 <td>
                                   <Input
+                                    className='cursor-pointer'
                                     type="radio"
                                     name="debtSelection"
                                     value={debt._id}
                                     checked={selectedDebtId === debt._id}
-                                    onChange={() => setSelectedDebtId(debt._id)}
+                                    onChange={() => {
+                                      setSelectedDebtId(debt._id)
+                                      setTypeOperation('recibos')
+                                      setValue(debt?.amountPayable || 0)
+                                    }}
                                     disabled={isPending}
                                   />
                                 </td>
                                 <td>{debt.description}</td>
-                                <td className="text-right">${debt.amountDue.toFixed(2)}</td>
+                                <td className="text-right">{numberFormatPrice(debt?.amountPayable || 0)}</td>
                               </tr>
                             ))}
                             <tr>
                               <td>
                                 <Input
+                                  className='cursor-pointer'
                                   type="radio"
                                   name="debtSelection"
                                   value="none"
                                   checked={selectedDebtId === 'none'}
-                                  onChange={() => setSelectedDebtId('none')}
+                                  onChange={() => {
+                                    setSelectedDebtId('none')
+                                    setTypeOperation('anticipo')
+                                    setValue(0)
+                                  }}
                                   disabled={isPending}
                                 />
                               </td>

@@ -42,7 +42,7 @@ export class PaymentHelper {
 
   async getOutstandingDebts(clientId) {
     try {
-      let response = await debtHelper.getDebts(1, 10, clientId);
+      let response = await debtHelper.getDebtsByCustomerAndStatus(1, 10, '', clientId, 'abierto');
       return response;
     } catch (error) {
       throw new Error('Error al obtener deudas: ' + error.message);
@@ -84,132 +84,21 @@ export class PaymentHelper {
 
 
   // Nueva función para simular la obtención de todos los ingresos
-  async getAllIncome(params = {}) {
-    const { page = 1, limit = 10, search = "", sortBy = "createdAt", sortOrder = "desc" } = params
+  async getAllIncome(params = {page: 1, limit: 100}) {
 
-    const allIncomes = [
-      {
-        _id: "inc1",
-        purchaseOrderId: "order1",
-        displayPurchaseOrderId: "Pedido #2023001",
-        sequence: 1,
-        typeOperation: "recibos",
-        paymentDate: new Date("2024-07-15T10:00:00Z"),
-        accountId: "acc1",
-        displayAccountId: "Cuenta Corriente - Banco A",
-        value: 150.0,
-        observations: "Abono a pedido #2023001",
-        paymentSupport: "/uploads/receipt1.jpg",
-        createdAt: new Date("2024-07-15T09:00:00Z"),
+    let token = getToken();
+    let response = await fetch(`${this.baseUrl}/getAll?page=${params.page}&limit=${params.limit}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": `Bearer ${token}`,
       },
-      {
-        _id: "inc2",
-        purchaseOrderId: null,
-        displayPurchaseOrderId: "N/A",
-        sequence: 2,
-        typeOperation: "anticipo",
-        paymentDate: new Date("2024-07-14T15:30:00Z"),
-        accountId: "acc4",
-        displayAccountId: "Efectivo",
-        value: 50.0,
-        observations: "Anticipo para futuro pedido",
-        paymentSupport: "",
-        createdAt: new Date("2024-07-14T14:00:00Z"),
-      },
-      {
-        _id: "inc3",
-        purchaseOrderId: "order5",
-        displayPurchaseOrderId: "Pedido #2023005",
-        sequence: 3,
-        typeOperation: "recibos",
-        paymentDate: new Date("2024-07-13T11:00:00Z"),
-        accountId: "acc2",
-        displayAccountId: "Cuenta de Ahorros - Banco B",
-        value: 250.5,
-        observations: "Pago final pedido #2023005",
-        paymentSupport: "/uploads/receipt2.png",
-        createdAt: new Date("2024-07-13T10:00:00Z"),
-      },
-      {
-        _id: "inc4",
-        purchaseOrderId: null,
-        displayPurchaseOrderId: "N/A",
-        sequence: 4,
-        typeOperation: "anticipo",
-        paymentDate: new Date("2024-07-12T09:00:00Z"),
-        accountId: "acc3",
-        displayAccountId: "Cuenta Empresarial - Banco C",
-        value: 100.0,
-        observations: "Anticipo cliente nuevo",
-        paymentSupport: "",
-        createdAt: new Date("2024-07-12T08:00:00Z"),
-      },
-      {
-        _id: "inc5",
-        purchaseOrderId: "order10",
-        displayPurchaseOrderId: "Pedido #2023010",
-        sequence: 5,
-        typeOperation: "recibos",
-        paymentDate: new Date("2024-07-11T16:00:00Z"),
-        accountId: "acc1",
-        displayAccountId: "Cuenta Corriente - Banco A",
-        value: 1200.75,
-        observations: "Pago total pedido #2023010",
-        paymentSupport: "/uploads/receipt3.jpeg",
-        createdAt: new Date("2024-07-11T15:00:00Z"),
-      },
-      {
-        _id: "inc6",
-        purchaseOrderId: "order1",
-        displayPurchaseOrderId: "Pedido #2023001",
-        sequence: 6,
-        typeOperation: "recibos",
-        paymentDate: new Date("2024-07-10T10:00:00Z"),
-        accountId: "acc1",
-        displayAccountId: "Cuenta Corriente - Banco A",
-        value: 350.0,
-        observations: "Primer abono pedido #2023001",
-        paymentSupport: "/uploads/receipt4.pdf", // Example of non-image support
-        createdAt: new Date("2024-07-10T09:00:00Z"),
-      },
-    ]
-
-    // Simular filtrado por búsqueda (DataTable lo hace client-side, pero aquí para consistencia con el backend)
-    const filteredData = allIncomes.filter((income) =>
-      Object.values(income).some((value) => String(value).toLowerCase().includes(search.toLowerCase())),
-    )
-
-    // Simular ordenamiento (DataTable lo hace client-side, pero aquí para consistencia con el backend)
-    filteredData.sort((a, b) => {
-      const aValue = a[sortBy]
-      const bValue = b[sortBy]
-
-      if (aValue === null || aValue === undefined) return sortOrder === "asc" ? 1 : -1
-      if (bValue === null || bValue === undefined) return sortOrder === "asc" ? -1 : 1
-
-      let comparison = 0
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        comparison = aValue.localeCompare(bValue)
-      } else if (aValue instanceof Date && bValue instanceof Date) {
-        comparison = aValue.getTime() - bValue.getTime()
-      } else {
-        comparison = aValue - bValue
-      }
-
-      return sortOrder === "asc" ? comparison : -comparison
     })
-
-    // Simular paginación (DataTable lo hace client-side, pero aquí para consistencia con el backend)
-    const startIndex = (page - 1) * limit
-    const endIndex = startIndex + limit
-    const paginatedData = filteredData.slice(startIndex, endIndex)
-
-    return {
-      data: allIncomes, // DataTable espera todos los datos para paginar y filtrar client-side
-      total: allIncomes.length,
-      page,
-      limit,
+    if (response.status !== 200) {
+      throw new Error('Error al obtener pagos: ' + response.statusText);
     }
+    let data = await response.json();
+    return data;
   }
 
 

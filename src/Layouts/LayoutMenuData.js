@@ -325,9 +325,9 @@ const Navdata = () => {
           parentId: "accounting",
         },
         {
-          id: "payment-register",
-          label: "Registrar pagos",
-          link: "/payments-register",
+          id: "types-expenses",
+          label: "Tipos de Egreso",
+          link: "/accounting/expenses-types-list",
           parentId: "accounting",
         },
       ],

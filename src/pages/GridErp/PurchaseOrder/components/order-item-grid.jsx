@@ -71,6 +71,7 @@ export default function OrderGrid({
     onRemoveItem = null,
     isEditMode = false,
     accountList,
+    advances = [],
 }) {
     const [orderItems, setOrderItems] = useState(initialOrderItems)
     const [clientModalOpen, setClientModalOpen] = useState(false)
@@ -589,8 +590,8 @@ export default function OrderGrid({
         setTypeModal('');
         setIsOpenModal(false);
         try {
-            
-            if(paymentMethods.length === 0){
+
+            if (paymentMethods.length === 0) {
                 setMesssageAlert('Debe agregar al menos un método de pago');
                 setTypeModal('danger');
                 setIsOpenModal(true);
@@ -630,11 +631,12 @@ export default function OrderGrid({
                 zoneId: selectedZoneId,
                 methodOfPayment: paymentMethods.map((m) => {
                     return {
+                        customerId: selectedClient._id,
                         accountId: m.cuenta,
                         paymentDate: m.fecha,
                         value: m.valor,
                         paymentSupport: m.soporte,
-                        typeOperation: "ventas"
+                        typeOperation: m.typeOperation || 'ventas',
                     }
                 }),
             }
@@ -1493,7 +1495,7 @@ export default function OrderGrid({
                             <div className="bg-light p-4 rounded shadow-sm mb-4">
                                 <div className="d-flex justify-content-between align-items-center mb-3">
                                     <h2 className="h5 fw-semibold mb-0">Formas de Pago</h2>
-                                    <Button color="primary" size="sm" onClick={addPaymentMethod} className="d-flex align-items-center gap-2">
+                                    <Button color="primary" size="sm" onClick={addPaymentMethod} disabled={selectedClient === null} className="d-flex align-items-center gap-2">
                                         <PlusCircle size={16} />
                                         Agregar Pago
                                     </Button>
@@ -1505,6 +1507,7 @@ export default function OrderGrid({
                                             <thead>
                                                 <tr className="bg-white">
                                                     <th style={{ width: "25%" }}>Cuenta</th>
+                                                    <th style={{ width: "20%" }}>Tipo Operación</th>
                                                     <th style={{ width: "20%" }}>Fecha</th>
                                                     <th style={{ width: "20%" }}>Valor</th>
                                                     <th style={{ width: "25%" }}>Soporte</th>
@@ -1520,15 +1523,42 @@ export default function OrderGrid({
                                                             <Input
                                                                 type="select"
                                                                 value={method.cuenta}
-                                                                onChange={(e) => updatePaymentMethod(index, "cuenta", e.target.value)}
+                                                                onChange={(e) => {
+                                                                    updatePaymentMethod(index, "cuenta", e.target.value);
+                                                                }}
                                                                 size="sm"
                                                             >
                                                                 <option value="">Seleccionar cuenta...</option>
                                                                 {accountList.map((cuenta, idx) => (
-                                                                    <option key={idx} value={cuenta?._id}>
+                                                                    <option key={idx} value={cuenta?._id} label={cuenta?.name}>
                                                                         {cuenta?.name}
                                                                     </option>
                                                                 ))}
+                                                            </Input>
+                                                        </td>
+                                                        <td>
+                                                            <Input
+                                                                type="select"
+                                                                value={method.typeOperation}
+                                                                onChange={(e) => {
+
+                                                                    if (e.target.value === 'anticipo') {
+                                                                        let incomeId = method?.cuenta;
+                                                                        let advance = advances.find(a => a._id === incomeId);
+                                                                        if (advance) {
+                                                                            let advanceValue = advance?.value;
+                                                                            updatePaymentMethod(index, "valor", advanceValue);
+                                                                        }
+                                                                    }
+                                                                    updatePaymentMethod(index, "typeOperation", e.target.value);
+                                                                }}
+                                                                size="sm"
+                                                            >
+                                                                <option value="">Seleccionar tipo operación...</option>
+                                                                <option value="anticipo">Anticipo</option>
+                                                                <option value="ventas">Venta</option>
+                                                                <option value="recibos">Recibo</option>
+                                                                <option value="credito">Crédito</option>
                                                             </Input>
                                                         </td>
                                                         <td>

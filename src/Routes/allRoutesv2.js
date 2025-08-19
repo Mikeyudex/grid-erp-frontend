@@ -53,6 +53,7 @@ import { ListFreeOrders } from "../pages/GridErp/PurchaseOrder/pages/ListFreeOrd
 import ListAccounts from "../pages/GridErp/Accounts/pages/ListAccounts";
 import RegisterPaymentPage from "../pages/GridErp/Payments/registro/page";
 import PaymentListPage from "../pages/GridErp/Payments/lista/page";
+import ListTypeExpenses from "../pages/GridErp/Expenses/pages/ListTypeExpenses";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -146,6 +147,9 @@ const authProtectedRoutes = [
     //payments
     { path: "/payments-register", component: <RegisterPaymentPage /> },
     { path: "/payments-list", component: <PaymentListPage /> },
+
+    //expenses
+    { path: "/accounting/expenses-types-list", component: <ListTypeExpenses /> },
 
     // Uploads
     { path: "/uploads", component: <UploadHistoryPage /> },
