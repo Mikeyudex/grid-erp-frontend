@@ -27,6 +27,7 @@ import { numberFormatPrice } from '../../Products/helper/product_helper'
 const paymentHelper = new PaymentHelper()
 
 export default function PaymentListPage() {
+    document.title = "Lista de Pagos | Quality";
     const navigate = useNavigate();
 
     const [incomes, setIncomes] = React.useState();

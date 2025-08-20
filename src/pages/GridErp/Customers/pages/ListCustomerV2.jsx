@@ -20,7 +20,7 @@ const ListCustomerV2 = () => {
     const navigate = useNavigate();
     const { updateCustomerData, customerData } = useContext(CustomerContext);
     const [customerList, setCustomerList] = useState([]);
-    const [page, setPage] = useState(0);
+    const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(50);
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)

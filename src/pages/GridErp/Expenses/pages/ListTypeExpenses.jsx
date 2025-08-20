@@ -25,6 +25,7 @@ const ListTypeExpenses = () => {
         { key: "_id", label: "Id", type: "text", editable: false, searchable: true },
         { key: "name", label: "Nombre", type: "text", editable: true, searchable: true },
         { key: "code", label: "Código", type: "text", editable: true, searchable: true },
+        { key: "createdAt", label: "Fecha creación", type: "date", editable: false, searchable: true },
     ]
 
     // Cargar datos

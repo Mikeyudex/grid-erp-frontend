@@ -32,7 +32,7 @@ const TYPE_OF_OPERATION = [
   { value: 'recibos', label: 'Recibo' },
   { value: 'anticipo', label: 'Anticipo' },
   { value: 'ventas', label: 'Ventas' },
-  { value: 'credito', label: 'Crédito' },
+  /* { value: 'credito', label: 'Crédito' }, */
 ]
 export default function PaymentRegistrationForm() {
   const [isPending, startTransition] = useTransition()
