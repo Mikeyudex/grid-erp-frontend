@@ -2,7 +2,7 @@ import { BASE_URL, BASE_URL_IMPORT } from "../../../../helpers/url_helper";
 
 const baseUrl = BASE_URL;
 const baseUrlImport = BASE_URL_IMPORT;
-export const companyId = "3423f065-bb88-4cc5-b53a-63290b960c1a";
+export const companyId = "66becedd790bddbc9b1e2cbc";
 
 // PRODUCTS
 export const GET_LAST_SKU= baseUrl + "/products/last-sku";
@@ -44,3 +44,4 @@ export const GET_PURCHASE_ORDERS_FREE = baseUrl + "/purchase-order/findAllFreeOr
 export const GET_COUNT_PURCHASE_ORDERS_BY_STATUS = baseUrl + "/purchase-order/countOrdersByStatus";
 export const GET_PURCHASE_ORDER_BY_ID = baseUrl + "/purchase-order/getById";
 export const GET_PURCHASE_ORDERS_FROM_VIEW_PRODUCTION = baseUrl + "/purchase-order/findAllFromViewProduction";
+export const UPLOADIMAGE = baseUrl + "/upload";

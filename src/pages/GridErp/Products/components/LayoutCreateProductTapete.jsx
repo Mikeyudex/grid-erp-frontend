@@ -31,7 +31,6 @@ registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
 const acceptedFileTypes = ['image/jpeg', 'image/png', 'image/gif'];
 const helper = new ProductHelper();
-const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
 const typeOfPiecesDefault = ['Conductor', 'Copiloto', 'Segunda Fila'];
 
 export default function LayoutCreateProductTapete({
@@ -54,10 +53,11 @@ export default function LayoutCreateProductTapete({
     const [typeOfPieces, setTypeOfPieces] = useState([]);
     const [lastSku, setLastSku] = useState("0");
     const [formData, setFormData] = useState({
-        companyId: companyId,
+        companyId: helper.companyId,
         externalId: '',
         warehouseId: '',
         providerId: '',
+        historyActivityUserId: localStorage.getItem("userId"),
         name: '',
         description: '',
         id_type_product: '',
@@ -237,14 +237,14 @@ export default function LayoutCreateProductTapete({
         payloadModiffied.quantity = formData.quantity ?? 1;
         payloadModiffied.costPrice = Number(formData.costPrice) ?? 0;
         payloadModiffied.salePrice = Number(formData.costPrice) ?? 0;
-        payloadModiffied.companyId = companyId;
+        payloadModiffied.companyId = helper.companyId;
 
         let additionalConfigsModiffied = { ...additionalConfigs, images: fileData.map(({ url }) => url) }
         return { ...payloadModiffied, additionalConfigs: additionalConfigsModiffied };
     }
 
     const handleSetLastSku = async () => {
-        let { lastSku } = await helper.getLastSku(companyId);
+        let { lastSku } = await helper.getLastSku(helper.companyId);
         setLastSku(lastSku);
     }
 
@@ -276,7 +276,7 @@ export default function LayoutCreateProductTapete({
     ];
 
     useEffect(() => {
-        helper.getCategoriesFullByProduct(companyId)
+        helper.getCategoriesFullByProduct(helper.companyId)
             .then(async (respCategoriesFull) => {
                 let unitOfMeasures = await helper.getAllUnitsMeasure();
                 let taxes = await helper.getAllTaxes();
@@ -285,7 +285,7 @@ export default function LayoutCreateProductTapete({
                 if (mode === "create") {
                     await handleSetLastSku();
                 }
-                let categories = respCategoriesFull?.data;
+                let categories = respCategoriesFull?.data.filter((c) => c.shortCode.toLowerCase() !== "general");
                 setCategories(categories ?? []);
                 setUnits(unitOfMeasures ?? []);
                 setTaxes(taxes ?? []);

@@ -1,5 +1,6 @@
 import { APIClient, ApiClientFetch } from "../../../../helpers/api_helper";
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
+import { BASE_URL } from "../../../../helpers/url_helper";
 import * as url from "./url_helper";
 import moment from "moment";
 import 'moment/locale/es';
@@ -10,7 +11,7 @@ const api = new APIClient();
 const apiFetch = new ApiClientFetch();
 
 export class ProductHelper {
-
+    companyId = "66becedd790bddbc9b1e2cbc";
     // get attributes of product
     getAttrProduct = companyId => api.get(`${url.GET_ATTR_PRODUCT}/${companyId}`);
     addAttrProduct = payload => api.create(`${url.ADD_ATTR_PRODUCT}`, payload);
@@ -144,6 +145,36 @@ export class ProductHelper {
         } catch (error) {
             console.log(error);
             return null;
+        }
+    };
+
+    uploadImage = async (file) => {
+        try {
+            let formData = new FormData();
+            formData.append("file", file);
+            let token = getToken();
+            let response = await fetch(`${url.UPLOADIMAGE}`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: formData,
+            });
+            let data = await response.json();
+            let _url = data?.url;
+            if (_url) {
+                _url = `${BASE_URL}${_url}`;
+            }
+            return {
+                url: _url,
+                success: true,
+            };
+        } catch (error) {
+            console.log(error);
+            return {
+                success: false,
+                message: error.message,
+            };
         }
     };
 }

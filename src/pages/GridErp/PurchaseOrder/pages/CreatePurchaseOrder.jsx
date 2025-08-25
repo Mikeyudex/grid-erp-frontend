@@ -137,18 +137,22 @@ export default function PurchaseOrderPage() {
     }, []);
 
     useEffect(() => {
-        handleGetAdvanceByCustomer()
-            .then(async (data) => {
-                let advances = data;
-                setAdvances(advances);
-                setAccountList(prev => [...prev, ...advances.map(a => ({
-                    _id: a._id,
-                    name: `${a?.typeOperation} - ${numberFormatPrice(a?.value)} - (${moment(a?.date).format("DD/MM/YYYY")})`,
-                    typeAccount: a?.typeOperation,
-                    description: a?.description,
-                }))]);
-            })
-            .catch(e => console.log(e))
+        if (selectedClient) {
+            handleGetAdvanceByCustomer()
+                .then(async (data) => {
+                    let advances = data;
+                    if (advances.length > 0) {
+                        setAdvances(advances);
+                        setAccountList(prev => [...prev, ...advances.map(a => ({
+                            _id: a._id,
+                            name: `${a?.typeOperation} - ${numberFormatPrice(a?.value)} - (${moment(a?.date).format("DD/MM/YYYY")})`,
+                            typeAccount: a?.typeOperation,
+                            description: a?.description,
+                        }))]);
+                    }
+                })
+                .catch(e => console.log(e))
+        }
     }, [selectedClient]);
 
 

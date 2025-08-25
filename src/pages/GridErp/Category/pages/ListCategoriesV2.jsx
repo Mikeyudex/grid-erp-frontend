@@ -47,7 +47,8 @@ const ListCategoriesV2 = () => {
             .then(async (response) => {
                 let categories = response?.data;
                 if (categories && Array.isArray(categories) && categories.length > 0) {
-                    let parseCategories = categories.map((c) => {
+                    let categoriesMat = categories.filter((c) => c.shortCode.toLowerCase() !== "general");
+                    let parseCategories = categoriesMat.map((c) => {
                         return {
                             _id: c?._id,
                             name: c?.name,

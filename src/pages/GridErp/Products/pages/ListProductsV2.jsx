@@ -12,7 +12,6 @@ import { getToken } from "../../../../helpers/jwt-token-access/get_token"
 import { BASE_URL } from "../../../../helpers/url_helper"
 
 const helper = new ProductHelper();
-const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
 const marketplaces = { woocommerce: 'woocommerce', meli: 'meli' };
 
 const ListProductsV2 = () => {
@@ -33,7 +32,7 @@ const ListProductsV2 = () => {
 
     const fetchCategories = async () => {
         try {
-            let responseData = await helper.getCategoriesFullByCompanySelect(companyId);
+            let responseData = await helper.getCategoriesFullByCompanySelect(helper.companyId);
             let data = responseData?.data;
             if (data && Array.isArray(data) && data.length > 0) {
                 let categories = data.map((c) => {

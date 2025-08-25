@@ -1545,6 +1545,7 @@ export default function OrderGrid({
                                                                     if (e.target.value === 'anticipo') {
                                                                         let incomeId = method?.cuenta;
                                                                         let advance = advances.find(a => a._id === incomeId);
+
                                                                         if (advance) {
                                                                             let advanceValue = advance?.value;
                                                                             updatePaymentMethod(index, "valor", advanceValue);
