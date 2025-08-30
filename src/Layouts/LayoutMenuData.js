@@ -330,6 +330,12 @@ const Navdata = () => {
           link: "/accounting/expenses-types-list",
           parentId: "accounting",
         },
+        {
+          id: "retention",
+          label: "Retenciones",
+          link: "/accounting/retentions-list",
+          parentId: "accounting",
+        },
       ],
     },
     {
