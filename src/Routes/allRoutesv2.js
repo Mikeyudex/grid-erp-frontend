@@ -57,6 +57,7 @@ import ListTypeExpenses from "../pages/GridErp/Expenses/pages/ListTypeExpenses";
 import CrearProductoGeneral from "../pages/GridErp/Products/pages/create-product-general";
 import CreatePurchase from "../pages/GridErp/Purchase/pages/purchase-create";
 import ListRetentions from "../pages/GridErp/Retentions/pages/ListRetentions";
+import ListTaxes from "../pages/GridErp/Taxes/pages/ListTaxes";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -165,6 +166,7 @@ const authProtectedRoutes = [
     //Accounting
     { path: "/accounts", component: <ListAccounts /> },
     { path: "/accounting/retentions-list", component: <ListRetentions /> },
+    { path: "/accounting/taxes-list", component: <ListTaxes /> },
 
     //Purchase
     /* { path: "/purchases", component: <PurchaseListPage /> }, */

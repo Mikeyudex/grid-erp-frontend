@@ -336,6 +336,12 @@ const Navdata = () => {
           link: "/accounting/retentions-list",
           parentId: "accounting",
         },
+        {
+          id: "taxes",
+          label: "Impuestos",
+          link: "/accounting/taxes-list",
+          parentId: "accounting",
+        },
       ],
     },
     {
