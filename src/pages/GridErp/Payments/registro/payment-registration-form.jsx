@@ -19,12 +19,14 @@ import {
   Table,
 } from 'reactstrap'
 import moment from 'moment'
-import { registerPayment } from './actions'
+import { registerPayment, updatePayment } from './actions'
 import { PaymentHelper } from '../payments-helper'
 import { TopLayoutGeneralView } from '../../../../Components/Common/TopLayoutGeneralView'
 import { handleFileUpload } from '../../../../helpers/upload_file_helper'
 import ToastComponent from '../../../../Components/Common/Toast'
 import { numberFormatPrice } from '../../Products/helper/product_helper'
+import { ArrowLeft } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 const paymentHelper = new PaymentHelper()
 
@@ -32,16 +34,21 @@ const TYPE_OF_OPERATION = [
   { value: 'recibos', label: 'Recibo' },
   { value: 'anticipo', label: 'Anticipo' },
   { value: 'ventas', label: 'Ventas' },
+  /* { value: 'abono', label: 'Abono' }, */
   /* { value: 'credito', label: 'Crédito' }, */
 ]
-export default function PaymentRegistrationForm() {
+export default function PaymentRegistrationForm({
+  mode = 'create',
+  id = '',
+}) {
+  const navigate = useNavigate();
   const [isPending, startTransition] = useTransition()
-
   const [clients, setClients] = useState([])
   const [selectedClientId, setSelectedClientId] = useState('')
   const [accounts, setAccounts] = useState([])
   const [debts, setDebts] = useState([])
-  const [selectedDebtId, setSelectedDebtId] = useState('none') // 'none' para anticipo
+  const [selectedDebtIds, setSelectedDebtIds] = useState([]) // Cambiado a array
+  const [isAnticipo, setIsAnticipo] = useState(false) // Separado del array de deudas
   const [paymentDate, setPaymentDate] = useState(new Date().toISOString().split('T')[0])
   const [value, setValue] = useState('')
   const [accountId, setAccountId] = useState('')
@@ -77,6 +84,21 @@ export default function PaymentRegistrationForm() {
       .catch(console.error)
   }, []);
 
+  useEffect(() => { // Cargar registro
+    if (id) {
+      paymentHelper.getIncome(id)
+        .then((income) => {
+          setSelectedClientId(income?.customerId?._id)
+          setPaymentDate(new Date(income?.paymentDate).toISOString().split('T')[0])
+          setAccountId(income?.accountId)
+          setTypeOperation(income?.typeOperation)
+          setValue(income?.value)
+          setObservations(income?.observations)
+        })
+        .catch(console.error)
+    }
+  }, [id])
+
   useEffect(() => {
     setMesssageAlert('');
     setTypeModal('');
@@ -86,7 +108,8 @@ export default function PaymentRegistrationForm() {
         try {
           const responseDebts = await paymentHelper.getOutstandingDebts(selectedClientId)
           setDebts(responseDebts?.data ?? [])
-          setSelectedDebtId('none')
+          setSelectedDebtIds([])
+          setIsAnticipo(false);
         } catch (error) {
           console.error('Error al cargar deudas:', error)
           setMesssageAlert('Ocurrió un error al cargar las deudas.');
@@ -97,9 +120,52 @@ export default function PaymentRegistrationForm() {
       loadDebts()
     } else {
       setDebts([])
-      setSelectedDebtId('none')
+      setSelectedDebtIds([])
+      setIsAnticipo(false)
     }
   }, [selectedClientId])
+
+  // Calcular total de deudas seleccionadas
+  const calculateSelectedDebtsTotal = () => {
+    return selectedDebtIds.reduce((total, debtId) => {
+      const debt = debts.find((d) => d._id === debtId)
+      return total + (debt?.amountPayable || 0)
+    }, 0)
+  }
+
+  // Manejar selección de deudas
+  const handleDebtSelection = (debtId, isChecked) => {
+    if (isChecked) {
+      setSelectedDebtIds((prev) => [...prev, debtId])
+    } else {
+      setSelectedDebtIds((prev) => prev.filter((id) => id !== debtId))
+    }
+
+    // Si hay deudas seleccionadas, desmarcar anticipo
+    if (isChecked) {
+      setIsAnticipo(false)
+    }
+  }
+
+  // Manejar selección de anticipo
+  const handleAnticipoSelection = (isChecked) => {
+    setIsAnticipo(isChecked)
+    if (isChecked) {
+      // Si se marca anticipo, limpiar deudas seleccionadas
+      setSelectedDebtIds([])
+      setTypeOperation("anticipo")
+      setValue("")
+    }
+  }
+
+  // Actualizar valor automáticamente cuando cambian las deudas seleccionadas
+  useEffect(() => {
+    if (selectedDebtIds.length > 0) {
+      const total = calculateSelectedDebtsTotal()
+      setValue(total.toString())
+      setTypeOperation("recibos")
+    }
+  }, [selectedDebtIds, debts])
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0]
@@ -125,7 +191,7 @@ export default function PaymentRegistrationForm() {
     }
     let payload = {
       customerId: selectedClientId,
-      debtId: selectedDebtId === 'none' ? null : selectedDebtId,
+      debtIds: isAnticipo ? [] : selectedDebtIds,
       paymentDate: moment(paymentDate).toISOString(),
       accountId: accountId,
       typeOperation: typeOperation,
@@ -135,37 +201,67 @@ export default function PaymentRegistrationForm() {
     }
 
     startTransition(async () => {
-      const result = await registerPayment(payload)
-      if (result.success) {
-        setMesssageAlert(result.message);
-        setTypeModal('success');
-        setIsOpenModal(true);
+      if (mode === 'create') {
+        const result = await registerPayment(payload)
+        if (result.success) {
+          setMesssageAlert(result.message);
+          setTypeModal('success');
+          setIsOpenModal(true);
 
-        // Resetear formulario
-        setSelectedClientId('')
-        setSelectedDebtId('none')
-        setPaymentDate(new Date().toISOString().split('T')[0])
-        setValue('')
-        setAccountId('')
-        setTypeOperation('')
-        setObservations('')
-        setPaymentSupportFile(null)
-        setPaymentSupportFileName('')
+          // Resetear formulario
+          setSelectedClientId("")
+          setSelectedDebtIds([])
+          setIsAnticipo(false)
+          setPaymentDate(new Date().toISOString().split('T')[0])
+          setValue('')
+          setAccountId('')
+          setTypeOperation('')
+          setObservations('')
+          setPaymentSupportFile(null)
+          setPaymentSupportFileName('')
+        } else {
+          setMesssageAlert(result.message);
+          setTypeModal('danger');
+          setIsOpenModal(true);
+        }
       } else {
-        setMesssageAlert(result.message);
-        setTypeModal('danger');
-        setIsOpenModal(true);
+        const result = await updatePayment(payload)
+        if (result.success) {
+          setMesssageAlert(result.message);
+          setTypeModal('success');
+          setIsOpenModal(true);
+
+          // Resetear formulario
+          setSelectedClientId("")
+          setSelectedDebtIds([])
+          setIsAnticipo(false)
+          setPaymentDate(new Date().toISOString().split('T')[0])
+          setValue('')
+          setAccountId('')
+          setTypeOperation('')
+          setObservations('')
+          setPaymentSupportFile(null)
+          setPaymentSupportFileName('')
+        } else {
+          setMesssageAlert(result.message);
+          setTypeModal('danger');
+          setIsOpenModal(true);
+        }
       }
     })
   }
 
-  const isAnticipo = debts.length === 0 || selectedDebtId === 'none';
+  const selectedDebtsTotal = calculateSelectedDebtsTotal()
+  const paymentValue = Number.parseFloat(value) || 0
+  const anticipoAmount = paymentValue > selectedDebtsTotal ? paymentValue - selectedDebtsTotal : 0;
+  const title = mode === 'create' ? "Registro de Pagos" : "Editar Pago";
+  const subtitle = mode === 'create' ? "Registre pagos por anticipo o abono a deudas existentes." : "Edite el pago seleccionado.";
 
   return (
     <TopLayoutGeneralView
-      titleBreadcrumb={"Registro de Pagos"}
-      pageTitleBreadcrumb="Pagos"
-      to={`/payments-list`}
+      titleBreadcrumb={mode === 'create' ? "Registro de Pagos" : "Editar Pago"}
+      pageTitleBreadcrumb={mode === 'create' ? "Pagos" : "Pago"}
+      to={'/payments-list'}
       main={
         <Container className="py-4">
           {
@@ -186,9 +282,9 @@ export default function PaymentRegistrationForm() {
             <Col md="8" lg="6">
               <Card>
                 <CardHeader>
-                  <CardTitle tag="h4">Registro de Pagos</CardTitle>
+                  <CardTitle tag="h4">{title}</CardTitle>
                   <CardSubtitle className="mb-2 text-muted">
-                    Registre pagos por anticipo o abono a deudas existentes.
+                    {subtitle}
                   </CardSubtitle>
                 </CardHeader>
                 <CardBody>
@@ -228,16 +324,12 @@ export default function PaymentRegistrationForm() {
                                 <td>
                                   <Input
                                     className='cursor-pointer'
-                                    type="radio"
+                                    type="checkbox"
                                     name="debtSelection"
                                     value={debt._id}
-                                    checked={selectedDebtId === debt._id}
-                                    onChange={() => {
-                                      setSelectedDebtId(debt._id)
-                                      setTypeOperation('recibos')
-                                      setValue(debt?.amountPayable || 0)
-                                    }}
-                                    disabled={isPending}
+                                    checked={selectedDebtIds.includes(debt._id)}
+                                    onChange={(e) => handleDebtSelection(debt._id, e.target.checked)}
+                                    disabled={isPending || isAnticipo}
                                   />
                                 </td>
                                 <td>{debt.description}</td>
@@ -247,17 +339,12 @@ export default function PaymentRegistrationForm() {
                             <tr>
                               <td>
                                 <Input
-                                  className='cursor-pointer'
-                                  type="radio"
-                                  name="debtSelection"
-                                  value="none"
-                                  checked={selectedDebtId === 'none'}
-                                  onChange={() => {
-                                    setSelectedDebtId('none')
-                                    setTypeOperation('anticipo')
-                                    setValue(0)
-                                  }}
-                                  disabled={isPending}
+                                  className="cursor-pointer"
+                                  type="checkbox"
+                                  name="anticipoSelection"
+                                  checked={isAnticipo}
+                                  onChange={(e) => handleAnticipoSelection(e.target.checked)}
+                                  disabled={isPending || selectedDebtIds.length > 0}
                                 />
                               </td>
                               <td colSpan="2">
@@ -266,6 +353,24 @@ export default function PaymentRegistrationForm() {
                             </tr>
                           </tbody>
                         </Table>
+
+                        {/* Mostrar resumen cuando hay deudas seleccionadas */}
+                        {selectedDebtIds.length > 0 && (
+                          <div className="mt-3 p-3 bg-light rounded">
+                            <h6>Resumen de Selección:</h6>
+                            <p className="mb-1">
+                              <strong>Deudas seleccionadas:</strong> {selectedDebtIds.length}
+                            </p>
+                            <p className="mb-1">
+                              <strong>Total de deudas:</strong> {numberFormatPrice(selectedDebtsTotal)}
+                            </p>
+                            {anticipoAmount > 0 && (
+                              <p className="mb-0 text-info">
+                                <strong>Excedente como anticipo:</strong> {numberFormatPrice(anticipoAmount)}
+                              </p>
+                            )}
+                          </div>
+                        )}
                       </FormGroup>
                     )}
 
@@ -364,10 +469,22 @@ export default function PaymentRegistrationForm() {
                       )}
                     </FormGroup>
 
-                    <CardFooter className="d-flex justify-content-end">
-                      <Button type="submit" color="primary" disabled={isPending}>
-                        {isPending ? 'Registrando...' : `Registrar Pago (${isAnticipo ? 'Anticipo' : 'Abono'})`}
+                    <CardFooter className="d-flex justify-content-end gap-2">
+                      <Button color="light" onClick={() => navigate(`/payments-list`)}>
+                        <ArrowLeft size={16} />
+                        Volver
                       </Button>
+                      <Button type="submit" color="primary" disabled={isPending}>
+                        {isPending
+                          ? "Registrando..."
+                          : `${mode === 'create' ? "Registrar Pago" : "Editar Pago"} (${isAnticipo
+                            ? "Anticipo"
+                            : selectedDebtIds.length > 0
+                              ? `${selectedDebtIds.length} Deuda${selectedDebtIds.length > 1 ? "s" : ""}${anticipoAmount > 0 ? " + Anticipo" : ""}`
+                              : "Seleccione opción"
+                          })`}
+                      </Button>
+
                     </CardFooter>
                   </Form>
                 </CardBody>

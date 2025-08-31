@@ -11,7 +11,7 @@ const api = new APIClient();
 const apiFetch = new ApiClientFetch();
 
 export class ProductHelper {
-    companyId = "66becedd790bddbc9b1e2cbc";
+    companyId = localStorage.getItem('companyId');
     // get attributes of product
     getAttrProduct = companyId => api.get(`${url.GET_ATTR_PRODUCT}/${companyId}`);
     addAttrProduct = payload => api.create(`${url.ADD_ATTR_PRODUCT}`, payload);
@@ -42,7 +42,7 @@ export class ProductHelper {
     getAllUnitsMeasure = () => apiFetch.get(`${url.GET_UNIT_OF_MEASURE}`);
 
     //Impuestos
-    getAllTaxes = () => apiFetch.get(`${url.GET_TAXES_BYCOMPANY}`);
+    getAllTaxes = (companyId) => apiFetch.get(`${url.GET_TAXES_BYCOMPANY}/${companyId}`);
 
     getClients = (page, limit, fields) => apiFetch.get(`${url.GET_CLIENTS_BY_FIELDS}?page=${page}&limit=${limit}&fields=${[fields]}`);
 
@@ -121,6 +121,45 @@ export class ProductHelper {
 
         setErrors(newErrors);
 
+        return Object.keys(newErrors).length === 0; // Devuelve true si no hay errores
+    }
+
+    validateFormGeneral = (setErrors, formData) => {
+        const newErrors = {};
+
+        if (!formData.name || formData.name === '') {
+            newErrors.name = 'El nombre es requerido';
+        }
+
+        if (!formData.quantity || formData.quantity === '' || formData.quantity === 0) {
+            newErrors.quantity = 'La cantidad es requerida';
+        }
+
+        if (!formData.costPrice || formData.costPrice === '' || formData.costPrice === 0) {
+            newErrors.costPrice = 'El precio base es requerido';
+        }
+
+        if (!formData.salePrice || formData.salePrice === '' || formData.salePrice === 0) {
+            newErrors.salePrice = 'El precio de venta es requerido';
+        }
+
+        if (!formData.taxId || formData.taxId === '') {
+            newErrors.taxId = 'El impuesto es requerido';
+        }
+
+        if (!formData.unitOfMeasureId || formData.unitOfMeasureId === '') {
+            newErrors.unitOfMeasureId = 'La unidad de medida es requerida';
+        }
+
+        if (!formData.warehouseId || formData.warehouseId === '') {
+            newErrors.warehouseId = 'La bodega es requerida';
+        }
+
+        if(!formData.id_category || formData.id_category === '') {
+            newErrors.id_category = 'La categoría es requerida';
+        }
+
+        setErrors(newErrors);
         return Object.keys(newErrors).length === 0; // Devuelve true si no hay errores
     }
 

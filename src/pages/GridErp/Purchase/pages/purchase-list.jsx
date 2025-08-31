@@ -17,77 +17,49 @@ import {
     DropdownMenu,
     Badge,
 } from "reactstrap"
-import { PaymentHelper } from "../payments-helper"
 import DataTable from "../../../../Components/Common/DataTableCustom"
 import { TopLayoutGeneralView } from '../../../../Components/Common/TopLayoutGeneralView'
 import { FaCheck, FaFilter, FaPlus, FaTimes } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
-import { numberFormatPrice } from '../../Products/helper/product_helper'
+import { PurchaseHelper } from '../helper/purchase-helper'
 
-const paymentHelper = new PaymentHelper()
+const purchaseHelper = new PurchaseHelper()
 
-export default function PaymentListPage() {
-    document.title = "Lista de Pagos | Quality";
+export default function PurchaseListPage() {
+    document.title = "Lista de compras | Quality";
     const navigate = useNavigate();
 
-    const [incomes, setIncomes] = React.useState();
-    const [filteredIncomes, setFilteredIncomes] = React.useState();
+    const [purchases, setPurchases] = React.useState();
+    const [filteredPurchases, setFilteredPurchases] = React.useState();
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [dropdownOpen, setDropdownOpen] = useState(false)
 
     // Estados para los filtros
     const [filters, setFilters] = useState({
-        customerName: "",
-        typeOperation: "",
-        paymentDate: "",
         orderNumber: "",
+        supplierInvoiceNumber: "",
         createdAt: "",
     })
 
     const [tempFilters, setTempFilters] = useState({
-        customerName: "",
-        typeOperation: "",
-        paymentDate: "",
         orderNumber: "",
-        createdAt: "",
+        supplierInvoiceNumber: "",
+        createdAt: ""
     })
-
-
-    const typeOperationOptions = [
-        { value: "", label: "Todos los tipos" },
-        { value: "ventas", label: "Ventas" },
-        { value: "recibos", label: "Recibos" },
-        { value: "anticipo", label: "Anticipo" },
-        { value: "credito", label: "Crédito" },
-    ]
 
     const fetchData = async () => {
         setLoading(true);
         setError(null);
 
-        paymentHelper
-            .getAllIncome()
+        purchaseHelper
+            .getPurchases({page: 1, limit: 100})
             .then(async (response) => {
-                let incomes = response?.data;
-                if (incomes && Array.isArray(incomes) && incomes.length > 0) {
-                    let incomesMapped = incomes.map((income) => {
-                        return {
-                            ...income,
-                            accountName: income?.accountId?.name,
-                            orderNumber: income?.purchaseOrderId?.orderNumber || 'N/A',
-                            paymentDate: income.paymentDate,
-                            value: numberFormatPrice(income.value),
-                            createdAt: income.createdAt,
-                            typeOperation: income.typeOperation || 'N/A',
-                            observations: income.observations || 'N/A',
-                            _id: income._id,
-                            customerName: ` ${income?.customerId?.commercialName || 'N/A'}`,
-
-                        }
-                    })
-                    setIncomes(incomesMapped);
-                    setFilteredIncomes(incomesMapped);
+                let purchases = response?.data;
+                console.log(purchases);
+                if (purchases && Array.isArray(purchases) && purchases.length > 0) {
+                    setPurchases(purchases);
+                    setFilteredPurchases(purchases);
                 }
                 return;
             })
@@ -106,29 +78,17 @@ export default function PaymentListPage() {
 
     // Aplicar filtros
     useEffect(() => {
-        if (!incomes) return
+        if (!purchases) return
 
-        const filtered = incomes.filter((income) => {
-            // Filtro por nombre de cliente
-            if (filters.customerName && !income.customerName.toLowerCase().includes(filters.customerName.toLowerCase())) {
+        const filtered = purchases.filter((purchase) => {
+            // Filtro por numero de orden
+            if (filters.orderNumber && !String(purchase.orderNumber).includes(filters.orderNumber)) {
                 return false
             }
 
-            // Filtro por tipo de operación
-            if (filters.typeOperation && income.typeOperation !== filters.typeOperation) {
-                return false
-            }
 
-            // Filtro por fecha de pago
-            if (filters.paymentDate) {
-                const paymentDate = new Date(income.paymentDate).toISOString().split("T")[0]
-                if (paymentDate !== filters.paymentDate) {
-                    return false
-                }
-            }
-
-            // Filtro por número de pedido
-            if (filters.orderNumber && !income.orderNumber.toLowerCase().includes(filters.orderNumber.toLowerCase())) {
+            // Filtro por número de factura del proveedor
+            if (filters.supplierInvoiceNumber && !String(purchase.supplierInvoiceNumber).includes(filters.supplierInvoiceNumber)) {
                 return false
             }
 
@@ -143,8 +103,8 @@ export default function PaymentListPage() {
             return true
         })
 
-        setFilteredIncomes(filtered)
-    }, [filters, incomes])
+        setFilteredPurchases(filtered)
+    }, [filters, purchases])
 
     const handleTempFilterChange = (field, value) => {
         setTempFilters((prev) => ({
@@ -167,21 +127,17 @@ export default function PaymentListPage() {
 
     const clearTempFilters = () => {
         setTempFilters({
-            customerName: "",
-            typeOperation: "",
-            paymentDate: "",
             orderNumber: "",
-            createdAt: "",
+            supplierInvoiceNumber: "",
+            createdAt: ""
         })
     }
 
     const clearAllFilters = () => {
         const emptyFilters = {
-            customerName: "",
-            typeOperation: "",
-            paymentDate: "",
             orderNumber: "",
-            createdAt: "",
+            supplierInvoiceNumber: "",
+            createdAt: ""
         }
         setFilters(emptyFilters)
         setTempFilters(emptyFilters)
@@ -205,27 +161,24 @@ export default function PaymentListPage() {
     }
 
     const columns = [
-        { key: "customerName", label: "Cliente", type: "text", searchable: true, sortable: true },
-        { key: "typeOperation", label: "Tipo de Operación", type: "text", searchable: true, sortable: true },
-        { key: "paymentDate", label: "Fecha de Pago", type: "date", searchable: true, sortable: true },
-        { key: "value", label: "Valor", type: "number", searchable: true, sortable: true },
-        { key: "accountName", label: "Cuenta", type: "text", searchable: true, sortable: true },
         { key: "orderNumber", label: "No. Pedido", type: "text", searchable: true, sortable: true },
-        { key: "observations", label: "Observaciones", type: "text", searchable: true, sortable: false },
-        { key: "createdAt", label: "Fecha Creación", type: "date", searchable: true, sortable: true },
+        { key: "supplierInvoiceNumber", label: "Número de Factura", type: "text", searchable: true, sortable: true },
+        { key: "totalOrder", label: "Total", type: "price", searchable: true, sortable: true },
+        { key: "observations", label: "Observaciones", type: "text", searchable: true, sortable: true },
+        { key: "createdAt", label: "Fecha Creación", type: "date", searchable: true, sortable: true }
     ]
 
-    const handleUpdate = async (updatedIncome) => {
+    const handleUpdate = async (updateRecord) => {
         try {
             setError(null);
-            if (!updatedIncome) {
-                setError("No se ha seleccionado ninguna cuenta");
+            if (!updateRecord) {
+                setError("No se ha seleccionado ninguna compra");
                 return false
             }
-            await paymentHelper.updateIncome(updatedIncome)
+            await purchaseHelper.updatePurchase(updateRecord)
             // Actualizar estado local
-            setIncomes((prev) =>
-                prev.map((item) => (item._id === updatedIncome._id ? updatedIncome : item))
+            setPurchases((prev) =>
+                prev.map((item) => (item._id === updateRecord._id ? updateRecord : item))
             )
             return true
         } catch (err) {
@@ -239,13 +192,13 @@ export default function PaymentListPage() {
         try {
             setError(null);
             if (!id) {
-                setError("No se ha seleccionado ninguna cuenta");
+                setError("No se ha seleccionado ninguna compra");
                 return false
             }
-            await paymentHelper.deleteIncome(id)
+            await purchaseHelper.deletePurchase(id)
 
             // Actualizar estado local
-            setIncomes((prev) => prev.filter((item) => item._id !== id))
+            setPurchases((prev) => prev.filter((item) => item._id !== id))
 
             return true
         } catch (err) {
@@ -258,10 +211,10 @@ export default function PaymentListPage() {
     const handleBulkDelete = async (ids) => {
         setError(null);
         try {
-            await paymentHelper.bulkDeleteIncomes(ids)
+            await purchaseHelper.bulkDeletePurchases(ids)
 
             // Actualizar estado local
-            setIncomes((prev) => prev.filter((item) => !ids.includes(item._id)))
+            setPurchases((prev) => prev.filter((item) => !ids.includes(item._id)))
             return true
         } catch (err) {
             console.error("Error:", err)
@@ -270,15 +223,11 @@ export default function PaymentListPage() {
         }
     }
 
-    const handleClickEditRow = (id) => {
-        return navigate(`/payments-edit/${id}`)
-    };
-
     return (
         <TopLayoutGeneralView
-            titleBreadcrumb={"Listado de Pagos"}
-            pageTitleBreadcrumb="Pagos"
-            to={`/payments-list`}
+            titleBreadcrumb={"Listado de compras"}
+            pageTitleBreadcrumb="Compras"
+            to={`/purchases`}
             main={
                 <Fragment>
                     <Row>
@@ -286,8 +235,8 @@ export default function PaymentListPage() {
                             <Card>
                                 <CardHeader className="bg-light text-white d-flex justify-content-between align-items-center">
                                     <div className="d-flex align-items-center gap-2">
-                                        <Button color="light" onClick={() => navigate("/payments-register")}>
-                                            <FaPlus className="me-1" /> Nuevo Pago
+                                        <Button color="light" onClick={() => navigate("/purchases-create")}>
+                                            <FaPlus className="me-1" /> Nueva Compra
                                         </Button>
                                         <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown}>
                                             <DropdownToggle color="outline-secondary" className="d-flex align-items-center">
@@ -328,58 +277,6 @@ export default function PaymentListPage() {
                                                     <Row>
                                                         <Col md={6} className="mb-3">
                                                             <FormGroup>
-                                                                <Label for="customerName" className="small fw-bold">
-                                                                    Cliente
-                                                                </Label>
-                                                                <Input
-                                                                    type="text"
-                                                                    id="customerName"
-                                                                    placeholder="Buscar por cliente..."
-                                                                    value={tempFilters.customerName}
-                                                                    onChange={(e) => handleTempFilterChange("customerName", e.target.value)}
-                                                                    size="sm"
-                                                                />
-                                                            </FormGroup>
-                                                        </Col>
-
-                                                        <Col md={6} className="mb-3">
-                                                            <FormGroup>
-                                                                <Label for="typeOperation" className="small fw-bold">
-                                                                    Tipo de Operación
-                                                                </Label>
-                                                                <Input
-                                                                    type="select"
-                                                                    id="typeOperation"
-                                                                    value={tempFilters.typeOperation}
-                                                                    onChange={(e) => handleTempFilterChange("typeOperation", e.target.value)}
-                                                                    size="sm"
-                                                                >
-                                                                    {typeOperationOptions.map((option) => (
-                                                                        <option key={option.value} value={option.value}>
-                                                                            {option.label}
-                                                                        </option>
-                                                                    ))}
-                                                                </Input>
-                                                            </FormGroup>
-                                                        </Col>
-
-                                                        <Col md={6} className="mb-3">
-                                                            <FormGroup>
-                                                                <Label for="paymentDate" className="small fw-bold">
-                                                                    Fecha de Pago
-                                                                </Label>
-                                                                <Input
-                                                                    type="date"
-                                                                    id="paymentDate"
-                                                                    value={tempFilters.paymentDate}
-                                                                    onChange={(e) => handleTempFilterChange("paymentDate", e.target.value)}
-                                                                    size="sm"
-                                                                />
-                                                            </FormGroup>
-                                                        </Col>
-
-                                                        <Col md={6} className="mb-3">
-                                                            <FormGroup>
                                                                 <Label for="orderNumber" className="small fw-bold">
                                                                     No. Pedido
                                                                 </Label>
@@ -389,6 +286,22 @@ export default function PaymentListPage() {
                                                                     placeholder="Buscar por número de pedido..."
                                                                     value={tempFilters.orderNumber}
                                                                     onChange={(e) => handleTempFilterChange("orderNumber", e.target.value)}
+                                                                    size="sm"
+                                                                />
+                                                            </FormGroup>
+                                                        </Col>
+
+                                                         <Col md={6} className="mb-3">
+                                                            <FormGroup>
+                                                                <Label for="supplierInvoiceNumber" className="small fw-bold">
+                                                                    No. Factura de Proveedor
+                                                                </Label>
+                                                                <Input
+                                                                    type="text"
+                                                                    id="supplierInvoiceNumber"
+                                                                    placeholder="Buscar por número de factura..."
+                                                                    value={tempFilters.supplierInvoiceNumber}
+                                                                    onChange={(e) => handleTempFilterChange("supplierInvoiceNumber", e.target.value)}
                                                                     size="sm"
                                                                 />
                                                             </FormGroup>
@@ -472,18 +385,17 @@ export default function PaymentListPage() {
                                     )}
 
                                     <DataTable
-                                        data={filteredIncomes}
+                                        data={filteredPurchases}
                                         columns={columns}
                                         onUpdate={handleUpdate}
                                         onDelete={handleDelete}
                                         onBulkDelete={handleBulkDelete}
-                                        title="Lista de pagos"
+                                        title="Lista de compras"
                                         loading={loading}
                                         error={error}
                                         refreshData={fetchData}
                                         searchable={true}
                                         itemsPerPage={10}
-                                        onClickEditRow={handleClickEditRow}
                                     />
                                 </CardBody>
                             </Card>

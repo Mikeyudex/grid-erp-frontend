@@ -84,6 +84,7 @@ export default function CrearProductoGeneral() {
 
     const [error, setError] = useState("")
     const [success, setSuccess] = useState("")
+    const [errors, setErrors] = useState({})
 
     // Cargar datos iniciales
     useEffect(() => {
@@ -122,7 +123,7 @@ export default function CrearProductoGeneral() {
 
             const [unitsOfMeasure, taxes, categories, warehouses, typeProducts] = await Promise.all([
                 productHelper.getAllUnitsMeasure(),
-                productHelper.getAllTaxes(),
+                productHelper.getAllTaxes(productHelper.companyId),
                 productHelper.getCategoriesFullByProduct(productHelper.companyId),
                 productHelper.getWarehouseByCompany(productHelper.companyId),
                 productHelper.getTypesProduct(),
@@ -290,8 +291,14 @@ export default function CrearProductoGeneral() {
     const handleSubmit = async (e) => {
         e.preventDefault()
         setError("")
+        setErrors({})
         setSuccess("")
-        setLoading((prev) => ({ ...prev, form: true }))
+        setLoading((prev) => ({ ...prev, form: true }));
+
+        if (!productHelper.validateFormGeneral(setErrors, formData)) {
+            setLoading((prev) => ({ ...prev, form: false }))
+            return
+        }
 
         try {
             // Preparar datos para envío
@@ -354,7 +361,7 @@ export default function CrearProductoGeneral() {
                 {/* Header móvil */}
                 <div
                     className="d-flex align-items-center mb-3 sticky-top bg-white py-2 px-2 rounded shadow-sm"
-                    style={{ top: "10px", zIndex: 1000 }}
+                    style={{ top: "10px", zIndex: 1 }}
                 >
                     <Button color="light" size="sm" onClick={handleBack} className="me-2 p-2">
                         <ArrowLeft size={18} />
@@ -413,6 +420,7 @@ export default function CrearProductoGeneral() {
                                             required
                                             size="sm"
                                         />
+                                        {errors.name && <span className="text-danger">{errors.name}</span>}
                                     </FormGroup>
                                 </Col>
 
@@ -464,6 +472,7 @@ export default function CrearProductoGeneral() {
                                             placeholder="Cantidad"
                                             size="sm"
                                         />
+                                        {errors.quantity && <span className="text-danger">{errors.quantity}</span>}
                                     </FormGroup>
                                 </Col>
                             </Row>
@@ -518,6 +527,7 @@ export default function CrearProductoGeneral() {
                                         </option>
                                     ))}
                                 </Input>
+                                {errors.warehouseId && <span className="text-danger">{errors.warehouseId}</span>}
                             </FormGroup>
                         </CardBody>
                     </Card>
@@ -577,6 +587,7 @@ export default function CrearProductoGeneral() {
                                                 </option>
                                             ))}
                                         </Input>
+                                        {errors.id_category && <span className="text-danger">{errors.id_category}</span>}
                                     </FormGroup>
                                 </Col>
                                 <Col md={4} sm={12} lg={4}>
@@ -600,6 +611,7 @@ export default function CrearProductoGeneral() {
                                                 </option>
                                             ))}
                                         </Input>
+                                        {errors.unitOfMeasureId && <span className="text-danger">{errors.unitOfMeasureId}</span>}
                                     </FormGroup>
                                 </Col>
                             </Row>
@@ -634,6 +646,7 @@ export default function CrearProductoGeneral() {
                                                 required
                                             />
                                         </InputGroup>
+                                        {errors.salePrice && <span className="text-danger">{errors.salePrice}</span>}
                                     </FormGroup>
                                 </Col>
                                 <Col md={6} sm={12} lg={6}>
@@ -655,6 +668,7 @@ export default function CrearProductoGeneral() {
                                                 required
                                             />
                                         </InputGroup>
+                                          {errors.costPrice && <span className="text-danger">{errors.costPrice}</span>}
                                     </FormGroup>
                                 </Col>
                             </Row>
@@ -682,6 +696,7 @@ export default function CrearProductoGeneral() {
                                                 </option>
                                             ))}
                                         </Input>
+                                        {errors.taxId && <span className="text-danger">{errors.taxId}</span>}
                                     </FormGroup>
 
                                 </Col>

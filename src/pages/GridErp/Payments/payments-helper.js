@@ -101,7 +101,19 @@ export class PaymentHelper {
     return data;
   }
 
-
+  async getIncome(id) {
+    let token = getToken();
+    return fetch(`${this.baseUrl}/getById/${id}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": `Bearer ${token}`,
+      },
+    })
+      .then(response => response.json())
+      .then(data => data)
+      .catch(err => console.log(err));
+  }
 
   async updateIncome(income) {
     let token = getToken();

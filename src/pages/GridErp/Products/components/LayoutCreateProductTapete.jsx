@@ -279,7 +279,7 @@ export default function LayoutCreateProductTapete({
         helper.getCategoriesFullByProduct(helper.companyId)
             .then(async (respCategoriesFull) => {
                 let unitOfMeasures = await helper.getAllUnitsMeasure();
-                let taxes = await helper.getAllTaxes();
+                let taxes = await helper.getAllTaxes(helper.companyId);
                 let typesProduct = await helper.getTypesProduct();
 
                 if (mode === "create") {
@@ -614,6 +614,14 @@ export default function LayoutCreateProductTapete({
                                         classNamePrefix="react-select"
                                         placeholder="Selecciona uno o más tipos de piezas"
                                         className="form-control"
+                                        styles={{
+                                            control: (provided, state) => ({
+                                                ...provided,
+                                                backgroundColor: state.isFocused ? '#fff' : '#fff',
+                                                borderColor: state.isFocused ? '#0d6efd' : '#ced4da',
+                                                boxShadow: state.isFocused ? '0 0 0 0.2rem rgba(13, 110, 253, 0.25)' : '',
+                                            }),
+                                        }}
                                     />
                                     {validationErrors.typeOfPieces && <span style={{ color: "red" }}>{validationErrors.typeOfPieces}</span>}
                                 </Col>

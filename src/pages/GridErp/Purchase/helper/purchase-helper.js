@@ -1,5 +1,16 @@
+import { getToken } from "../../../../helpers/jwt-token-access/get_token"
+import { BASE_URL } from "../../../../helpers/url_helper";
+import { AccountHelper } from "../../Accounts/helpers/account_helper";
+import { RetentionHelper } from "../../Retentions/helpers/retention-helper";
+import { TaxHelper } from "../../Taxes/helpers/tax-helper";
+
+const taxHelper = new TaxHelper();
+const retentionHelper = new RetentionHelper();
+const accountHelper = new AccountHelper();
+
 export class PurchaseHelper {
   constructor() {
+    this.baseUrl = `${BASE_URL}/purchase`;
     // Simulación de datos para proveedores
     this.providers = [
       { _id: "prov1", name: "Proveedor ABC S.A.S", nit: "900123456-1", email: "contacto@proveedorabc.com" },
@@ -77,27 +88,104 @@ export class PurchaseHelper {
     ]
   }
 
+  async getPurchases(params) {
+    try {
+      let token = getToken();
+      return fetch(`${this.baseUrl}/getAll?page=${params.page}&limit=${params.limit}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+        .then(response => response.json())
+        .then(data => data)
+        .catch(err => console.log(err));
+    } catch (error) {
+      throw new Error('Error al obtener compras: ' + error.message);
+    }
+  }
+
+  async updatePurchase(data) {
+    let token = getToken();
+    return fetch(`${this.baseUrl}/update/${data._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    })
+      .then(response => response.json())
+      .then(data => data)
+      .catch(err => console.log(err));
+  }
+
+  async deletePurchase(id) {
+    let token = getToken();
+    return fetch(`${this.baseUrl}/delete/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": `Bearer ${token}`,
+      },
+    })
+      .then(response => response.json())
+      .then(data => data)
+      .catch(err => console.log(err));
+  }
+
+  async bulkDeletePurchases(ids) {
+    let token = getToken();
+    return fetch(`${this.baseUrl}/bulkDelete`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({ ids }),
+    })
+      .then(response => response.json())
+      .then(data => data)
+      .catch(err => console.log(err));
+  }
+
   // Obtener proveedores
   async getProviders() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(this.providers)
-      }, 300)
-    })
+    try {
+      let token = getToken();
+      return fetch(`${BASE_URL}/customers/getProviders`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+        .then(response => response.json())
+        .then(data => data)
+        .catch(err => console.log(err));
+    } catch (error) {
+      throw new Error('Error al obtener proveedores: ' + error.message);
+    }
   }
 
   // Buscar productos
-  async searchProducts(searchTerm) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const filtered = this.products.filter(
-          (product) =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.sku.toLowerCase().includes(searchTerm.toLowerCase()),
-        )
-        resolve(filtered)
-      }, 500)
-    })
+  async searchProducts(searchTerm, typeProduct = "GENERAL") {
+    try {
+      let token = getToken();
+      return fetch(`${BASE_URL}/products/searchProductByTypeAndSearch/${typeProduct}/${searchTerm}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`,
+        },
+      })
+        .then(response => response.json())
+        .then(data => data)
+        .catch(err => console.log(err));
+    } catch (error) {
+      throw new Error('Error al buscar productos: ' + error.message);
+    }
   }
 
   // Obtener producto por ID
@@ -112,29 +200,17 @@ export class PurchaseHelper {
 
   // Obtener impuestos
   async getTaxes() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(this.taxes)
-      }, 300)
-    })
+    return taxHelper.getAll();
   }
 
   // Obtener retenciones
   async getRetentions() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(this.retentions)
-      }, 300)
-    })
+    return retentionHelper.getRetentions();
   }
 
   // Obtener cuentas
   async getAccounts() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(this.accounts)
-      }, 300)
-    })
+    return accountHelper.getAccounts();
   }
 
   // Subir archivo
@@ -225,13 +301,19 @@ export class PurchaseHelper {
       // Calcular IVA del item
       const tax = taxes.find((t) => t._id === item.taxId)
       if (tax) {
-        totalIVA += this.calculateTaxAmount(itemTotal, tax.rate)
+        if (tax.percentage === 0) return
+        if (item?.taxIncluded === false) {
+          totalIVA += this.calculateTaxAmount(itemTotal, tax?.percentage)
+        } else {
+          totalIVA += this.calculateTaxAmount(itemTotal, tax?.percentage)
+          totalBruto -= this.calculateTaxAmount(itemTotal, tax?.percentage)
+        }
       }
 
       // Calcular retención del item
       const retention = retentions.find((r) => r._id === item.retentionId)
       if (retention) {
-        totalRetenciones += this.calculateRetentionAmount(itemTotal, retention.rate)
+        totalRetenciones += this.calculateRetentionAmount(itemTotal, retention.percentage)
       }
     })
 
@@ -247,4 +329,14 @@ export class PurchaseHelper {
       totalAPagar,
     }
   }
+
+  // Calcular total de pagos
+  calculateTotalPayments(paymentMethods) {
+    return paymentMethods.reduce((total, method) => total + (method.value || 0), 0)
+  }
+
+  // Calcular total de la compra
+    calculateTotalItems = (orderItems) => {
+        return orderItems.reduce((total, item) => total + (item.itemPrice || 0), 0)
+    };
 }

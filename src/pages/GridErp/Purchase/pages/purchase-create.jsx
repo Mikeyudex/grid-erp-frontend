@@ -27,6 +27,7 @@ import {
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft, Save, Plus, Search, Trash2, Calculator, CreditCard, Package, FileText, Upload } from "lucide-react"
 import { PurchaseHelper } from "../helper/purchase-helper"
+import "./styles.css"
 
 
 const purchaseHelper = new PurchaseHelper()
@@ -63,6 +64,8 @@ export default function CreatePurchase() {
     // Estados para formas de pago
     const [paymentMethods, setPaymentMethods] = useState([])
     const [uploadingFiles, setUploadingFiles] = useState({})
+    const [totalPagado, setTotalPagado] = useState(0);
+    const [saldoPendiente, setSaldoPendiente] = useState(0);
 
     // Cargar datos iniciales
     useEffect(() => {
@@ -78,11 +81,10 @@ export default function CreatePurchase() {
                 purchaseHelper.getRetentions(),
                 purchaseHelper.getAccounts(),
             ])
-
-            setProviders(providersData)
+            setProviders(providersData?.data)
             setTaxes(taxesData)
-            setRetentions(retentionsData)
-            setAccounts(accountsData)
+            setRetentions(retentionsData?.data)
+            setAccounts(accountsData?.data)
         } catch (err) {
             setError("Error al cargar los datos iniciales: " + err.message)
         } finally {
@@ -96,13 +98,13 @@ export default function CreatePurchase() {
             setSearchResults([])
             return
         }
-
         try {
             setSearchLoading(true)
-            const results = await purchaseHelper.searchProducts(searchTerm)
-            setSearchResults(results)
+            const { data, meta } = await purchaseHelper.searchProducts(searchTerm)
+            setSearchResults(data)
         } catch (err) {
             console.error("Error en búsqueda:", err)
+            setSearchResults([])
         } finally {
             setSearchLoading(false)
         }
@@ -121,7 +123,8 @@ export default function CreatePurchase() {
             productId: product._id,
             productName: product.name,
             productSku: product.sku,
-            taxId: product.taxId,
+            taxId: product.taxId?._id,
+            taxIncluded: product.taxIncluded,
             retentionId: product.retentionId,
             itemPrice: product.costPrice,
             itemQuantity: 1,
@@ -227,6 +230,11 @@ export default function CreatePurchase() {
             return
         }
 
+        if (saldoPendiente > 0) {
+            setError("No se puede finalizar el pedido, tiene saldo pendiente");
+            return;
+        }
+
         try {
             setLoading(true)
             setError(null)
@@ -255,14 +263,29 @@ export default function CreatePurchase() {
         }
     }
 
-    const summary = calculateSummary()
+    const summary = calculateSummary();
+
+    useEffect(() => {
+        let saldoPendiente = summary.totalAPagar - totalPagado; 
+        setSaldoPendiente(saldoPendiente);
+    }, [summary.totalAPagar])
+
+    useEffect(() => {
+        let totalPagado = purchaseHelper.calculateTotalPayments(paymentMethods);
+        setTotalPagado(totalPagado);
+
+        let saldoPendiente = summary.totalAPagar - totalPagado;
+        setSaldoPendiente(saldoPendiente);
+    }, [paymentMethods]);
 
     if (loading && providers.length === 0) {
         return (
-            <Container className="py-4 text-center">
-                <Spinner color="primary" />
-                <p className="mt-2">Cargando...</p>
-            </Container>
+            <div className="page-content">
+                <Container className="py-4 text-center">
+                    <Spinner color="primary" />
+                    <p className="mt-2">Cargando...</p>
+                </Container>
+            </div>
         )
     }
 
@@ -279,7 +302,7 @@ export default function CreatePurchase() {
                                 </Button>
                                 <h4 className="mb-0">Nueva Orden de Compra</h4>
                             </div>
-                            <Button color="success" onClick={handleSubmit} disabled={loading}>
+                            <Button color="primary" onClick={handleSubmit} disabled={loading}>
                                 {loading ? <Spinner size="sm" /> : <Save size={16} />}
                                 {loading ? " Guardando..." : " Guardar Orden"}
                             </Button>
@@ -301,10 +324,10 @@ export default function CreatePurchase() {
 
                 <Form onSubmit={handleSubmit}>
                     <Row>
-                        <Col lg={8}>
+                        <Col lg={9}>
                             {/* 1. Cabecera - Datos básicos */}
                             <Card className="mb-3">
-                                <CardHeader className="bg-primary text-white d-flex align-items-center gap-2">
+                                <CardHeader className="card-header-custom text-white d-flex align-items-center gap-2">
                                     <FileText size={18} />
                                     <span>Información General</span>
                                 </CardHeader>
@@ -325,7 +348,7 @@ export default function CreatePurchase() {
                                                     <option value="">Seleccionar proveedor...</option>
                                                     {providers.map((provider) => (
                                                         <option key={provider._id} value={provider._id}>
-                                                            {provider.name} - {provider.nit}
+                                                            {provider.name} {provider.lastname} - {provider.documento}
                                                         </option>
                                                     ))}
                                                 </Input>
@@ -366,7 +389,7 @@ export default function CreatePurchase() {
 
                             {/* 2. Grilla de productos */}
                             <Card className="mb-3">
-                                <CardHeader className="bg-info text-white d-flex justify-content-between align-items-center">
+                                <CardHeader className="text-white d-flex justify-content-between align-items-center card-header-custom">
                                     <div className="d-flex align-items-center gap-2">
                                         <Package size={18} />
                                         <span>Productos</span>
@@ -388,6 +411,7 @@ export default function CreatePurchase() {
                                                         <th width="100">Precio</th>
                                                         <th width="80">Cant.</th>
                                                         <th width="80">Desc.%</th>
+                                                        <th width="80">Retención</th>
                                                         <th width="100">Total</th>
                                                         <th width="80">Acciones</th>
                                                     </tr>
@@ -431,6 +455,23 @@ export default function CreatePurchase() {
                                                                     step="0.01"
                                                                 />
                                                             </td>
+
+                                                            <td>
+                                                                <Input
+                                                                    type="select"
+                                                                    size="sm"
+                                                                    value={item.retentionId}
+                                                                    onChange={(e) => updateOrderItem(index, "retentionId", e.target.value)}
+                                                                >
+                                                                    <option value="">Seleccionar retención...</option>
+                                                                    {retentions.map((ret) => (
+                                                                        <option key={ret._id} value={ret._id}>
+                                                                            {ret.name}
+                                                                        </option>
+                                                                    ))}
+                                                                </Input>
+
+                                                            </td>
                                                             <td className="fw-bold">${item.itemTotal?.toLocaleString()}</td>
                                                             <td>
                                                                 <Button color="danger" size="sm" onClick={() => removeOrderItem(index)} title="Eliminar">
@@ -456,13 +497,13 @@ export default function CreatePurchase() {
 
                             {/* 3. Formas de pago */}
                             <Card className="mb-3">
-                                <CardHeader className="bg-warning text-dark d-flex justify-content-between align-items-center">
+                                <CardHeader className="card-header-custom text-white d-flex justify-content-between align-items-center">
                                     <div className="d-flex align-items-center gap-2">
                                         <CreditCard size={18} />
                                         <span>Formas de Pago</span>
-                                        <Badge color="dark">{paymentMethods.length}</Badge>
+                                        <Badge >{paymentMethods.length}</Badge>
                                     </div>
-                                    <Button color="dark" size="sm" onClick={addPaymentMethod}>
+                                    <Button color="light" size="sm" onClick={addPaymentMethod}>
                                         <Plus size={16} /> Agregar Pago
                                     </Button>
                                 </CardHeader>
@@ -553,6 +594,26 @@ export default function CreatePurchase() {
                                                         </tr>
                                                     ))}
                                                 </tbody>
+                                                <tfoot className="table-group-divider">
+                                                    <tr>
+                                                        <td colSpan="2" className="text-end fw-bold">
+                                                            Total Pagado:
+                                                        </td>
+                                                        <td className="fw-bold">${totalPagado.toLocaleString()}</td>
+                                                        <td colSpan="2"></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td colSpan="2" className="text-end fw-bold">
+                                                            Saldo Pendiente:
+                                                        </td>
+                                                        <td
+                                                            className={`fw-bold ${(saldoPendiente) > 0 ? "text-danger" : "text-success"}`}
+                                                        >
+                                                            ${saldoPendiente.toLocaleString()}
+                                                        </td>
+                                                        <td colSpan="2"></td>
+                                                    </tr>
+                                                </tfoot>
                                             </Table>
                                         </div>
                                     ) : (
@@ -569,9 +630,9 @@ export default function CreatePurchase() {
                         </Col>
 
                         {/* 4. Resumen de costos */}
-                        <Col lg={4}>
-                            <Card className="sticky-top" style={{ top: "20px" }}>
-                                <CardHeader className="bg-success text-white d-flex align-items-center gap-2">
+                        <Col lg={3}>
+                            <Card className="sticky-top" style={{ top: "20px", zIndex: 10 }}>
+                                <CardHeader className="card-header-custom text-white d-flex align-items-center gap-2">
                                     <Calculator size={18} />
                                     <span>Resumen de Costos</span>
                                 </CardHeader>
@@ -692,7 +753,11 @@ export default function CreatePurchase() {
                         )}
                     </ModalBody>
                     <ModalFooter>
-                        <Button color="secondary" onClick={() => setShowProductModal(false)}>
+                        <Button color="secondary" onClick={() => {
+                            setShowProductModal(false)
+                            setProductSearchTerm("")
+                            setSearchResults([])
+                        }}>
                             Cerrar
                         </Button>
                     </ModalFooter>

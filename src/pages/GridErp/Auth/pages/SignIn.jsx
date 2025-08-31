@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, Col, Container, Input, Label, Row, Button } from 'reactstrap';
 
 import AuthSlider from '../../../AuthenticationInner/authCarousel';
-import { SIGN_IN, BASE_URL_API } from '../helpers/auth_url_helper';
 import { validateEmail } from '../helpers/validations_helper';
 import { FooterQuality } from '../components/Footer';
 import { IndexedDBService } from '../../../../helpers/indexedDb/indexed-db-helper';
@@ -63,6 +62,7 @@ const SignIn = () => {
                 let user = data?.data?.user;
                 localStorage.setItem('userId', user?.id);
                 localStorage.setItem('userEmail', user?.email);
+                localStorage.setItem('companyId', user?.companyId);
 
                 setMessageAlert(data?.message);
                 setIsOpenModal(true);

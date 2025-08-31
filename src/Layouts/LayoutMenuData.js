@@ -325,6 +325,12 @@ const Navdata = () => {
           parentId: "accounting",
         },
         {
+          id: "purchase-list",
+          label: "Compras",
+          link: "/purchases",
+          parentId: "accounting",
+        },
+        {
           id: "types-expenses",
           label: "Tipos de Egreso",
           link: "/accounting/expenses-types-list",
