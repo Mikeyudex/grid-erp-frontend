@@ -34,6 +34,7 @@ const TYPE_OF_OPERATION = [
   { value: 'recibos', label: 'Recibo' },
   { value: 'anticipo', label: 'Anticipo' },
   { value: 'ventas', label: 'Ventas' },
+  { value: 'compras', label: 'Compras' },
   /* { value: 'abono', label: 'Abono' }, */
   /* { value: 'credito', label: 'Crédito' }, */
 ]
@@ -59,6 +60,7 @@ export default function PaymentRegistrationForm({
   const [messsageAlert, setMesssageAlert] = useState('');
   const [typeModal, setTypeModal] = useState('success');
   const [isOpenModal, setIsOpenModal] = useState(false);
+  const [isInternalPayment, setIsInternalPayment] = useState(false);
 
   useEffect(() => {
     const loadAccounts = async () => {
@@ -125,6 +127,14 @@ export default function PaymentRegistrationForm({
     }
   }, [selectedClientId])
 
+  useEffect(() => {
+    if (isInternalPayment) {
+      paymentHelper.getProviders()
+        .then(setClients)
+        .catch(console.error)
+    }
+  }, [isInternalPayment])
+
   // Calcular total de deudas seleccionadas
   const calculateSelectedDebtsTotal = () => {
     return selectedDebtIds.reduce((total, debtId) => {
@@ -190,7 +200,6 @@ export default function PaymentRegistrationForm({
       return
     }
     let payload = {
-      customerId: selectedClientId,
       debtIds: isAnticipo ? [] : selectedDebtIds,
       paymentDate: moment(paymentDate).toISOString(),
       accountId: accountId,
@@ -198,6 +207,13 @@ export default function PaymentRegistrationForm({
       value: value,
       observations: observations,
       paymentSupport: paymentSupportFile,
+      isInternalPayment: isInternalPayment,
+    }
+
+    if (isInternalPayment) {
+      payload.providerId = selectedClientId;
+    } else {
+      payload.customerId = selectedClientId;
     }
 
     startTransition(async () => {
@@ -289,8 +305,21 @@ export default function PaymentRegistrationForm({
                 </CardHeader>
                 <CardBody>
                   <Form onSubmit={handleSubmit}>
+
                     <FormGroup>
-                      <Label for="client">Cliente</Label>
+                      <Label for="isInternalPayment">Es un pago interno</Label>
+                      <Input
+                        className='cursor-pointer mx-2'
+                        id="isInternalPayment"
+                        type="checkbox"
+                        checked={isInternalPayment}
+                        onChange={(e) => setIsInternalPayment(e.target.checked)}
+                        disabled={isPending}
+                      />
+                    </FormGroup>
+
+                    <FormGroup>
+                      <Label for="client">{isInternalPayment ? "Proveedor" : "Cliente"}</Label>
                       <Input
                         id="client"
                         type="select"
@@ -298,7 +327,7 @@ export default function PaymentRegistrationForm({
                         onChange={(e) => setSelectedClientId(e.target.value)}
                         disabled={isPending}
                       >
-                        <option value="">Seleccione un cliente</option>
+                        <option value="">Seleccione un {isInternalPayment ? "proveedor" : "cliente"}</option>
                         {clients.map((client) => (
                           <option key={client._id} value={client._id}>
                             {client.name || 'Cliente sin nombre'} {client?.lastname ? `${client.lastname}` : ''} {`(${client.commercialName || 'Sin nombre comercial'})`}

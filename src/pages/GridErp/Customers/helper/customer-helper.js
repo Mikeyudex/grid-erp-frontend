@@ -1,5 +1,5 @@
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
-import { GET_CUSTOMER_BY_ID, GET_CUSTOMERS, GET_CUSTOMERS_TYPES, GET_CUSTOMERS_TYPES_DOCUMENTS, GET_POSTAL_CODE_FROM_CITY, GET_TYPES_CUSTOMERS } from "./url_helper";
+import { GET_CUSTOMER_BY_ID, GET_CUSTOMERS, GET_CUSTOMERS_TYPES, GET_CUSTOMERS_TYPES_DOCUMENTS, GET_POSTAL_CODE_FROM_CITY, GET_PROVIDERS, GET_TYPES_CUSTOMERS } from "./url_helper";
 
 
 export class CustomerHelper {
@@ -8,6 +8,30 @@ export class CustomerHelper {
     getCustomers = async (page, limit) => {
         try {
             let response = await fetch(`${GET_CUSTOMERS}?page=${page}&limit=${limit}`,
+                {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            if (response && response.status === 200) {
+                let data = await response.json();
+                return data?.data ?? [];
+            } else {
+                return [];
+            }
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    };
+
+    // Obtener los proveedores
+    getProviders = async () => {
+        try {
+            let response = await fetch(`${GET_PROVIDERS}`,
                 {
                     method: "GET",
                     headers: {

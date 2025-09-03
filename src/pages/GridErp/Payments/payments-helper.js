@@ -82,6 +82,15 @@ export class PaymentHelper {
     }
   }
 
+  async getProviders() {
+    try {
+      let response = await customerHelper.getProviders();
+      return response;
+    } catch (error) {
+      throw new Error('Error al obtener clientes: ' + error.message);
+    }
+  }
+
 
   // Nueva función para simular la obtención de todos los ingresos
   async getAllIncome(params = {page: 1, limit: 100}) {

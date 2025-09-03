@@ -266,7 +266,7 @@ export default function CreatePurchase() {
     const summary = calculateSummary();
 
     useEffect(() => {
-        let saldoPendiente = summary.totalAPagar - totalPagado; 
+        let saldoPendiente = summary.totalAPagar - totalPagado;
         setSaldoPendiente(saldoPendiente);
     }, [summary.totalAPagar])
 
@@ -513,10 +513,11 @@ export default function CreatePurchase() {
                                             <Table className="mb-0">
                                                 <thead className="bg-light">
                                                     <tr>
-                                                        <th>Cuenta</th>
+                                                        <th width="30%">Cuenta</th>
+                                                        <th width="20%">Tipo Operación</th>
                                                         <th width="120">Fecha</th>
                                                         <th width="100">Valor</th>
-                                                        <th width="120">Soporte</th>
+                                                        <th width="80">Soporte</th>
                                                         <th width="80">Acciones</th>
                                                     </tr>
                                                 </thead>
@@ -536,6 +537,34 @@ export default function CreatePurchase() {
                                                                             {account.name}
                                                                         </option>
                                                                     ))}
+                                                                </Input>
+                                                            </td>
+                                                            <td>
+                                                                <Input
+                                                                    type="select"
+                                                                    value={payment.typeOperation}
+                                                                    onChange={(e) => {
+
+                                                                        /* if (e.target.value === 'anticipo') {
+                                                                            let incomeId = method?.cuenta;
+                                                                            let advance = advances.find(a => a._id === incomeId);
+    
+                                                                            if (advance) {
+                                                                                let advanceValue = advance?.value;
+                                                                                updatePaymentMethod(index, "valor", advanceValue);
+                                                                            }
+                                                                        } */
+                                                                        updatePaymentMethod(index, "typeOperation", e.target.value);
+                                                                    }}
+                                                                    size="sm"
+                                                                >
+                                                                    <option value="">Seleccionar operación...</option>
+                                                                    <option value="compras">Compra</option>
+                                                                    <option value="anticipo">Anticipo</option>
+                                                                    <option value="abonos">Abono</option>
+                                                                    <option value="recibos">Recibo</option>
+                                                                    <option value="credito">Crédito</option>
+
                                                                 </Input>
                                                             </td>
                                                             <td>
