@@ -17,6 +17,7 @@ import {
   Input,
   Button,
   Table,
+  Spinner,
 } from 'reactstrap'
 import moment from 'moment'
 import { registerPayment, updatePayment } from './actions'
@@ -27,8 +28,10 @@ import ToastComponent from '../../../../Components/Common/Toast'
 import { numberFormatPrice } from '../../Products/helper/product_helper'
 import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { PurchaseHelper } from '../../Purchase/helper/purchase-helper'
 
-const paymentHelper = new PaymentHelper()
+const paymentHelper = new PaymentHelper();
+const purchaseHelper = new PurchaseHelper();
 
 const TYPE_OF_OPERATION = [
   { value: 'recibos', label: 'Recibo' },
@@ -42,6 +45,7 @@ export default function PaymentRegistrationForm({
   mode = 'create',
   id = '',
 }) {
+  document.title = "Registro de Pagos | Quality"
   const navigate = useNavigate();
   const [isPending, startTransition] = useTransition()
   const [clients, setClients] = useState([])
@@ -61,30 +65,35 @@ export default function PaymentRegistrationForm({
   const [typeModal, setTypeModal] = useState('success');
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [isInternalPayment, setIsInternalPayment] = useState(false);
+  const [selectedZoneId, setSelectedZoneId] = useState(null);
+  const [loading, setLoading] = useState(false)
 
+
+  // Cargar datos iniciales
   useEffect(() => {
-    const loadAccounts = async () => {
-      try {
-        const fetchedAccounts = await paymentHelper.getAccounts()
-        setAccounts(fetchedAccounts)
-      } catch (error) {
-        console.error('Error al cargar cuentas:', error)
-      }
-    }
-    loadAccounts()
+    loadInitialData()
   }, [])
 
-  useEffect(() => {
-    paymentHelper.getClients()
-      .then(setClients)
-      .catch(console.error)
-  }, []);
+  const loadInitialData = async () => {
+    try {
+      setLoading(true)
+      const [accountsData, clientsData, zoneId] = await Promise.all([
+        paymentHelper.getAccounts(),
+        paymentHelper.getClients(),
+        purchaseHelper.getZoneId(),
+      ]);
 
-  useEffect(() => {
-    paymentHelper.getAccounts()
-      .then(setAccounts)
-      .catch(console.error)
-  }, []);
+      setAccounts(accountsData);
+      setClients(clientsData);
+      setSelectedZoneId(zoneId);
+    } catch (err) {
+      setMesssageAlert('Ocurrió un error al cargar los datos iniciales.');
+      setTypeModal('danger');
+      setIsOpenModal(true);
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => { // Cargar registro
     if (id) {
@@ -106,7 +115,7 @@ export default function PaymentRegistrationForm({
     setTypeModal('');
     setIsOpenModal(false);
     if (selectedClientId) {
-      const loadDebts = async () => {
+      const loadDebtsByCustomer = async () => {
         try {
           const responseDebts = await paymentHelper.getOutstandingDebts(selectedClientId)
           setDebts(responseDebts?.data ?? [])
@@ -119,7 +128,24 @@ export default function PaymentRegistrationForm({
           setIsOpenModal(true);
         }
       }
-      loadDebts()
+      const loadDebtsByProvider = async () => {
+        try {
+          const responseDebts = await paymentHelper.getProviderDebts(selectedClientId, selectedZoneId)
+          setDebts(responseDebts?.data ?? [])
+          setSelectedDebtIds([])
+          setIsAnticipo(false);
+        } catch (error) {
+          console.error('Error al cargar deudas con el proveedor:', error)
+          setMesssageAlert('Ocurrió un error al cargar las deudas con el proveedor.');
+          setTypeModal('danger');
+          setIsOpenModal(true);
+        }
+      }
+      if (isInternalPayment) {
+        loadDebtsByProvider();
+      } else {
+        loadDebtsByCustomer()
+      }
     } else {
       setDebts([])
       setSelectedDebtIds([])
@@ -130,6 +156,10 @@ export default function PaymentRegistrationForm({
   useEffect(() => {
     if (isInternalPayment) {
       paymentHelper.getProviders()
+        .then(setClients)
+        .catch(console.error)
+    } else {
+      paymentHelper.getClients()
         .then(setClients)
         .catch(console.error)
     }
@@ -219,6 +249,8 @@ export default function PaymentRegistrationForm({
     startTransition(async () => {
       if (mode === 'create') {
         const result = await registerPayment(payload)
+        console.log(result);
+        
         if (result.success) {
           setMesssageAlert(result.message);
           setTypeModal('success');
@@ -267,11 +299,31 @@ export default function PaymentRegistrationForm({
     })
   }
 
+  const handleChangeTypeOperation = (e) => {
+    setTypeOperation(e.target.value);
+    if (e.target.value === 'anticipo') {
+      setIsAnticipo(true);
+    } else {
+      setIsAnticipo(false);
+    }
+  }
+
   const selectedDebtsTotal = calculateSelectedDebtsTotal()
   const paymentValue = Number.parseFloat(value) || 0
   const anticipoAmount = paymentValue > selectedDebtsTotal ? paymentValue - selectedDebtsTotal : 0;
   const title = mode === 'create' ? "Registro de Pagos" : "Editar Pago";
   const subtitle = mode === 'create' ? "Registre pagos por anticipo o abono a deudas existentes." : "Edite el pago seleccionado.";
+
+  if (loading) {
+    return (
+      <div className="page-content">
+        <Container className="py-4 text-center">
+          <Spinner color="primary" />
+          <p className="mt-2">Cargando...</p>
+        </Container>
+      </div>
+    )
+  }
 
   return (
     <TopLayoutGeneralView
@@ -459,7 +511,7 @@ export default function PaymentRegistrationForm({
                         id="typeOperation"
                         type="select"
                         value={typeOperation}
-                        onChange={(e) => setTypeOperation(e.target.value)}
+                        onChange={(e) => handleChangeTypeOperation(e)}
                         required
                         disabled={isPending}
                       >

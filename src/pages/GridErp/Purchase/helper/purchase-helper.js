@@ -1,5 +1,6 @@
+import { IndexedDBService } from "../../../../helpers/indexedDb/indexed-db-helper";
 import { getToken } from "../../../../helpers/jwt-token-access/get_token"
-import { BASE_URL } from "../../../../helpers/url_helper";
+import { BASE_URL, UPLOAD_FILE } from "../../../../helpers/url_helper";
 import { AccountHelper } from "../../Accounts/helpers/account_helper";
 import { RetentionHelper } from "../../Retentions/helpers/retention-helper";
 import { TaxHelper } from "../../Taxes/helpers/tax-helper";
@@ -7,85 +8,11 @@ import { TaxHelper } from "../../Taxes/helpers/tax-helper";
 const taxHelper = new TaxHelper();
 const retentionHelper = new RetentionHelper();
 const accountHelper = new AccountHelper();
+const indexedDB = new IndexedDBService();
 
 export class PurchaseHelper {
   constructor() {
     this.baseUrl = `${BASE_URL}/purchase`;
-    // Simulación de datos para proveedores
-    this.providers = [
-      { _id: "prov1", name: "Proveedor ABC S.A.S", nit: "900123456-1", email: "contacto@proveedorabc.com" },
-      { _id: "prov2", name: "Distribuidora XYZ Ltda", nit: "800987654-2", email: "ventas@distribuidoraxyz.com" },
-      { _id: "prov3", name: "Importadora 123 S.A.", nit: "900555444-3", email: "compras@importadora123.com" },
-    ]
-
-    // Simulación de productos
-    this.products = [
-      {
-        _id: "prod1",
-        name: "Tapete Premium BMW X3",
-        sku: "TAP-BMW-X3-001",
-        costPrice: 85000,
-        salePrice: 120000,
-        category: "Tapetes Automotrices",
-        stock: 15,
-        taxId: "tax1",
-        retentionId: "ret1",
-      },
-      {
-        _id: "prod2",
-        name: "Tapete Estándar Toyota Corolla",
-        sku: "TAP-TOY-COR-002",
-        costPrice: 65000,
-        salePrice: 95000,
-        category: "Tapetes Automotrices",
-        stock: 25,
-        taxId: "tax1",
-        retentionId: "ret1",
-      },
-      {
-        _id: "prod3",
-        name: "Kit Limpieza Tapetes",
-        sku: "KIT-LIM-001",
-        costPrice: 25000,
-        salePrice: 40000,
-        category: "Accesorios",
-        stock: 50,
-        taxId: "tax1",
-        retentionId: "ret2",
-      },
-      {
-        _id: "prod4",
-        name: "Tapete Universal Sedan",
-        sku: "TAP-UNI-SED-003",
-        costPrice: 45000,
-        salePrice: 70000,
-        category: "Tapetes Automotrices",
-        stock: 30,
-        taxId: "tax2",
-        retentionId: "ret1",
-      },
-    ]
-
-    // Simulación de impuestos
-    this.taxes = [
-      { _id: "tax1", name: "IVA 19%", rate: 19, type: "IVA" },
-      { _id: "tax2", name: "IVA 5%", rate: 5, type: "IVA" },
-      { _id: "tax3", name: "Exento", rate: 0, type: "EXENTO" },
-    ]
-
-    // Simulación de retenciones
-    this.retentions = [
-      { _id: "ret1", name: "Retención en la Fuente 3.5%", rate: 3.5, type: "RETEFUENTE" },
-      { _id: "ret2", name: "Retención en la Fuente 2.5%", rate: 2.5, type: "RETEFUENTE" },
-      { _id: "ret3", name: "Sin Retención", rate: 0, type: "SIN_RETENCION" },
-    ]
-
-    // Simulación de cuentas para formas de pago
-    this.accounts = [
-      { _id: "acc1", name: "Cuenta Corriente - Banco A", typeAccount: "Corriente" },
-      { _id: "acc2", name: "Cuenta de Ahorros - Banco B", typeAccount: "Ahorros" },
-      { _id: "acc3", name: "Efectivo", typeAccount: "Efectivo" },
-    ]
   }
 
   async getPurchases(params) {
@@ -215,57 +142,62 @@ export class PurchaseHelper {
 
   // Subir archivo
   async uploadFile(file) {
-    console.log("Simulando subida de archivo:", file.name)
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        if (file.size > 10 * 1024 * 1024) {
-          // 10MB máximo
-          reject(new Error("El archivo no debe superar los 10MB"))
-          return
+    return new Promise(async (resolve, reject) => {
+      try {
+        let formData = new FormData();
+        formData.append("file", file);
+        let token = getToken();
+        let response = await fetch(`${BASE_URL}${UPLOAD_FILE}`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+          body: formData,
+        });
+        let data = await response.json();
+        let url = data?.url;
+        if (url) {
+          url = `${BASE_URL}${url}`;
         }
-
-        // Simular respuesta exitosa con URL
-        const mockUrl = `https://example.com/uploads/payments/${Date.now()}_${file.name}`
         resolve({
           success: true,
-          url: mockUrl,
+          url: url,
           message: "Archivo subido exitosamente",
         })
-      }, 1500)
+      } catch (error) {
+        reject(error)
+      }
     })
   }
 
   // Crear orden de compra
   async createPurchaseOrder(purchaseData) {
-    console.log("Simulando creación de orden de compra:", purchaseData)
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Validaciones básicas
-        if (!purchaseData.providerId) {
-          reject(new Error("El proveedor es obligatorio"))
-          return
-        }
-        if (!purchaseData.detail || purchaseData.detail.length === 0) {
-          reject(new Error("Debe agregar al menos un producto"))
-          return
-        }
-        if (!purchaseData.methodOfPayment || purchaseData.methodOfPayment.length === 0) {
-          reject(new Error("Debe agregar al menos una forma de pago"))
-          return
-        }
-
-        // Simular éxito
-        resolve({
-          success: true,
-          message: "Orden de compra creada exitosamente",
-          data: {
-            _id: "purchase_" + Date.now(),
-            orderNumber: Math.floor(Math.random() * 10000) + 1000,
-            ...purchaseData,
-            createdAt: new Date(),
+    //console.log("Payload creación de orden de compra:", purchaseData)
+    return new Promise(async (resolve, reject) => {
+      try {
+        let response = await fetch(`${BASE_URL}/purchase/create`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            "Authorization": `Bearer ${getToken()}`,
           },
-        })
-      }, 2000)
+          body: JSON.stringify(purchaseData),
+        });
+
+        if (response.ok) {
+          let data = await response.json();
+          resolve({
+            success: true,
+            message: "Orden de compra creada exitosamente",
+            data: data,
+          });
+        } else {
+          let error = await response.json();
+          reject(error);
+        }
+      } catch (error) {
+        reject(error)
+      }
     })
   }
 
@@ -336,7 +268,37 @@ export class PurchaseHelper {
   }
 
   // Calcular total de la compra
-    calculateTotalItems = (orderItems) => {
-        return orderItems.reduce((total, item) => total + (item.itemPrice || 0), 0)
-    };
+  calculateTotalItems = (orderItems) => {
+    return orderItems.reduce((total, item) => total + (item.itemPrice || 0), 0)
+  };
+
+  getZoneId = async () => {
+    try {
+      let response = await indexedDB.getItemById(localStorage.getItem("userId"));
+      return response?.zoneId;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  getAdvanceByProvider = async (providerId, typeOperation = 'anticipo', page = 1, limit = 10) => {
+    try {
+      let token = getToken();
+      let response = await fetch(`${BASE_URL}/accounting/income/getAllByProviderAndTypeOperation/${providerId}/${typeOperation}?page=${page}&limit=${limit}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      );
+      return response.json();
+    } catch (error) {
+      console.error("Error fetching advance by customer:", error);
+      throw error;
+
+    }
+  }
 }

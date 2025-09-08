@@ -727,13 +727,12 @@ export default function OrderGrid({
 
     // Actualizar forma de pago
     const updatePaymentMethod = (index, field, value) => {
-        const newMethods = [...paymentMethods]
-        newMethods[index] = {
-            ...newMethods[index],
-            [field]: value,
-        }
-        setPaymentMethods(newMethods)
-    }
+        setPaymentMethods(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
+    };
 
     // Manejar carga de archivos
     const handleFileUpload = async (index, file) => {

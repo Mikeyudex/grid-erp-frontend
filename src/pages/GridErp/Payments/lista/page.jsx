@@ -82,8 +82,7 @@ export default function PaymentListPage() {
                             typeOperation: income.typeOperation || 'N/A',
                             observations: income.observations || 'N/A',
                             _id: income._id,
-                            customerName: ` ${income?.customerId?.commercialName || 'N/A'}`,
-
+                            customerName: ` ${income?.customerId?.commercialName || income?.providerId?.commercialName || 'N/A'}`,
                         }
                     })
                     setIncomes(incomesMapped);

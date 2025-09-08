@@ -56,7 +56,6 @@ export default function PurchaseListPage() {
             .getPurchases({page: 1, limit: 100})
             .then(async (response) => {
                 let purchases = response?.data;
-                console.log(purchases);
                 if (purchases && Array.isArray(purchases) && purchases.length > 0) {
                     setPurchases(purchases);
                     setFilteredPurchases(purchases);
@@ -161,8 +160,8 @@ export default function PurchaseListPage() {
     }
 
     const columns = [
-        { key: "orderNumber", label: "No. Pedido", type: "text", searchable: true, sortable: true },
-        { key: "supplierInvoiceNumber", label: "Número de Factura", type: "text", searchable: true, sortable: true },
+        { key: "orderNumber", label: "No. Compra", type: "text", searchable: true, sortable: true },
+        { key: "supplierInvoiceNumber", label: "Número de Factura Prov.", type: "text", searchable: true, sortable: true },
         { key: "totalOrder", label: "Total", type: "price", searchable: true, sortable: true },
         { key: "observations", label: "Observaciones", type: "text", searchable: true, sortable: true },
         { key: "createdAt", label: "Fecha Creación", type: "date", searchable: true, sortable: true }

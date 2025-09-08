@@ -28,6 +28,8 @@ import { useNavigate } from "react-router-dom"
 import { ArrowLeft, Save, Plus, Search, Trash2, Calculator, CreditCard, Package, FileText, Upload } from "lucide-react"
 import { PurchaseHelper } from "../helper/purchase-helper"
 import "./styles.css"
+import moment from "moment/moment"
+import { numberFormatPrice } from "../../Products/helper/product_helper"
 
 
 const purchaseHelper = new PurchaseHelper()
@@ -45,6 +47,8 @@ export default function CreatePurchase() {
     const [taxes, setTaxes] = useState([])
     const [retentions, setRetentions] = useState([])
     const [accounts, setAccounts] = useState([])
+    const [selectedProvider, setSelectedProvider] = useState(null);
+    const [advances, setAdvances] = useState([]);
 
     // Estados para búsqueda de productos
     const [productSearchTerm, setProductSearchTerm] = useState("")
@@ -67,6 +71,8 @@ export default function CreatePurchase() {
     const [totalPagado, setTotalPagado] = useState(0);
     const [saldoPendiente, setSaldoPendiente] = useState(0);
 
+    const [selectedZoneId, setSelectedZoneId] = useState(null);
+
     // Cargar datos iniciales
     useEffect(() => {
         loadInitialData()
@@ -75,16 +81,18 @@ export default function CreatePurchase() {
     const loadInitialData = async () => {
         try {
             setLoading(true)
-            const [providersData, taxesData, retentionsData, accountsData] = await Promise.all([
+            const [providersData, taxesData, retentionsData, accountsData, zoneId] = await Promise.all([
                 purchaseHelper.getProviders(),
                 purchaseHelper.getTaxes(),
                 purchaseHelper.getRetentions(),
                 purchaseHelper.getAccounts(),
+                purchaseHelper.getZoneId(),
             ])
             setProviders(providersData?.data)
             setTaxes(taxesData)
             setRetentions(retentionsData?.data)
             setAccounts(accountsData?.data)
+            setSelectedZoneId(zoneId);
         } catch (err) {
             setError("Error al cargar los datos iniciales: " + err.message)
         } finally {
@@ -181,10 +189,12 @@ export default function CreatePurchase() {
 
     // Actualizar forma de pago
     const updatePaymentMethod = (index, field, value) => {
-        const updatedPayments = [...paymentMethods]
-        updatedPayments[index] = { ...updatedPayments[index], [field]: value }
-        setPaymentMethods(updatedPayments)
-    }
+        setPaymentMethods(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
+    };
 
     // Eliminar forma de pago
     const removePaymentMethod = (index) => {
@@ -246,6 +256,7 @@ export default function CreatePurchase() {
                 methodOfPayment: paymentMethods,
                 itemsQuantity: formData.detail.reduce((sum, item) => sum + item.itemQuantity, 0),
                 totalOrder: summary.totalAPagar,
+                zoneId: selectedZoneId,
             }
 
             const response = await purchaseHelper.createPurchaseOrder(purchaseData)
@@ -263,6 +274,25 @@ export default function CreatePurchase() {
         }
     }
 
+    const handleGetAdvanceByProvider = async (providerId) => {
+        try {
+            let response = await purchaseHelper.getAdvanceByProvider(providerId);
+            return response?.data;
+        } catch (error) {
+            console.log(error);
+            return [];
+        }
+    };
+
+    const handleChangeProvider = (e) => {
+        const provider = providers.find((p) => p._id === e.target.value);
+        setSelectedProvider(provider);
+        setFormData((prev) => ({
+            ...prev,
+            providerId: provider._id,
+        }))
+    };
+
     const summary = calculateSummary();
 
     useEffect(() => {
@@ -277,6 +307,25 @@ export default function CreatePurchase() {
         let saldoPendiente = summary.totalAPagar - totalPagado;
         setSaldoPendiente(saldoPendiente);
     }, [paymentMethods]);
+
+    useEffect(() => {
+        if (selectedProvider) {
+            handleGetAdvanceByProvider(selectedProvider._id)
+                .then(async (data) => {
+                    let advances = data;
+                    if (advances.length > 0) {
+                        setAdvances(advances);
+                        setAccounts(prev => [...prev, ...advances.map(a => ({
+                            _id: a._id,
+                            name: `${a?.typeOperation} - ${numberFormatPrice(a?.value)} - (${moment(a?.date).format("DD/MM/YYYY")})`,
+                            typeAccount: a?.typeOperation,
+                            description: a?.description,
+                        }))]);
+                    }
+                })
+                .catch(e => console.log(e))
+        }
+    }, [selectedProvider]);
 
     if (loading && providers.length === 0) {
         return (
@@ -342,7 +391,7 @@ export default function CreatePurchase() {
                                                     type="select"
                                                     id="providerId"
                                                     value={formData.providerId}
-                                                    onChange={(e) => setFormData((prev) => ({ ...prev, providerId: e.target.value }))}
+                                                    onChange={handleChangeProvider}
                                                     required
                                                 >
                                                     <option value="">Seleccionar proveedor...</option>
@@ -544,16 +593,15 @@ export default function CreatePurchase() {
                                                                     type="select"
                                                                     value={payment.typeOperation}
                                                                     onChange={(e) => {
-
-                                                                        /* if (e.target.value === 'anticipo') {
-                                                                            let incomeId = method?.cuenta;
+                                                                        if (e.target.value === 'anticipo') {
+                                                                            let incomeId = payment?.accountId;
                                                                             let advance = advances.find(a => a._id === incomeId);
-    
+
                                                                             if (advance) {
-                                                                                let advanceValue = advance?.value;
-                                                                                updatePaymentMethod(index, "valor", advanceValue);
+                                                                                const advanceValue = Number(advance?.value) || 0;
+                                                                                updatePaymentMethod(index, "value", advanceValue);
                                                                             }
-                                                                        } */
+                                                                        }
                                                                         updatePaymentMethod(index, "typeOperation", e.target.value);
                                                                     }}
                                                                     size="sm"
@@ -579,8 +627,11 @@ export default function CreatePurchase() {
                                                                 <Input
                                                                     type="number"
                                                                     size="sm"
-                                                                    value={payment.value}
-                                                                    onChange={(e) => updatePaymentMethod(index, "value", Number(e.target.value))}
+                                                                    value={payment.value ?? ""}
+                                                                    onChange={(e) => {
+                                                                        const val = e.target.value;
+                                                                        updatePaymentMethod(index, "value", val === "" ? null : Number(val));
+                                                                    }}
                                                                     min="0"
                                                                     step="0.01"
                                                                 />
@@ -633,7 +684,7 @@ export default function CreatePurchase() {
                                                     </tr>
                                                     <tr>
                                                         <td colSpan="2" className="text-end fw-bold">
-                                                            Saldo Pendiente:
+                                                            {saldoPendiente > 0 ? "Saldo Pendiente" : "Saldo Disponible"}:
                                                         </td>
                                                         <td
                                                             className={`fw-bold ${(saldoPendiente) > 0 ? "text-danger" : "text-success"}`}

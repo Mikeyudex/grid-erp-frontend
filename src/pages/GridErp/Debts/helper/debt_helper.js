@@ -35,6 +35,20 @@ export class DebtHelper {
             .catch(err => console.log(err));
     }
 
+    async getDebtsByProviderAndStatus(page = 1, limit = 10, search = '', providerId = null, customerId = null, status = null) {
+        let token = getToken();
+        return fetch(`${this.baseUrl}/provider/${providerId}/customer/${customerId}?page=${page}&limit=${limit}&search=${search}&status=${status}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                "Authorization": `Bearer ${token}`,
+            },
+        })
+            .then(response => response.json())
+            .then(data => data)
+            .catch(err => console.log(err));
+    }
+
     async getDebt(id) {
         let token = getToken();
         return fetch(`${this.baseUrl}/${id}`, {

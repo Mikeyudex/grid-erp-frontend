@@ -49,6 +49,15 @@ export class PaymentHelper {
     }
   }
 
+  async getProviderDebts(providerId, customerId) {
+    try {
+      let response = await debtHelper.getDebtsByProviderAndStatus(1, 10, '', providerId, customerId, 'abierto');
+      return response;
+    } catch (error) {
+      throw new Error('Error al obtener deudas del proveedor: ' + error.message);
+    }
+  }
+
   async registerIncome(incomeData) {
     try {
       let response = await fetch(`${this.baseUrl}/create`, {
@@ -66,7 +75,7 @@ export class PaymentHelper {
       return {
         success: true,
         message: data?.message ?? 'Pago registrado exitosamente.',
-        data: data?.data,
+        data: data,
       }
     } catch (error) {
       throw new Error('Error al registrar pago: ' + error.message);
@@ -126,7 +135,7 @@ export class PaymentHelper {
 
   async updateIncome(income) {
     let token = getToken();
-    return fetch(`${this.baseUrl}/${income._id}`, {
+    return fetch(`${this.baseUrl}/update/${income._id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -141,7 +150,7 @@ export class PaymentHelper {
 
   async deleteIncome(id) {
     let token = getToken();
-    return fetch(`${this.baseUrl}/${id}`, {
+    return fetch(`${this.baseUrl}/delete/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
