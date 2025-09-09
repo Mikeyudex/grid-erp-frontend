@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Card, Col, Container, Row } from 'reactstrap';
 
@@ -80,6 +80,17 @@ const TwosVerify = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                handleSubmit(event);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [handleSubmit]);
 
     return (
         <React.Fragment>
