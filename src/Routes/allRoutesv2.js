@@ -60,6 +60,8 @@ import ListRetentions from "../pages/GridErp/Retentions/pages/ListRetentions";
 import ListTaxes from "../pages/GridErp/Taxes/pages/ListTaxes";
 import PurchaseListPage from "../pages/GridErp/Purchase/pages/purchase-list";
 import EditPaymentPage from "../pages/GridErp/Payments/editar/page";
+import RegisterExpensePage from "../pages/GridErp/Expenses/pages/registro/page";
+import ExpenseListPage from "../pages/GridErp/Expenses/pages/lista/page";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -157,6 +159,9 @@ const authProtectedRoutes = [
 
     //expenses
     { path: "/accounting/expenses-types-list", component: <ListTypeExpenses /> },
+    { path: "/accounting/expenses-register", component: <RegisterExpensePage /> },
+    { path: "/accounting/expenses-list", component: <ExpenseListPage /> },
+    /* { path: "/accounting/expenses-edit/:id", component: <EditExpensePage /> }, */
 
     // Uploads
     { path: "/uploads", component: <UploadHistoryPage /> },

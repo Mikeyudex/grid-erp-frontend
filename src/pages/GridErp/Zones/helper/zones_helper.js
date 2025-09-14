@@ -4,28 +4,30 @@ import { BASE_URL } from "../../../../helpers/url_helper";
 
 export class ZonesHelper {
     async getZones() {
-        let token = getToken();
-        fetch(`${BASE_URL}/users/zones/getAll`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-            },
-        })
-            .then(async (response) => {
-                if (!response.ok) {
-                    throw new Error("Error al obtener las zonas");
-                }
-                let data = await response.json();
-                let zones = data?.data ?? [];
-                if (zones && Array.isArray(zones) && zones.length > 0) {
-                    return zones;
-                }
-                return [];
+        try {
+            let token = getToken();
+            let response = await fetch(`${BASE_URL}/users/zones/getAll`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`,
+                },
             })
-            .catch(err => {
-                console.error("Error:", err)
-            })
+
+            if (!response.ok) {
+                throw new Error("Error al obtener las zonas");
+            }
+            let data = await response.json();
+            let zones = data?.data ?? [];
+
+            if (zones && Array.isArray(zones) && zones.length > 0) {
+                return zones;
+            }
+            return [];
+        } catch (error) {
+            throw new Error("Error al obtener las zonas: " + error.message);
+        }
+
     }
 
     async getAccounts() {

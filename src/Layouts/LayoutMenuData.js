@@ -14,6 +14,7 @@ const Navdata = () => {
   const [isPurchaseOrders, setIsPurchaseOrders] = useState(false);
   const [isProduction, setIsProduction] = useState(false);
   const [isAccounting, setIsAccounting] = useState(false);
+  const [isExpenses, setIsExpenses] = useState(false);
 
 
   const [isAuth, setIsAuth] = useState(false);
@@ -331,12 +332,6 @@ const Navdata = () => {
           parentId: "accounting",
         },
         {
-          id: "types-expenses",
-          label: "Tipos de Egreso",
-          link: "/accounting/expenses-types-list",
-          parentId: "accounting",
-        },
-        {
           id: "retention",
           label: "Retenciones",
           link: "/accounting/retentions-list",
@@ -347,6 +342,22 @@ const Navdata = () => {
           label: "Impuestos",
           link: "/accounting/taxes-list",
           parentId: "accounting",
+        },
+         {
+          id: "expenses",
+          label: "Egresos",
+          link: "/accounting#",
+          isChildItem: true,
+          click: function (e) {
+            e.preventDefault();
+            setIsExpenses(!isExpenses);
+          },
+          stateVariables: isExpenses,
+          childItems: [
+            { id: 1, label: "Tipos de egreso", link: "/accounting/expenses-types-list" },
+            { id: 2, label: "Listado de Egresos", link: "/accounting/expenses-list" },
+            { id: 3, label: "Registrar Egreso", link: "/accounting/expenses-register" },
+          ],
         },
       ],
     },
