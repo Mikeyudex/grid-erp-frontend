@@ -19,7 +19,8 @@ import {
   Table,
   Spinner,
 } from 'reactstrap'
-import moment from 'moment'
+import moment from 'moment';
+import Select from 'react-select';
 import { registerPayment, updatePayment } from './actions'
 import { PaymentHelper } from '../payments-helper'
 import { TopLayoutGeneralView } from '../../../../Components/Common/TopLayoutGeneralView'
@@ -250,7 +251,7 @@ export default function PaymentRegistrationForm({
       if (mode === 'create') {
         const result = await registerPayment(payload)
         console.log(result);
-        
+
         if (result.success) {
           setMesssageAlert(result.message);
           setTypeModal('success');
@@ -372,20 +373,18 @@ export default function PaymentRegistrationForm({
 
                     <FormGroup>
                       <Label for="client">{isInternalPayment ? "Proveedor" : "Cliente"}</Label>
-                      <Input
+                      <Select
                         id="client"
-                        type="select"
+                        name="client"
+                        options={clients.map((client) => ({ value: client._id, label: `${client.name} (${client.commercialName})` }))}
                         value={selectedClientId}
-                        onChange={(e) => setSelectedClientId(e.target.value)}
-                        disabled={isPending}
-                      >
-                        <option value="">Seleccione un {isInternalPayment ? "proveedor" : "cliente"}</option>
-                        {clients.map((client) => (
-                          <option key={client._id} value={client._id}>
-                            {client.name || 'Cliente sin nombre'} {client?.lastname ? `${client.lastname}` : ''} {`(${client.commercialName || 'Sin nombre comercial'})`}
-                          </option>
-                        ))}
-                      </Input>
+                        onChange={(option) => {
+                          setSelectedClientId(option);
+                        }}
+                        classNamePrefix="react-select"
+                        placeholder={`Seleccione un ${isInternalPayment ? "proveedor" : "cliente"}`}
+
+                      />
                     </FormGroup>
 
                     {selectedClientId && debts.length > 0 && (

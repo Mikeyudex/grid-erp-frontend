@@ -24,17 +24,20 @@ import {
     ModalFooter,
     Spinner,
 } from "reactstrap"
+import Select from 'react-select';
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft, Save, Plus, Search, Trash2, Calculator, CreditCard, Package, FileText, Upload } from "lucide-react"
 import { PurchaseHelper } from "../helper/purchase-helper"
 import "./styles.css"
 import moment from "moment/moment"
 import { numberFormatPrice } from "../../Products/helper/product_helper"
+import InputSpin from "../../Products/components/InputSpin";
 
 
 const purchaseHelper = new PurchaseHelper()
 
 export default function CreatePurchase() {
+    document.title = "Crear Orden de Compra | Quality";
     const navigate = useNavigate()
 
     // Estados principales
@@ -63,7 +66,8 @@ export default function CreatePurchase() {
         observations: "",
         detail: [],
         methodOfPayment: [],
-    })
+    });
+    const [errors, setErrors] = useState({});
 
     // Estados para formas de pago
     const [paymentMethods, setPaymentMethods] = useState([])
@@ -230,9 +234,8 @@ export default function CreatePurchase() {
     const handleSubmit = async (e) => {
         e.preventDefault()
 
-        if (formData.detail.length === 0) {
-            setError("Debe agregar al menos un producto")
-            return
+        if (!purchaseHelper.validateForm(formData, setErrors)) {
+            return;
         }
 
         if (paymentMethods.length === 0) {
@@ -285,13 +288,20 @@ export default function CreatePurchase() {
     };
 
     const handleChangeProvider = (e) => {
-        const provider = providers.find((p) => p._id === e.target.value);
+        const provider = providers.find((p) => p._id === e.value);
         setSelectedProvider(provider);
         setFormData((prev) => ({
             ...prev,
             providerId: provider._id,
         }))
     };
+
+    const handleSetQuantity = (value, index) => {
+        if(value < 0) {
+            return;
+        }
+        updateOrderItem(index, "itemQuantity", Number(value));
+    }
 
     const summary = calculateSummary();
 
@@ -387,20 +397,19 @@ export default function CreatePurchase() {
                                                 <Label for="providerId" className="fw-bold">
                                                     Proveedor <span className="text-danger">*</span>
                                                 </Label>
-                                                <Input
-                                                    type="select"
+
+                                                <Select
                                                     id="providerId"
-                                                    value={formData.providerId}
-                                                    onChange={handleChangeProvider}
-                                                    required
-                                                >
-                                                    <option value="">Seleccionar proveedor...</option>
-                                                    {providers.map((provider) => (
-                                                        <option key={provider._id} value={provider._id}>
-                                                            {provider.name} {provider.lastname} - {provider.documento}
-                                                        </option>
-                                                    ))}
-                                                </Input>
+                                                    name="providerId"
+                                                    options={providers.map((provider) => ({ value: provider._id, label: `${provider.name} (${provider.commercialName})` }))}
+                                                    value={selectedProvider ? { value: selectedProvider._id, label: `${selectedProvider.name} (${selectedProvider.commercialName})` } : null}
+                                                    onChange={(option) => {
+                                                        handleChangeProvider(option);
+                                                    }}
+                                                    classNamePrefix="react-select"
+                                                    placeholder="Selecciona un proveedor"
+                                                />
+                                                {errors.providerId && <span style={{ color: "red" }}>{errors.providerId}</span>}
                                             </FormGroup>
                                         </Col>
                                         <Col md={6}>
@@ -415,6 +424,7 @@ export default function CreatePurchase() {
                                                     onChange={(e) => setFormData((prev) => ({ ...prev, supplierInvoiceNumber: e.target.value }))}
                                                     placeholder="Número de factura del proveedor"
                                                 />
+                                                {errors.supplierInvoiceNumber && <span style={{ color: "red" }}>{errors.supplierInvoiceNumber}</span>}
                                             </FormGroup>
                                         </Col>
                                         <Col xs={12}>
@@ -477,7 +487,7 @@ export default function CreatePurchase() {
                                                             <td>
                                                                 <Input
                                                                     type="number"
-                                                                    size="sm"
+                                                                    bsSize="sm"
                                                                     value={item.itemPrice}
                                                                     onChange={(e) => updateOrderItem(index, "itemPrice", Number(e.target.value))}
                                                                     min="0"
@@ -485,18 +495,20 @@ export default function CreatePurchase() {
                                                                 />
                                                             </td>
                                                             <td>
-                                                                <Input
-                                                                    type="number"
-                                                                    size="sm"
+                                                                <InputSpin
+                                                                    setState={(value) => handleSetQuantity(value, index)}
                                                                     value={item.itemQuantity}
-                                                                    onChange={(e) => updateOrderItem(index, "itemQuantity", Number(e.target.value))}
-                                                                    min="1"
+                                                                    min={0}
+                                                                    max={5000}
+                                                                    inputClassname={'bg-red'}
+                                                                    containerClass={"input-step"}
                                                                 />
+
                                                             </td>
                                                             <td>
                                                                 <Input
                                                                     type="number"
-                                                                    size="sm"
+                                                                    bsSize="sm"
                                                                     value={item.discountPercentage}
                                                                     onChange={(e) => updateOrderItem(index, "discountPercentage", Number(e.target.value))}
                                                                     min="0"
@@ -508,7 +520,7 @@ export default function CreatePurchase() {
                                                             <td>
                                                                 <Input
                                                                     type="select"
-                                                                    size="sm"
+                                                                    bsSize="sm"
                                                                     value={item.retentionId}
                                                                     onChange={(e) => updateOrderItem(index, "retentionId", e.target.value)}
                                                                 >
@@ -533,13 +545,18 @@ export default function CreatePurchase() {
                                             </Table>
                                         </div>
                                     ) : (
-                                        <div className="text-center py-4 text-muted">
-                                            <Package size={48} className="mb-2 opacity-50" />
-                                            <p>No hay productos agregados</p>
-                                            <Button color="primary" onClick={() => setShowProductModal(true)}>
-                                                <Plus size={16} /> Agregar Primer Producto
-                                            </Button>
-                                        </div>
+                                        <>
+                                            <div className="text-center py-4 text-muted">
+                                                <Package size={48} className="mb-2 opacity-50" />
+                                                <p>No hay productos agregados</p>
+                                                <Button color="primary" onClick={() => setShowProductModal(true)}>
+                                                    <Plus size={16} /> Agregar Primer Producto
+                                                </Button>
+                                            </div>
+                                            <div className="text-center py-4 text-muted">
+                                                {errors.detail && <span style={{ color: "red" }}>{errors.detail}</span>}
+                                            </div>
+                                        </>
                                     )}
                                 </CardBody>
                             </Card>
@@ -576,7 +593,7 @@ export default function CreatePurchase() {
                                                             <td>
                                                                 <Input
                                                                     type="select"
-                                                                    size="sm"
+                                                                    bsSize="sm"
                                                                     value={payment.accountId}
                                                                     onChange={(e) => updatePaymentMethod(index, "accountId", e.target.value)}
                                                                 >
@@ -604,7 +621,7 @@ export default function CreatePurchase() {
                                                                         }
                                                                         updatePaymentMethod(index, "typeOperation", e.target.value);
                                                                     }}
-                                                                    size="sm"
+                                                                    bsSize="sm"
                                                                 >
                                                                     <option value="">Seleccionar operación...</option>
                                                                     <option value="compras">Compra</option>
@@ -618,7 +635,7 @@ export default function CreatePurchase() {
                                                             <td>
                                                                 <Input
                                                                     type="date"
-                                                                    size="sm"
+                                                                    bsSize="sm"
                                                                     value={payment.paymentDate}
                                                                     onChange={(e) => updatePaymentMethod(index, "paymentDate", e.target.value)}
                                                                 />
@@ -626,7 +643,7 @@ export default function CreatePurchase() {
                                                             <td>
                                                                 <Input
                                                                     type="number"
-                                                                    size="sm"
+                                                                    bsSize="sm"
                                                                     value={payment.value ?? ""}
                                                                     onChange={(e) => {
                                                                         const val = e.target.value;
@@ -640,7 +657,7 @@ export default function CreatePurchase() {
                                                                 <div className="d-flex align-items-center gap-1">
                                                                     <Input
                                                                         type="file"
-                                                                        size="sm"
+                                                                        bsSize="sm"
                                                                         accept="image/*,.pdf"
                                                                         onChange={(e) => handleFileUpload(index, e.target.files[0])}
                                                                         style={{ display: "none" }}
@@ -648,7 +665,7 @@ export default function CreatePurchase() {
                                                                     />
                                                                     <Button
                                                                         color="outline-secondary"
-                                                                        size="sm"
+                                                                        bsSize="sm"
                                                                         onClick={() => document.getElementById(`file-${index}`).click()}
                                                                         disabled={uploadingFiles[index]}
                                                                     >
@@ -664,7 +681,7 @@ export default function CreatePurchase() {
                                                             <td>
                                                                 <Button
                                                                     color="danger"
-                                                                    size="sm"
+                                                                    bsSize="sm"
                                                                     onClick={() => removePaymentMethod(index)}
                                                                     title="Eliminar"
                                                                 >
@@ -697,13 +714,18 @@ export default function CreatePurchase() {
                                             </Table>
                                         </div>
                                     ) : (
-                                        <div className="text-center py-4 text-muted">
-                                            <CreditCard size={48} className="mb-2 opacity-50" />
-                                            <p>No hay formas de pago agregadas</p>
-                                            <Button color="warning" onClick={addPaymentMethod}>
-                                                <Plus size={16} /> Agregar Primera Forma de Pago
-                                            </Button>
-                                        </div>
+                                        <>
+                                            <div className="text-center py-4 text-muted">
+                                                <CreditCard size={48} className="mb-2 opacity-50" />
+                                                <p>No hay formas de pago agregadas</p>
+                                                <Button color="warning" onClick={addPaymentMethod}>
+                                                    <Plus size={16} /> Agregar Primera Forma de Pago
+                                                </Button>
+                                            </div>
+                                            <div className="text-center py-4 text-muted">
+                                                {errors.methodOfPayment && <span style={{ color: "red" }}>{errors.methodOfPayment}</span>}
+                                            </div>
+                                        </>
                                     )}
                                 </CardBody>
                             </Card>

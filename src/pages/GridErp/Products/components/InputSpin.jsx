@@ -26,7 +26,7 @@ export default function InputSpin({
                 borderBottom: '2px solid #ccc',
                 backgroundColor: 'transparent',
                 padding: '10px 0',
-                fontSize: '1em',
+                fontSize: '0.7em',
                 height:'3.1em'
             }}>
             <button

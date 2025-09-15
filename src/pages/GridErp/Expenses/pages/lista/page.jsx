@@ -24,6 +24,7 @@ import DataTable from "../../.././../../Components/Common/DataTableCustom"
 import { TopLayoutGeneralView } from '../../.././../../Components/Common/TopLayoutGeneralView'
 import { numberFormatPrice } from '../../../Products/helper/product_helper'
 import { ExpensesHelper } from '../../helpers/expenses_helper'
+import moment from 'moment'
 
 const expenseHelper = new ExpensesHelper()
 
@@ -55,14 +56,6 @@ export default function ExpenseListPage() {
     })
 
 
-    const typeOperationOptions = [
-        { value: "", label: "Todos los tipos" },
-        { value: "ventas", label: "Ventas" },
-        { value: "recibos", label: "Recibos" },
-        { value: "anticipo", label: "Anticipo" },
-        { value: "credito", label: "Crédito" },
-    ]
-
     const fetchData = async () => {
         setLoading(true);
         setError(null);
@@ -75,6 +68,7 @@ export default function ExpenseListPage() {
                     let expensesMapped = expenses.map((expense) => {
                         return {
                             ...expense,
+                            providerName:` ${expense?.providerId?.commercialName || expense?.customerId?.commercialName || 'N/A'}`,
                             sequence: expense?.sequence,
                             paymentDate: expense.paymentDate,
                             value: numberFormatPrice(expense.value),
@@ -82,7 +76,7 @@ export default function ExpenseListPage() {
                             observations: expense.observations || 'N/A',
                             accountName: expense?.accountId?.name,
                             zoneName: expense?.zoneId?.name,
-                            createdAt: new Date(expense.createdAt).toLocaleDateString("es-ES"),
+                            createdAt: expense.createdAt,
                         }
                     })
                     setExpenses(expensesMapped);
@@ -137,7 +131,7 @@ export default function ExpenseListPage() {
             return true
         })
 
-        setFilteredIncomes(filtered)
+        setFilteredExpenses(filtered)
     }, [filters, expenses])
 
     const handleTempFilterChange = (field, value) => {
@@ -150,13 +144,6 @@ export default function ExpenseListPage() {
     const applyFilters = () => {
         setFilters(tempFilters)
         setDropdownOpen(false)
-    }
-
-    const handleFilterChange = (field, value) => {
-        setFilters((prev) => ({
-            ...prev,
-            [field]: value,
-        }))
     }
 
     const clearTempFilters = () => {

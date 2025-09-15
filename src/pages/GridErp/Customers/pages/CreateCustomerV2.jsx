@@ -964,7 +964,7 @@ export default function CreateClientV2({
                                                     {validationErrors.shippingCity && <span style={{ color: "red" }}>{validationErrors.shippingCity}</span>}
                                                 </Col>
 
-                                                <Col md={4}>
+                                                <Col md={6}>
                                                     <FloatingInput
                                                         id="direccionFacturacion"
                                                         value={formData.shippingData.shippingAddress}
@@ -973,7 +973,7 @@ export default function CreateClientV2({
                                                     />
                                                 </Col>
 
-                                                <Col md={4}>
+                                                <Col md={6}>
                                                     <FloatingInput
                                                         id="shippingPhone"
                                                         value={formData.shippingData.shippingPhone}

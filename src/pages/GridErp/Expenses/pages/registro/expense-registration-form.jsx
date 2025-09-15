@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useTransition } from "react"
+import { useNavigate } from "react-router-dom"
 import {
     Container,
     Row,
@@ -20,6 +21,7 @@ import {
     Alert,
     Spinner,
 } from "reactstrap"
+import Select from 'react-select';
 import moment from "moment"
 import { ExpensesHelper } from "../../helpers/expenses_helper"
 import { TopLayoutGeneralView } from "../../../../../Components/Common/TopLayoutGeneralView"
@@ -27,6 +29,7 @@ import { PurchaseHelper } from "../../../Purchase/helper/purchase-helper"
 import { ZonesHelper } from "../../../Zones/helper/zones_helper"
 import { AccountHelper } from "../../../Accounts/helpers/account_helper"
 import { PaymentHelper } from "../../../Payments/payments-helper"
+import { FaPlus } from "react-icons/fa"
 
 const expenseHelper = new ExpensesHelper();
 const purchaseHelper = new PurchaseHelper();
@@ -35,6 +38,8 @@ const accountsHelper = new AccountHelper();
 const paymentHelper = new PaymentHelper();
 
 export default function ExpenseRegistrationForm({ mode = 'create' }) {
+    document.title = mode === 'create' ? "Registro de Egresos" : "Editar Egreso";
+    const navigate = useNavigate();
     const [isPending, startTransition] = useTransition()
 
     // Estados principales
@@ -63,6 +68,7 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
     const [typeModal, setTypeModal] = useState("success")
     const [isOpenModal, setIsOpenModal] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [errors, setErrors] = useState({});
 
     // Cargar datos iniciales
     useEffect(() => {
@@ -184,20 +190,6 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
         setTypeModal("")
         setIsOpenModal(false)
 
-        // Validaciones
-        if (
-            !selectedProviderId ||
-            !paymentDate ||
-            !accountId ||
-            !zoneId ||
-            !typeOfExpenseId ||
-            !value ||
-            Number.parseFloat(value) <= 0
-        ) {
-            showAlert("Por favor, complete todos los campos obligatorios.", "danger")
-            return
-        }
-
         // Preparar payload
         const payload = {
             providerId: selectedProviderId,
@@ -212,12 +204,19 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
             hasCurrentAdvancePayment: hasAdvancePayment,
         }
 
+        // Validaciones
+        if (!expenseHelper.validateForm(payload, setErrors)) {
+            console.log(errors);
+            return;
+        }
+
         startTransition(async () => {
             try {
                 const result = await expenseHelper.registerExpense(payload)
                 if (result.success) {
                     showAlert(result.message, "success")
                     resetForm()
+                    return navigate('/expenses-list')
                 } else {
                     showAlert(result.message, "danger")
                 }
@@ -285,21 +284,22 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
                                             <Col md="6">
                                                 <FormGroup>
                                                     <Label for="provider">Tercero *</Label>
-                                                    <Input
+                                                    <FaPlus
+                                                        className="cursor-pointer mx-2 text-primary"
+                                                        onClick={() => navigate("/customers-create-v2")} />
+                                                    <Select
                                                         id="provider"
-                                                        type="select"
-                                                        value={selectedProviderId}
-                                                        onChange={(e) => setSelectedProviderId(e.target.value)}
-                                                        disabled={isPending}
-                                                        required
-                                                    >
-                                                        <option value="">Seleccione un tercero</option>
-                                                        {providers.map((provider) => (
-                                                            <option key={provider._id} value={provider._id}>
-                                                                {provider.name} ({provider.commercialName})
-                                                            </option>
-                                                        ))}
-                                                    </Input>
+                                                        name="provider"
+                                                        options={providers.map((provider) => ({ value: provider._id, label: `${provider.name} (${provider.commercialName})` }))}
+                                                        value={selectedProviderId ? { value: selectedProviderId, label: `${providers.find((p) => p._id === selectedProviderId).name} (${providers.find((p) => p._id === selectedProviderId).commercialName})` } : null}
+                                                        onChange={(option) => {
+                                                            setSelectedProviderId(option.value);
+                                                        }}
+                                                        classNamePrefix="react-select"
+                                                        placeholder="Selecciona un tercero"
+                                                       
+                                                    />
+                                                    {errors.providerId && <span style={{ color: "red" }}>{errors.providerId}</span>}
                                                 </FormGroup>
                                             </Col>
                                             <Col md="6">
@@ -313,6 +313,7 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
                                                         required
                                                         disabled={isPending}
                                                     />
+                                                    {errors.paymentDate && <span style={{ color: "red" }}>{errors.paymentDate}</span>}
                                                 </FormGroup>
                                             </Col>
                                         </Row>
@@ -336,11 +337,12 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
                                                             </option>
                                                         ))}
                                                     </Input>
+                                                    {errors.zoneId && <span style={{ color: "red" }}>{errors.zoneId}</span>}
                                                 </FormGroup>
                                             </Col>
                                             <Col md="6">
                                                 <FormGroup>
-                                                    <Label for="typeOfExpense">Tipo de Gasto *</Label>
+                                                    <Label for="typeOfExpense">Tipo de Egreso *</Label>
                                                     <Input
                                                         id="typeOfExpense"
                                                         type="select"
@@ -349,13 +351,14 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
                                                         required
                                                         disabled={isPending}
                                                     >
-                                                        <option value="">Seleccione el tipo de gasto</option>
+                                                        <option value="">Seleccione el tipo de egreso</option>
                                                         {typesOfExpense.map((type) => (
                                                             <option key={type._id} value={type._id}>
                                                                 {type.name}
                                                             </option>
                                                         ))}
                                                     </Input>
+                                                    {errors.typeOfExpenseId && <span style={{ color: "red" }}>{errors.typeOfExpenseId}</span>}
                                                 </FormGroup>
                                             </Col>
                                         </Row>
@@ -377,6 +380,7 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
                                                             <tr key={debt._id}>
                                                                 <td className="text-center">
                                                                     <Input
+                                                                        className="cursor-pointer"
                                                                         type="checkbox"
                                                                         checked={selectedDebtIds.includes(debt._id)}
                                                                         onChange={(e) => handleDebtSelection(debt._id, e.target.checked)}
@@ -391,6 +395,7 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
                                                         <tr className="table-info">
                                                             <td className="text-center">
                                                                 <Input
+                                                                    className="cursor-pointer"
                                                                     type="checkbox"
                                                                     checked={hasAdvancePayment}
                                                                     onChange={(e) => handleAdvancePaymentSelection(e.target.checked)}
@@ -442,6 +447,7 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
                                                             </option>
                                                         ))}
                                                     </Input>
+                                                    {errors.accountId && <span style={{ color: "red" }}>{errors.accountId}</span>}
                                                 </FormGroup>
                                             </Col>
                                             <Col md="6">
@@ -457,6 +463,7 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
                                                         required
                                                         disabled={isPending}
                                                     />
+                                                    {errors.value && <span style={{ color: "red" }}>{errors.value}</span>}
                                                 </FormGroup>
                                             </Col>
                                         </Row>

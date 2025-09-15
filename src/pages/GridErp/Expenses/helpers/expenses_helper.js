@@ -1,7 +1,8 @@
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import { BASE_URL } from "../../../../helpers/url_helper";
+import { PurchaseHelper } from "../../Purchase/helper/purchase-helper";
 
-
+const purchase = new PurchaseHelper();
 
 export class ExpensesHelper {
     constructor() {
@@ -286,63 +287,64 @@ export class ExpensesHelper {
 
     // Registrar egreso
     async registerExpense(expenseData) {
-        console.log("Simulando registro de egreso:", expenseData)
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                // Validaciones básicas
-                if (!expenseData.providerId) {
-                    resolve({ success: false, message: "El proveedor es obligatorio." })
-                    return
-                }
-                if (!expenseData.accountId) {
-                    resolve({ success: false, message: "La cuenta es obligatoria." })
-                    return
-                }
-                if (!expenseData.zoneId) {
-                    resolve({ success: false, message: "La zona es obligatoria." })
-                    return
-                }
-                if (!expenseData.typeOfExpenseId) {
-                    resolve({ success: false, message: "El tipo de gasto es obligatorio." })
-                    return
-                }
-                if (!expenseData.value || expenseData.value <= 0) {
-                    resolve({ success: false, message: "El valor debe ser mayor a cero." })
-                    return
-                }
+        try {
+            let token = getToken();
+            let response = await fetch(`${this.baseUrlExpenses}/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify(expenseData),
+            });
+            if (response.status !== 201) {
+                throw new Error('Error al registrar egreso: ' + response.statusText);
+            }
+            let data = await response.json();
+            return {
+                success: true,
+                message: data?.message ?? 'Egreso registrado exitosamente.',
+                data: data,
+            }
 
-                // Simular éxito
-                resolve({
-                    success: true,
-                    message: "Egreso registrado exitosamente.",
-                    data: {
-                        _id: "expense_" + Date.now(),
-                        sequence: Math.floor(Math.random() * 1000) + 1,
-                        ...expenseData,
-                        createdAt: new Date(),
-                    },
-                })
-            }, 1000)
-        })
+        } catch (error) {
+            throw new Error('Error al registrar el egreso: ' + error.message);
+        }
     }
 
     // Subir archivo de soporte
     async uploadFile(file) {
-        console.log("Simulando subida de archivo:", file.name)
-        return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                if (file.size > 5 * 1024 * 1024) {
-                    reject(new Error("El archivo no debe superar los 5MB"))
-                    return
-                }
+        return purchase.uploadFile(file);
+    }
 
-                const mockUrl = `https://example.com/uploads/expenses/${Date.now()}_${file.name}`
-                resolve({
-                    success: true,
-                    url: mockUrl,
-                    message: "Archivo subido exitosamente",
-                })
-            }, 1500)
-        })
+    validateForm = (formData, setErrors) => {
+        let errors = {};
+        if (!formData.paymentDate) {
+            errors.paymentDate = "Debe seleccionar una fecha de pago";
+        }
+
+        if (!formData.value || Number.parseFloat(formData.value) <= 0) {
+            errors.value = "El valor debe ser mayor a cero";
+        }
+
+        if (!formData.accountId) {
+            errors.accountId = "Debe seleccionar una cuenta";
+        }
+
+        if (!formData.zoneId) {
+            errors.zoneId = "Debe seleccionar una sede";
+        }
+
+        if (!formData.typeOfExpenseId) {
+            errors.typeOfExpenseId = "Debe seleccionar un tipo de egreso";
+        }
+
+        if (!formData.providerId) {
+            errors.providerId = "Debe seleccionar un proveedor";
+        }
+
+        setErrors(errors);
+
+        return Object.keys(errors).length === 0; // Devuelve true si no hay errores
     }
 }

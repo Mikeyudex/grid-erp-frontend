@@ -301,4 +301,23 @@ export class PurchaseHelper {
 
     }
   }
+
+  validateForm = (formData, setErrors) => {
+    let errors = {};
+    if (!formData.providerId) {
+      errors.providerId = "Debe seleccionar un proveedor";
+    }
+
+    if (!formData.supplierInvoiceNumber) {
+      errors.supplierInvoiceNumber = "Debe ingresar el número de factura del proveedor";
+    }
+
+    if (!formData.detail.length) {
+      errors.detail = "Debe agregar al menos un producto";
+    }
+
+    setErrors(errors);
+
+    return Object.keys(errors).length === 0; // Devuelve true si no hay errores
+  }
 }

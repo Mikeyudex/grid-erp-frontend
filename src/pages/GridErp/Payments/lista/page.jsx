@@ -43,6 +43,7 @@ export default function PaymentListPage() {
         paymentDate: "",
         orderNumber: "",
         createdAt: "",
+        isInternalPayment: "",
     })
 
     const [tempFilters, setTempFilters] = useState({
@@ -51,6 +52,7 @@ export default function PaymentListPage() {
         paymentDate: "",
         orderNumber: "",
         createdAt: "",
+        isInternalPayment: "",
     })
 
 
@@ -139,6 +141,11 @@ export default function PaymentListPage() {
                 }
             }
 
+            // Filtro por pago interno
+            if (filters.isInternalPayment && filters.isInternalPayment !== income.isInternalPayment) {
+                return false
+            }
+
             return true
         })
 
@@ -157,13 +164,6 @@ export default function PaymentListPage() {
         setDropdownOpen(false)
     }
 
-    const handleFilterChange = (field, value) => {
-        setFilters((prev) => ({
-            ...prev,
-            [field]: value,
-        }))
-    }
-
     const clearTempFilters = () => {
         setTempFilters({
             customerName: "",
@@ -171,6 +171,7 @@ export default function PaymentListPage() {
             paymentDate: "",
             orderNumber: "",
             createdAt: "",
+            isInternalPayment: "",
         })
     }
 
@@ -181,6 +182,7 @@ export default function PaymentListPage() {
             paymentDate: "",
             orderNumber: "",
             createdAt: "",
+            isInternalPayment: "",
         }
         setFilters(emptyFilters)
         setTempFilters(emptyFilters)
@@ -393,7 +395,22 @@ export default function PaymentListPage() {
                                                             </FormGroup>
                                                         </Col>
 
-                                                        <Col md={12} className="mb-3">
+                                                        <Col md={6} className="mb-3">
+                                                            <FormGroup>
+                                                                <Label for="isInternalPayment" className="small fw-bold">
+                                                                    Pago Interno
+                                                                </Label>
+                                                                <Input
+                                                                    type="checkbox"
+                                                                    id="isInternalPayment"
+                                                                    value={tempFilters.isInternalPayment}
+                                                                    onChange={(e) => handleTempFilterChange("isInternalPayment", e.target.checked)}
+                                                                    className='cursor-pointer mx-2'
+                                                                />
+                                                            </FormGroup>
+                                                        </Col>
+
+                                                        <Col md={6} className="mb-3">
                                                             <FormGroup>
                                                                 <Label for="createdAt" className="small fw-bold">
                                                                     Fecha de Creación
@@ -446,7 +463,6 @@ export default function PaymentListPage() {
                                         {getActiveFiltersCount() > 0 && (
                                             <Button
                                                 color="outline-danger"
-                                                size="sm"
                                                 onClick={clearAllFilters}
                                                 title="Limpiar todos los filtros"
                                             >
