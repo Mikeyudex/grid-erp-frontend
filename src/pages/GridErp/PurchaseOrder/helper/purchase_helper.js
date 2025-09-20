@@ -1,6 +1,6 @@
 import { APIClient, ApiClientFetch } from "../../../../helpers/api_helper";
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
-import { BASE_URL, UPLOAD_FILE } from "../../../../helpers/url_helper";
+import { BASE_URL } from "../../../../helpers/url_helper";
 import * as url from "./url_helper";
 
 
@@ -15,6 +15,7 @@ export class PurchaseHelper {
     releaseOrder = async (orderId, userId) => apiFetch.update(`${url.RELEASE_ORDER}/${orderId}/${userId}`);
     dispatchOrder = async (orderId, userId) => apiFetch.update(`${url.DISPATCH_ORDER}/${orderId}/${userId}`);
     autoAsignarOrder = async (orderId, userId, zoneId) => apiFetch.update(`${url.AUTO_ASIGN_ORDER}/${orderId}/${userId}/${zoneId}`);
+    getSalesAdvisors = async () => apiFetch.get(`${url.GET_SALES_ADVISORS}`);
 
     getAdvanceByCustomer = async (customerId, typeOperation = 'anticipo', page = 1, limit = 10) => {
         try {

@@ -14,3 +14,4 @@ export const DISPATCH_ORDER = baseUrl + "/purchase-order/dispatch-order";
 export const AUTO_ASIGN_ORDER = baseUrl + "/purchase-order/auto-assign-order";
 export const DELETE_PURCHASE_ORDER = baseUrl + "/purchase-order/delete-order";
 export const BULK_DELETE_PURCHASE_ORDER = baseUrl + "/purchase-order/bulk-delete";
+export const GET_SALES_ADVISORS = baseUrl + "/users/advisors/getAll";

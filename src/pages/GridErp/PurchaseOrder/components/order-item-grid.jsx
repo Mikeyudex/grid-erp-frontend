@@ -108,6 +108,9 @@ export default function OrderGrid({
     const [filteredMaterialTypes, setFilteredMaterialTypes] = useState([]);
     const [asignacionModalOpen, setAsignacionModalOpen] = useState(false);
     const [zones, setZones] = useState([]);
+    const [salesAdvisors, setSalesAdvisors] = useState([]);
+    const [selectedAdvisor, setSelectedAdvisor] = useState(null);
+    const [editingAdvisor, setEditingAdvisor] = useState(false);
     const [selectedZoneId, setSelectedZoneId] = useState(null);
     const [editingZone, setEditingZone] = useState(false);
     const [editingDateOrder, setEditingDateOrder] = useState(false);
@@ -147,6 +150,7 @@ export default function OrderGrid({
 
     useEffect(() => {
         handleGetZones()
+        handleGetSalesAdvisors()
     }, []);
 
     const handleGetZones = async () => {
@@ -156,6 +160,18 @@ export default function OrderGrid({
             setZones(zones);
         } else {
             setMesssageAlert('Ocurrió un error al obtener las sedes.');
+            setTypeModal('danger');
+            setIsOpenModal(true);
+        }
+    };
+
+    const handleGetSalesAdvisors = async () => {
+        let response = await purchaseOrderHelper.getSalesAdvisors();
+        let salesAdvisors = response.data;
+        if (salesAdvisors && Array.isArray(salesAdvisors) && salesAdvisors.length > 0) {
+            setSalesAdvisors(salesAdvisors);
+        } else {
+            setMesssageAlert('Ocurrió un error al obtener los asesores de ventas.');
             setTypeModal('danger');
             setIsOpenModal(true);
         }
@@ -175,24 +191,18 @@ export default function OrderGrid({
             observations: "",
             finalPrice: 0,
             adjustedPrice: 0,
+            basePublicPrice: 0,
         }
     }
 
     // Añadir una nueva fila
     const addNewRow = () => {
-        /* if (!selectedClient) {
-            alert("Por favor, seleccione un cliente primero")
-            return
-        } */
-        //setOrderItems([...orderItems, createEmptyRow()])
         setProductSelected(null);
         const newRow = createEmptyRow()
 
         if (isEditMode && onAddItem) {
-            // En modo edición, notificar al componente padre
             onAddItem(newRow)
         } else {
-            // En modo creación, manejar internamente
             setOrderItems([...orderItems, newRow])
         }
     }
@@ -200,7 +210,6 @@ export default function OrderGrid({
     // Eliminar una fila
     const removeRow = (index) => {
         if (isEditMode && onRemoveItem) {
-            // En modo edición, notificar al componente padre
             onRemoveItem(index)
         } else {
             // En modo creación, manejar internamente
@@ -275,8 +284,6 @@ export default function OrderGrid({
 
             handleGetAdjustedPriceFromBasePrice(item.basePrice, item.matType, item.materialType, item.quantity, selectedClient?.typeCustomerId)
                 .then(data => {
-                    console.log(data);
-
                     let adjustedPrice = data;
                     let finalPrice = adjustedPrice * item.quantity;
 
@@ -286,6 +293,7 @@ export default function OrderGrid({
                         ...updatedItems[rowIndex],
                         adjustedPrice: adjustedPrice,
                         finalPrice: finalPrice,
+                        basePublicPrice: adjustedPrice / item.quantity,
                     };
 
                     setOrderItems(updatedItems);
@@ -317,6 +325,7 @@ export default function OrderGrid({
                     ...updatedItems[rowIndex],
                     adjustedPrice: adjustedPrice,
                     finalPrice: finalPrice,
+                    basePublicPrice: adjustedPrice / item.quantity,// se debe obtener el valor unitario
                 };
 
                 setOrderItems(updatedItems); // ✅ Actualizamos después del cálculo
@@ -580,6 +589,10 @@ export default function OrderGrid({
         setSelectedZoneId(zoneId);
     }
 
+    const handleSelectAdvisor = (advisorId) => {
+        setSelectedAdvisor(advisorId);
+    }
+
     const handleOpenAssignModal = async () => {
         setAsignacionModalOpen(true);
     }
@@ -627,7 +640,7 @@ export default function OrderGrid({
                         observations: item.observations,
                     }
                 }),
-                createdBy: localStorage.getItem("userId"),
+                createdBy: selectedAdvisor || localStorage.getItem("userId"),
                 zoneId: selectedZoneId,
                 methodOfPayment: paymentMethods.map((m) => {
                     return {
@@ -766,6 +779,13 @@ export default function OrderGrid({
         return paymentMethods.reduce((total, method) => total + (method.valor || 0), 0)
     }
 
+    const getLabelAdvisor = () => {
+        if (selectedAdvisor) {
+            const advisor = salesAdvisors.find((a) => a.id === selectedAdvisor)
+            return `${advisor?.name} ${advisor?.lastname}`
+        }
+        return "Ninguno(a)"
+    }
 
     return (
         <>
@@ -1076,9 +1096,45 @@ export default function OrderGrid({
                                 </div>
                             </Col>
                             <Col md={6} className="mb-2">
-                                <div>
-                                    <span className="fw-medium">Vendedor: </span>
-                                    <span>{"Sin seleccionar"}</span>
+                                <div className="d-flex align-items-center">
+                                    <span className="fw-medium">Asesor: </span>
+                                    <div
+                                        className="p-1 w-100 cursor-pointer"
+                                        onClick={() => setEditingAdvisor(true)}
+                                    >
+                                        {editingAdvisor ? (
+                                            <Input
+                                                style={{
+                                                    border: 'none !important',
+                                                    borderBottom: '2px solid #ccc !important',
+                                                    backgroundColor: 'transparent',
+                                                    color: '#132649',
+                                                    '&:focus': { border: 'none', boxShadow: 'none' },
+                                                    fontSize: '1em',
+                                                    padding: '3px',
+                                                    marginLeft: "2px"
+                                                }}
+                                                type="select"
+                                                value={selectedAdvisor}
+                                                onChange={(e) => {
+                                                    handleSelectAdvisor(e.target.value)
+                                                    setEditingAdvisor(false)
+                                                }}
+                                                onBlur={() => setEditingAdvisor(false)}
+                                                autoFocus
+                                                className="form-control"
+                                            >
+                                                <option value="0">Selecciona un(a) asesor(a)</option>
+                                                {salesAdvisors.map((advisor) => (
+                                                    <option key={advisor.id} value={advisor.id}>{`${advisor?.name} ${advisor?.lastname}`}</option>
+                                                ))}
+                                            </Input>
+
+                                        ) : (
+                                            <span>{getLabelAdvisor()}</span>
+                                        )}
+                                    </div>
+
                                 </div>
                             </Col>
                         </Row>
@@ -1307,9 +1363,7 @@ export default function OrderGrid({
                                                             <Edit2 size={14} />
                                                         </Button>
                                                     </div>
-                                                    {/*   <small className="text-muted d-block" style={{ fontSize: "0.75rem" }}>
-                                                {getSelectedPiecesText(item.selectedPieces)}
-                                            </small> */}
+                                                    
                                                 </td>
 
                                                 {/* Tipo Tapete */}
@@ -1402,7 +1456,7 @@ export default function OrderGrid({
 
                                                 {/* Precio Base */}
                                                 <td className="text-end">
-                                                    {/*  <div className="p-2">${item.basePrice?.toLocaleString()}</div> */}
+                                            
                                                     <div
                                                         className="p-1"
                                                         onClick={() => setEditingCell({ row: index, field: "basePrice" })}
@@ -1411,22 +1465,23 @@ export default function OrderGrid({
                                                         {editingCell?.row === index && editingCell?.field === "basePrice" ? (
                                                             <Input
                                                                 type="number"
-                                                                value={item.basePrice}
+                                                                value={item.basePublicPrice}
                                                                 onChange={(e) => {
-                                                                    updateCellValue(index, "basePrice", Number.parseInt(e.target.value) || 1)
+                                                                    updateCellValue(index, "basePublicPrice", Number.parseInt(e.target.value) || 1)
                                                                 }}
-                                                                onBlur={() => handleOnChangeBasePrice(index, item.basePrice)}
+                                                                onBlur={() => handleOnChangeBasePrice(index, item.basePublicPrice)}
                                                                 onKeyDown={(e) => {
                                                                     if (e.key === "Enter") {
-                                                                        handleOnChangeBasePrice(index, item.basePrice);
+                                                                        handleOnChangeBasePrice(index, item.basePublicPrice);
                                                                     }
                                                                 }}
                                                                 autoFocus
                                                             />
                                                         ) : (
-                                                            <div>${item.basePrice?.toLocaleString()}</div>
+                                                            <div>${item?.matType && item?.materialType && item.basePublicPrice?.toLocaleString()}</div>
                                                         )}
                                                     </div>
+
                                                 </td>
                                                 {/* Precio ajustado */}
                                                 <td className="text-end">
@@ -1467,12 +1522,6 @@ export default function OrderGrid({
                                 </tbody>
                             </Table>
                         </div>
-                        /* ) : (
-                           selectedClient && (
-                               <Alert color="info" className="text-center">
-                                   No hay productos en el pedido. Haga clic en "Añadir Producto" para comenzar.
-                               </Alert>
-                           ) */
                     )
                 }
 
