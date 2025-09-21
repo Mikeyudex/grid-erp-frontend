@@ -24,9 +24,11 @@ import DataTable from "../../.././../../Components/Common/DataTableCustom"
 import { TopLayoutGeneralView } from '../../.././../../Components/Common/TopLayoutGeneralView'
 import { numberFormatPrice } from '../../../Products/helper/product_helper'
 import { ExpensesHelper } from '../../helpers/expenses_helper'
-import moment from 'moment'
+import { CustomerHelper } from '../../../Customers/helper/customer-helper'
 
-const expenseHelper = new ExpensesHelper()
+
+const expenseHelper = new ExpensesHelper();
+const customerHelper = new CustomerHelper();
 
 export default function ExpenseListPage() {
     document.title = "Lista de Egresos | Quality";
@@ -37,6 +39,7 @@ export default function ExpenseListPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [dropdownOpen, setDropdownOpen] = useState(false)
+    const [providers, setProviders] = useState([]);
 
     // Estados para los filtros
     const [filters, setFilters] = useState({
@@ -91,6 +94,9 @@ export default function ExpenseListPage() {
             .finally(() => {
                 setLoading(false);
             });
+
+            const providers = await customerHelper.getProviders();
+            setProviders(providers);
     }
 
     useEffect(() => {
@@ -102,8 +108,8 @@ export default function ExpenseListPage() {
         if (!expenses) return
 
         const filtered = expenses.filter((expense) => {
-            // Filtro por nombre proveedor
-            if (filters.providerName && !expense.providerId.commercialName.toLowerCase().includes(filters.providerName.toLowerCase())) {
+            // Filtro por id de proveedor
+            if (filters.providerId && !expense.providerId._id.includes(filters.providerId)) {
                 return false
             }
 
@@ -148,7 +154,7 @@ export default function ExpenseListPage() {
 
     const clearTempFilters = () => {
         setTempFilters({
-            customerName: "",
+            providerId: "all",
             typeOperation: "",
             paymentDate: "",
             orderNumber: "",
@@ -309,17 +315,23 @@ export default function ExpenseListPage() {
                                                     <Row>
                                                         <Col md={6} className="mb-3">
                                                             <FormGroup>
-                                                                <Label for="providerName" className="small fw-bold">
+                                                                <Label for="providerId" className="small fw-bold">
                                                                     Proveedor
                                                                 </Label>
                                                                 <Input
-                                                                    type="text"
-                                                                    id="providerName"
-                                                                    placeholder="Buscar por proveedor..."
-                                                                    value={tempFilters.providerName}
-                                                                    onChange={(e) => handleTempFilterChange("providerName", e.target.value)}
+                                                                    type="select"
+                                                                    id="providerId"
+                                                                    value={tempFilters.providerId}
+                                                                    onChange={(e) => handleTempFilterChange("providerId", e.target.value)}
                                                                     size="sm"
-                                                                />
+                                                                >
+                                                                    <option value="all">Todos los Proveedores</option>
+                                                                    {providers.map((provider) => (
+                                                                        <option key={provider._id} value={provider._id}>
+                                                                            {provider.name} {provider.lastname} ({provider.commercialName})
+                                                                        </option>
+                                                                    ))}
+                                                                </Input>
                                                             </FormGroup>
                                                         </Col>
 
@@ -419,7 +431,7 @@ export default function ExpenseListPage() {
                                     {/* Resumen de filtros activos */}
                                     {getActiveFiltersCount() > 0 && (
                                         <div className="text-muted small">
-                                            Mostrando {filteredIncomes?.length || 0} de {incomes?.length || 0} registros
+                                            Mostrando {filteredExpenses?.length || 0} de {filteredExpenses?.length || 0} registros
                                         </div>
                                     )}
                                 </CardHeader>

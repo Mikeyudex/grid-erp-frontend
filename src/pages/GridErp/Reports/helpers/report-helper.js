@@ -1,15 +1,17 @@
 // Helpers para el módulo de reportes
+
+import { CustomerHelper } from "../../Customers/helper/customer-helper";
+import { PurchaseHelper } from "../../PurchaseOrder/helper/purchase_helper";
+import { ZonesHelper } from "../../Zones/helper/zones_helper";
+
+const zonesHelper = new ZonesHelper();
+const purchaseHelper = new PurchaseHelper();
+const customerHelper = new CustomerHelper();
 export class ReportsHelper {
   // Obtener sedes para el filtro
   async getOffices() {
     try {
-      // Simulación - reemplazar con llamada real a la API
-      return [
-        { _id: "1", name: "Sede Principal" },
-        { _id: "2", name: "Sede Norte" },
-        { _id: "3", name: "Sede Sur" },
-        { _id: "4", name: "Sede Centro" },
-      ]
+      return await zonesHelper.getZones();
     } catch (error) {
       console.error("Error al obtener sedes:", error)
       throw error
@@ -19,14 +21,12 @@ export class ReportsHelper {
   // Obtener asesores para el filtro
   async getAdvisors() {
     try {
-      // Simulación - reemplazar con llamada real a la API
-      return [
-        { _id: "1", name: "Juan Pérez", office: "Sede Principal" },
-        { _id: "2", name: "María García", office: "Sede Norte" },
-        { _id: "3", name: "Carlos López", office: "Sede Sur" },
-        { _id: "4", name: "Ana Rodríguez", office: "Sede Centro" },
-        { _id: "5", name: "Luis Martínez", office: "Sede Principal" },
-      ]
+      let response = await purchaseHelper.getSalesAdvisors();
+      let advisors = response.data;
+      if (advisors && Array.isArray(advisors) && advisors.length > 0) {
+        return advisors;
+      }
+      return [];
     } catch (error) {
       console.error("Error al obtener asesores:", error)
       throw error
@@ -36,14 +36,8 @@ export class ReportsHelper {
   // Obtener clientes para el filtro
   async getClients() {
     try {
-      // Simulación - reemplazar con llamada real a la API
-      return [
-        { _id: "1", name: "Empresa ABC", commercialName: "ABC Comercial" },
-        { _id: "2", name: "Distribuidora XYZ", commercialName: "XYZ Ltda" },
-        { _id: "3", name: "Corporación 123", commercialName: "Corp 123" },
-        { _id: "4", name: "Servicios Generales", commercialName: "ServiGen" },
-        { _id: "5", name: "Importadora Nacional", commercialName: "ImpNacional" },
-      ]
+      let response = await customerHelper.getCustomers(1, 100);
+      return response;
     } catch (error) {
       console.error("Error al obtener clientes:", error)
       throw error

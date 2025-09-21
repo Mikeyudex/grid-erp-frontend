@@ -161,7 +161,7 @@ export default function AccumulatedSalesReport() {
                         <option value="all">Todos los Asesores</option>
                         {advisors.map((advisor) => (
                           <option key={advisor._id} value={advisor._id}>
-                            {advisor.name}
+                            {advisor.name} {advisor.lastname}
                           </option>
                         ))}
                       </Input>

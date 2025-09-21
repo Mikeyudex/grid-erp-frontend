@@ -188,7 +188,7 @@ export default function DetailedAccountsReceivableReport() {
                     <option value="all">Todos los Asesores</option>
                     {advisors.map((advisor) => (
                       <option key={advisor._id} value={advisor._id}>
-                        {advisor.name}
+                        {advisor.name} {advisor.lastname}
                       </option>
                     ))}
                   </Input>
@@ -357,8 +357,9 @@ export default function DetailedAccountsReceivableReport() {
       {!loadingReport && reportData.length === 0 && !error && (
         <Card>
           <CardBody className="text-center py-5">
-            <i className="fas fa-file-invoice text-muted mb-3" style={{ fontSize: "3rem" }}></i>
-            <p className="text-muted mb-0">Haz clic en "Generar Reporte" para ver el detalle de facturas por cobrar</p>
+            <i className="mdi mdi-chart-bar display-4 text-muted"></i>
+            <h5 className="mt-3 text-muted">Reporte de CXC - Consolidado por Pedidos</h5>
+            <p className="text-muted">Seleccione los filtros y haga clic en "Consultar" para generar el reporte.</p>
           </CardBody>
         </Card>
       )}

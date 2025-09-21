@@ -40,7 +40,7 @@ export default function ReportsPage() {
     },
     {
       id: "cuentas-por-cobrar-detallado",
-      title: "Cuentas por Cobrar - Detallado",
+      title: "CXC - Detallado por Pedidos",
       description: "Reporte detallado de facturas pendientes por cobrar con información individual",
       icon: "mdi-currency-usd",
       color: "danger",

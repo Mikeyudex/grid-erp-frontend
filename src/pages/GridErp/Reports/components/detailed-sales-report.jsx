@@ -263,7 +263,7 @@ export default function DetailedSalesReport() {
                             <option value="all">Todos los Asesores</option>
                             {advisors.map((advisor) => (
                               <option key={advisor._id} value={advisor._id}>
-                                {advisor.name}
+                                {advisor.name} {advisor.lastname}
                               </option>
                             ))}
                           </Input>
@@ -385,10 +385,13 @@ export default function DetailedSalesReport() {
 
               {/* Resultados */}
               {!hasSearched && !loading && (
-                <Alert color="info" className="text-center">
-                  <i className="mdi mdi-information me-2"></i>
-                  Seleccione los filtros y haga clic en "Consultar" para ver el reporte
-                </Alert>
+                <Card>
+                  <CardBody className="text-center py-5">
+                    <i className="mdi mdi-chart-bar display-4 text-muted"></i>
+                    <h5 className="mt-3 text-muted">Reporte de Ventas Detalladas</h5>
+                    <p className="text-muted">Seleccione los filtros y haga clic en "Consultar" para generar el reporte.</p>
+                  </CardBody>
+                </Card>
               )}
 
               {hasSearched && !loading && reportData.length === 0 && !error && (
