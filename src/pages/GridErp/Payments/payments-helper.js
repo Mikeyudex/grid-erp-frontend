@@ -102,7 +102,7 @@ export class PaymentHelper {
 
 
   // Nueva función para simular la obtención de todos los ingresos
-  async getAllIncome(params = {page: 1, limit: 100}) {
+  async getAllIncome(params = { page: 1, limit: 100 }) {
 
     let token = getToken();
     let response = await fetch(`${this.baseUrl}/getAll?page=${params.page}&limit=${params.limit}`, {
@@ -175,5 +175,18 @@ export class PaymentHelper {
       .then(response => response.json())
       .then(data => data)
       .catch(err => console.log(err));
+  }
+
+  getOperationTypeBadgeColor(typeOperation) {
+    if (typeOperation === 'ventas') {
+      return 'success'
+    }
+    if (typeOperation === 'recibos') {
+      return 'secondary'
+    }
+    if (typeOperation === 'anticipo') {
+      return 'warning'
+    }
+    return 'info'
   }
 }

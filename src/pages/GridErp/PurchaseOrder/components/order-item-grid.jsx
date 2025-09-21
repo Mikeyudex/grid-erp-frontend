@@ -693,6 +693,10 @@ export default function OrderGrid({
                 setSelectedRows([]);
                 setEditingRowIndex(null);
                 setSelectedZoneId(null);
+            }else{
+                setMesssageAlert('Ocurrió un error :(, intenta más tarde.');
+                setTypeModal('danger');
+                setIsOpenModal(true);
             }
         } catch (error) {
             console.log(error);

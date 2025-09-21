@@ -17,12 +17,14 @@ import {
     DropdownMenu,
     Badge,
 } from "reactstrap"
+import moment from 'moment'
 import { PaymentHelper } from "../payments-helper"
 import DataTable from "../../../../Components/Common/DataTableCustom"
 import { TopLayoutGeneralView } from '../../../../Components/Common/TopLayoutGeneralView'
 import { FaCheck, FaFilter, FaPlus, FaTimes } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import { numberFormatPrice } from '../../Products/helper/product_helper'
+
 
 const paymentHelper = new PaymentHelper()
 
@@ -78,10 +80,10 @@ export default function PaymentListPage() {
                             ...income,
                             accountName: income?.accountId?.name,
                             orderNumber: income?.purchaseOrderId?.orderNumber || 'N/A',
-                            paymentDate: income.paymentDate,
+                            paymentDate: moment(income?.paymentDate, "YYYY-MM-DDTHH:mm:ss.SSSZ").add('hours', 5),
                             value: numberFormatPrice(income.value),
                             createdAt: income.createdAt,
-                            typeOperation: income.typeOperation || 'N/A',
+                            typeOperation: income.typeOperation.toUpperCase() || 'N/A',
                             observations: income.observations || 'N/A',
                             _id: income._id,
                             customerName: ` ${income?.customerId?.commercialName || income?.providerId?.commercialName || 'N/A'}`,

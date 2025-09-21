@@ -62,6 +62,13 @@ import PurchaseListPage from "../pages/GridErp/Purchase/pages/purchase-list";
 import EditPaymentPage from "../pages/GridErp/Payments/editar/page";
 import RegisterExpensePage from "../pages/GridErp/Expenses/pages/registro/page";
 import ExpenseListPage from "../pages/GridErp/Expenses/pages/lista/page";
+import ReportsPage from "../pages/GridErp/Reports/page";
+import AccumulatedSalesReportPage from "../pages/GridErp/Reports/pages/ventas-acumuladas/page";
+import DetailedSalesReportPage from "../pages/GridErp/Reports/pages/ventas-detalladas/page";
+import ProductSalesReportPage from "../pages/GridErp/Reports/pages/ventas-por-producto/page";
+import AccountsReceivablePage from "../pages/GridErp/Reports/pages/cuentas-por-cobrar/page";
+import DetailedAccountsReceivablePage from "../pages/GridErp/Reports/pages/cuentas-por-cobrar-detallado/page";
+import BankAccountsBalancePage from "../pages/GridErp/Reports/pages/saldos-bancarios/page";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -179,6 +186,15 @@ const authProtectedRoutes = [
     //Purchase
     { path: "/purchases", component: <PurchaseListPage /> },
     { path: "/purchases-create", component: <CreatePurchase /> },
+
+    //Reports
+    { path: "/reports", component: <ReportsPage /> },
+    { path: "/reports-cumulative-sales", component: <AccumulatedSalesReportPage /> },
+    { path: "/reports-detailed-sales", component: <DetailedSalesReportPage /> },
+    { path: "/reports-product-sales", component: <ProductSalesReportPage /> },
+    { path: "/reports-receivables", component: <AccountsReceivablePage /> },
+    { path: "/reports-receivables-detailed", component: <DetailedAccountsReceivablePage /> },
+    { path: "/reports-bank-accounts-balance", component: <BankAccountsBalancePage /> },
 ]
 
 const publicRoutes = [

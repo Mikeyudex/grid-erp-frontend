@@ -15,19 +15,9 @@ const Navdata = () => {
   const [isProduction, setIsProduction] = useState(false);
   const [isAccounting, setIsAccounting] = useState(false);
   const [isExpenses, setIsExpenses] = useState(false);
+  const [isReports, setIsReports] = useState(false);
 
 
-  const [isAuth, setIsAuth] = useState(false);
-  const [isPages, setIsPages] = useState(false);
-  const [isBaseUi, setIsBaseUi] = useState(false);
-  const [isAdvanceUi, setIsAdvanceUi] = useState(false);
-  const [isForms, setIsForms] = useState(false);
-  const [isTables, setIsTables] = useState(false);
-  const [isCharts, setIsCharts] = useState(false);
-  const [isIcons, setIsIcons] = useState(false);
-  const [isMaps, setIsMaps] = useState(false);
-  const [isMultiLevel, setIsMultiLevel] = useState(false);
-  const [isApps, setIsApps] = useState(false);
 
   const [iscurrentState, setIscurrentState] = useState("Dashboard");
 
@@ -62,13 +52,18 @@ const Navdata = () => {
     if (iscurrentState !== "Cuentas") {
       setIsAccounting(false);
     }
+    if (iscurrentState !== "Reportes") {
+      setIsReports(false);
+    }
   }, [
     history,
     iscurrentState,
     isDashboard,
     isCustomers,
     isProduction,
-    isAccounting
+    isAccounting,
+    isExpenses,
+    isReports
   ]);
 
   const menuItems = [
@@ -315,7 +310,7 @@ const Navdata = () => {
       subItems: [
         {
           id: "account-list",
-          label: "Cuentas",
+          label: "Cuentas bancarias",
           link: "/accounts",
           parentId: "accounting",
         },
@@ -343,7 +338,7 @@ const Navdata = () => {
           link: "/accounting/taxes-list",
           parentId: "accounting",
         },
-         {
+        {
           id: "expenses",
           label: "Egresos",
           link: "/accounting#",
@@ -358,6 +353,31 @@ const Navdata = () => {
             { id: 2, label: "Listado de Egresos", link: "/accounting/expenses-list" },
             { id: 3, label: "Registrar Egreso", link: "/accounting/expenses-register" },
           ],
+        },
+      ],
+    },
+    {
+      label: "Reportes",
+      isHeader: true,
+    },
+    {
+      id: "reports",
+      label: "Reportes",
+      icon: "ri-file-list-line",
+      link: "/#",
+      click: function (e) {
+        e.preventDefault();
+        setIsReports(!isReports);
+        setIscurrentState("Reportes");
+        updateIconSidebar(e);
+      },
+      stateVariables: isReports,
+      subItems: [
+        {
+          id: "reports",
+          label: "Reportes",
+          link: "/reports",
+          parentId: "reports",
         },
       ],
     },
