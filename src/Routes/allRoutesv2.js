@@ -69,6 +69,8 @@ import ProductSalesReportPage from "../pages/GridErp/Reports/pages/ventas-por-pr
 import AccountsReceivablePage from "../pages/GridErp/Reports/pages/cuentas-por-cobrar/page";
 import DetailedAccountsReceivablePage from "../pages/GridErp/Reports/pages/cuentas-por-cobrar-detallado/page";
 import BankAccountsBalancePage from "../pages/GridErp/Reports/pages/saldos-bancarios/page";
+import BankMovementsReportPage from "../pages/GridErp/Reports/pages/movimientos-bancarios/page";
+import ShippingLabelsPage from "../pages/GridErp/Reports/pages/rotulos-envio/page";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -195,6 +197,8 @@ const authProtectedRoutes = [
     { path: "/reports-receivables", component: <AccountsReceivablePage /> },
     { path: "/reports-receivables-detailed", component: <DetailedAccountsReceivablePage /> },
     { path: "/reports-bank-accounts-balance", component: <BankAccountsBalancePage /> },
+    { path: "/reports-bank-movements", component: <BankMovementsReportPage /> },
+    { path: "/reports-shipping-labels", component: <ShippingLabelsPage /> },
 ]
 
 const publicRoutes = [

@@ -1,6 +1,7 @@
 import { Container, Row, Col, Card, CardHeader, CardBody, CardTitle, Button } from "reactstrap"
-import { TopLayoutGeneralView } from "../../../Components/Common/TopLayoutGeneralView"
 import { useNavigate } from "react-router-dom";
+import { TrendingUp, FileText, Package, CreditCard, DollarSign, BarChart3, Truck } from "lucide-react"
+import { TopLayoutGeneralView } from "../../../Components/Common/TopLayoutGeneralView"
 
 export default function ReportsPage() {
   document.title = "Reportes | Quality";
@@ -9,49 +10,63 @@ export default function ReportsPage() {
     {
       id: "ventas-acumuladas",
       title: "Ventas Acumuladas",
-      description: "Reporte consolidado de ventas por sede y asesor en un período específico",
-      icon: "mdi-chart-line",
+      description: "Reporte consolidado de ventas por sede y asesor",
+      icon: TrendingUp,
       color: "primary",
-      path: "/reports-cumulative-sales",
+      href: "/reports-cumulative-sales",
     },
     {
       id: "ventas-detalladas",
       title: "Ventas Detalladas",
-      description: "Reporte detallado de todas las ventas con información completa por transacción",
-      icon: "mdi-chart-line-variant",
-      color: "success",
-      path: "/reports-detailed-sales",
+      description: "Reporte detallado de ventas por factura",
+      icon: FileText,
+      color: "info",
+      href: "/reports-detailed-sales",
     },
     {
       id: "ventas-por-producto",
       title: "Ventas por Producto",
       description: "Análisis detallado de ventas segmentado por productos, tipos y materiales",
-      icon: "mdi-package-variant",
-      color: "info",
-      path: "/reports-product-sales",
+      icon: Package,
+      color: "success",
+      href: "/reports-product-sales",
     },
     {
       id: "cuentas-por-cobrar",
       title: "CXC - Consolidado por Cliente",
-      description: "Reporte de facturas pendientes por cobrar consolidado por cliente",
-      icon: "mdi-currency-usd",
+      description: "Reporte consolidado de cuentas por cobrar por cliente",
+      icon: CreditCard,
       color: "warning",
-      path: "/reports-receivables",
+      href: "/reports-receivables",
     },
     {
       id: "cuentas-por-cobrar-detallado",
       title: "CXC - Detallado por Pedidos",
-      description: "Reporte detallado de facturas pendientes por cobrar con información individual",
-      icon: "mdi-currency-usd",
+      description: "Reporte consolidado de cuentas por cobrar por cliente",
+      icon: FileText,
       color: "danger",
-      path: "/reports-receivables-detailed",
+      href: "/reports-receivables-detailed",
     },
     {
       title: "Saldos Bancarios",
-      description: "Reporte de saldos actuales de todas las cuentas bancarias registradas",
-      icon: "mdi-bank",
+      description: "Reporte de saldos de todas las cuentas bancarias",
+      icon: DollarSign,
       color: "secondary",
-      path: "/reports-bank-accounts-balance",
+      href: "/reports-bank-accounts-balance",
+    },
+    {
+      title: "Movimientos Bancarios",
+      description: "Reporte detallado de movimientos por cuenta bancaria",
+      icon: BarChart3,
+      color: "dark",
+      href: "/reports-bank-movements",
+    },
+    {
+      title: "Rótulos de Envío",
+      description: "Generador de rótulos de envío para clientes",
+      icon: Truck,
+      color: "primary",
+      href: "/reports-shipping-labels",
     },
 
   ]
@@ -63,46 +78,38 @@ export default function ReportsPage() {
       to="/"
       main={
         <Container fluid className="py-4">
-          <Row>
-            <Col lg="12">
+          <Row className="mb-4">
+            <Col>
               <Card>
-                <CardHeader>
-                  <CardTitle tag="h4" className="mb-0">
-                    <i className="mdi mdi-chart-box me-2"></i>
-                    Reportes Disponibles
-                  </CardTitle>
-                </CardHeader>
                 <CardBody>
-                  <Row>
-                    {reports.map((report) => (
-                      <Col md="6" lg="4" key={report.id} className="mb-4">
-                        <Card className={`h-100 ${report.disabled ? "opacity-50" : ""}`}>
-                          <CardBody className="text-center">
-                            <div className={`avatar-lg mx-auto mb-3`}>
-                              <div className={`avatar-title rounded-circle bg-${report.color} text-white`}>
-                                <i className={`mdi ${report.icon} display-6`}></i>
-                              </div>
-                            </div>
-                            <h5 className="card-title">{report.title}</h5>
-                            <p className="card-text text-muted">{report.description}</p>
-                            <Button
-                              color={report.color}
-                              disabled={report.disabled}
-                              className="mt-auto"
-                              onClick={() => navigate(report.path)}
-                            >
-                              {report.disabled ? "Próximamente" : "Ver Reporte"}
-                              {!report.disabled && <i className="mdi mdi-arrow-right ms-2"></i>}
-                            </Button>
-                          </CardBody>
-                        </Card>
-                      </Col>
-                    ))}
-                  </Row>
+                  <h2 className="mb-0">Centro de Reportes</h2>
+                  <p className="text-muted mb-0">Seleccione el reporte que desea generar</p>
                 </CardBody>
               </Card>
             </Col>
           </Row>
+
+          <Row>
+            {reports.map((report, index) => {
+              const IconComponent = report.icon
+              return (
+                <Col key={index} lg={3} md={4} sm={6} className="mb-4">
+                  <Link href={report.href} className="text-decoration-none">
+                    <Card className="h-100 shadow-sm hover-card">
+                      <CardBody className="text-center">
+                        <div className={`text-${report.color} mb-3`}>
+                          <IconComponent size={48} />
+                        </div>
+                        <h5 className={`text-${report.color} mb-2`}>{report.title}</h5>
+                        <p className="text-muted small mb-0">{report.description}</p>
+                      </CardBody>
+                    </Card>
+                  </Link>
+                </Col>
+              )
+            })}
+          </Row>
+
           <style jsx>{`
         .hover-card {
           transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;

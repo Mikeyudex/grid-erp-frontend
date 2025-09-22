@@ -44,6 +44,146 @@ export class ReportsHelper {
     }
   }
 
+  // Obtener clientes con información completa para rótulos
+  async getClientsForLabels() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            _id: "1",
+            name: "Empresa ABC S.A.S",
+            commercialName: "ABC Corp",
+            documentNumber: "900123456-7",
+            address: "Carrera 15 # 93-47, Oficina 501",
+            city: "Bogotá",
+            state: "Cundinamarca",
+            postalCode: "110221",
+            phone: "+57 1 234-5678",
+            contactPerson: "Carlos Mendoza",
+            email: "contacto@abccorp.com.co",
+          },
+          {
+            _id: "2",
+            name: "Comercial XYZ Ltda",
+            commercialName: "XYZ Store",
+            documentNumber: "800987654-3",
+            address: "Calle 50 # 46-36, Local 102",
+            city: "Medellín",
+            state: "Antioquia",
+            postalCode: "050012",
+            phone: "+57 4 567-8901",
+            contactPerson: "María Rodríguez",
+            email: "ventas@xyzstore.com.co",
+          },
+          {
+            _id: "3",
+            name: "Distribuidora 123",
+            commercialName: "Dist 123",
+            documentNumber: "900456789-1",
+            address: "Avenida 6 Norte # 23-45, Bodega 8",
+            city: "Cali",
+            state: "Valle del Cauca",
+            postalCode: "760042",
+            phone: "+57 2 345-6789",
+            contactPerson: "Juan Carlos Pérez",
+            email: "pedidos@dist123.com.co",
+          },
+          {
+            _id: "4",
+            name: "Tapetes del Norte",
+            commercialName: "Norte Tapetes",
+            documentNumber: "800234567-9",
+            address: "Carrera 38 # 74-25, Centro Comercial Norte",
+            city: "Barranquilla",
+            state: "Atlántico",
+            postalCode: "080020",
+            phone: "+57 5 678-9012",
+            contactPerson: "Ana López",
+            email: "info@nortetapetes.com.co",
+          },
+          {
+            _id: "5",
+            name: "Decoraciones Sur",
+            commercialName: "Deco Sur",
+            documentNumber: "900345678-2",
+            address: "Calle 36 # 19-62, Barrio Cabecera",
+            city: "Bucaramanga",
+            state: "Santander",
+            postalCode: "680003",
+            phone: "+57 7 890-1234",
+            contactPerson: "Luis Martínez",
+            email: "contacto@decosur.com.co",
+          },
+          {
+            _id: "6",
+            name: "Pisos y Más S.A.S",
+            commercialName: "Pisos Plus",
+            documentNumber: "900567890-4",
+            address: "Carrera 7 # 15-23, Zona Industrial",
+            city: "Pereira",
+            state: "Risaralda",
+            postalCode: "660003",
+            phone: "+57 6 123-4567",
+            contactPerson: "Sandra García",
+            email: "ventas@pisosplus.com.co",
+          },
+          {
+            _id: "7",
+            name: "Hogar Ideal Ltda",
+            commercialName: "Hogar Ideal",
+            documentNumber: "800678901-5",
+            address: "Avenida Santander # 20-45, Centro",
+            city: "Manizales",
+            state: "Caldas",
+            postalCode: "170004",
+            phone: "+57 6 234-5678",
+            contactPerson: "Roberto Silva",
+            email: "info@hogarideal.com.co",
+          },
+          {
+            _id: "8",
+            name: "Construcciones Beta",
+            commercialName: "Beta Construcciones",
+            documentNumber: "900789012-6",
+            address: "Calle 30 # 17-89, Sector Histórico",
+            city: "Cartagena",
+            state: "Bolívar",
+            postalCode: "130001",
+            phone: "+57 5 345-6789",
+            contactPerson: "Patricia Morales",
+            email: "proyectos@betaconstrucciones.com.co",
+          },
+          {
+            _id: "9",
+            name: "Oficinas Modernas",
+            commercialName: "Oficinas Plus",
+            documentNumber: "800890123-7",
+            address: "Carrera 5 # 12-34, Torre Empresarial",
+            city: "Ibagué",
+            state: "Tolima",
+            postalCode: "730001",
+            phone: "+57 8 456-7890",
+            contactPerson: "Fernando Castro",
+            email: "contacto@oficinasplus.com.co",
+          },
+          {
+            _id: "10",
+            name: "Espacios Creativos",
+            commercialName: "Creativos Design",
+            documentNumber: "900901234-8",
+            address: "Calle 40 # 25-67, Barrio La Esperanza",
+            city: "Villavicencio",
+            state: "Meta",
+            postalCode: "500001",
+            phone: "+57 8 567-8901",
+            contactPerson: "Diana Ruiz",
+            email: "diseno@creativosdesign.com.co",
+          },
+        ])
+      }, 500)
+    })
+  }
+
   // Obtener productos para el filtro
   async getProducts() {
     try {
@@ -93,6 +233,51 @@ export class ReportsHelper {
       console.error("Error al obtener materiales:", error)
       throw error
     }
+  }
+
+  // Obtener cuentas bancarias para filtros
+  async getBankAccounts() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            _id: "1",
+            accountNumber: "1234567890",
+            bankName: "Banco de Bogotá",
+            accountType: "Cuenta Corriente",
+            accountName: "Tapetes Premium S.A.S - Principal",
+          },
+          {
+            _id: "2",
+            accountNumber: "0987654321",
+            bankName: "Bancolombia",
+            accountType: "Cuenta de Ahorros",
+            accountName: "Tapetes Premium S.A.S - Nómina",
+          },
+          {
+            _id: "3",
+            accountNumber: "5555666677",
+            bankName: "Banco Popular",
+            accountType: "Cuenta Corriente",
+            accountName: "Tapetes Premium S.A.S - Proveedores",
+          },
+          {
+            _id: "4",
+            accountNumber: "1111222233",
+            bankName: "BBVA Colombia",
+            accountType: "Cuenta de Ahorros",
+            accountName: "Tapetes Premium S.A.S - Reserva",
+          },
+          {
+            _id: "5",
+            accountNumber: "9999888877",
+            bankName: "Banco Davivienda",
+            accountType: "Cuenta Corriente",
+            accountName: "Tapetes Premium S.A.S - Operaciones",
+          },
+        ])
+      }, 500)
+    })
   }
 
   // Obtener datos del reporte de ventas acumuladas
@@ -1028,6 +1213,227 @@ export class ReportsHelper {
     )
   }
 
+  // Reporte de movimientos bancarios detallado
+  async getBankMovementsReport(filters) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        // Generar datos simulados basados en la cuenta seleccionada
+        const accountInfo = {
+          1: {
+            accountNumber: "1234567890",
+            bankName: "Banco de Bogotá",
+            accountName: "Tapetes Premium S.A.S - Principal",
+          },
+          2: { accountNumber: "0987654321", bankName: "Bancolombia", accountName: "Tapetes Premium S.A.S - Nómina" },
+          3: {
+            accountNumber: "5555666677",
+            bankName: "Banco Popular",
+            accountName: "Tapetes Premium S.A.S - Proveedores",
+          },
+          4: { accountNumber: "1111222233", bankName: "BBVA Colombia", accountName: "Tapetes Premium S.A.S - Reserva" },
+          5: {
+            accountNumber: "9999888877",
+            bankName: "Banco Davivienda",
+            accountName: "Tapetes Premium S.A.S - Operaciones",
+          },
+        }
+
+        const selectedAccount = accountInfo[filters.accountId] || accountInfo["1"]
+
+        const mockData = [
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Empresa ABC S.A.S",
+            voucherNumber: "REC-001234",
+            date: "2024-01-02",
+            income: 2731250,
+            expense: 0,
+            balance: 45750000,
+            movementType: "Ingreso por Venta",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Proveedor Materiales Ltda",
+            voucherNumber: "PAG-001235",
+            date: "2024-01-03",
+            income: 0,
+            expense: 1500000,
+            balance: 44250000,
+            movementType: "Pago a Proveedor",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Comercial XYZ Ltda",
+            voucherNumber: "REC-001236",
+            date: "2024-01-05",
+            income: 1966500,
+            expense: 0,
+            balance: 46216500,
+            movementType: "Ingreso por Venta",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Servicios Públicos EPM",
+            voucherNumber: "PAG-001237",
+            date: "2024-01-08",
+            income: 0,
+            expense: 850000,
+            balance: 45366500,
+            movementType: "Pago Servicios",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Distribuidora 123",
+            voucherNumber: "REC-001238",
+            date: "2024-01-10",
+            income: 4588500,
+            expense: 0,
+            balance: 49955000,
+            movementType: "Ingreso por Venta",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Nómina Empleados",
+            voucherNumber: "NOM-001239",
+            date: "2024-01-15",
+            income: 0,
+            expense: 8500000,
+            balance: 41455000,
+            movementType: "Pago Nómina",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Tapetes del Norte",
+            voucherNumber: "REC-001240",
+            date: "2024-01-18",
+            income: 3250000,
+            expense: 0,
+            balance: 44705000,
+            movementType: "Ingreso por Venta",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Transporte y Logística S.A.S",
+            voucherNumber: "PAG-001241",
+            date: "2024-01-20",
+            income: 0,
+            expense: 650000,
+            balance: 44055000,
+            movementType: "Pago Transporte",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Decoraciones Sur",
+            voucherNumber: "REC-001242",
+            date: "2024-01-22",
+            income: 1850000,
+            expense: 0,
+            balance: 45905000,
+            movementType: "Ingreso por Venta",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Mantenimiento Industrial",
+            voucherNumber: "PAG-001243",
+            date: "2024-01-25",
+            income: 0,
+            expense: 1200000,
+            balance: 44705000,
+            movementType: "Pago Mantenimiento",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Pisos y Más S.A.S",
+            voucherNumber: "REC-001244",
+            date: "2024-01-28",
+            income: 980000,
+            expense: 0,
+            balance: 45685000,
+            movementType: "Ingreso por Venta",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Seguros Bolívar",
+            voucherNumber: "PAG-001245",
+            date: "2024-01-30",
+            income: 0,
+            expense: 450000,
+            balance: 45235000,
+            movementType: "Pago Seguros",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Hogar Ideal Ltda",
+            voucherNumber: "REC-001246",
+            date: "2024-02-02",
+            income: 2150000,
+            expense: 0,
+            balance: 47385000,
+            movementType: "Ingreso por Venta",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Publicidad y Marketing",
+            voucherNumber: "PAG-001247",
+            date: "2024-02-05",
+            income: 0,
+            expense: 750000,
+            balance: 46635000,
+            movementType: "Pago Publicidad",
+          },
+          {
+            accountNumber: selectedAccount.accountNumber,
+            accountName: selectedAccount.accountName,
+            thirdPartyName: "Construcciones Beta",
+            voucherNumber: "REC-001248",
+            date: "2024-02-08",
+            income: 5200000,
+            expense: 0,
+            balance: 51835000,
+            movementType: "Ingreso por Venta",
+          },
+        ]
+
+        resolve({
+          success: true,
+          data: mockData,
+        })
+      }, 1000)
+    })
+  }
+
+  // Calcular totales para movimientos bancarios
+  calculateBankMovementsTotals(data) {
+    return data.reduce(
+      (totals, row) => ({
+        movementsCount: totals.movementsCount + 1,
+        totalIncome: totals.totalIncome + row.income,
+        totalExpense: totals.totalExpense + row.expense,
+        finalBalance: data.length > 0 ? data[data.length - 1].balance : 0,
+      }),
+      {
+        movementsCount: 0,
+        totalIncome: 0,
+        totalExpense: 0,
+        finalBalance: 0,
+      },
+    )
+  }
+
   // Obtener clase CSS para semaforización de días de mora
   getOverdueDaysClass(days) {
     if (days < 0) {
@@ -1098,4 +1504,27 @@ export class ReportsHelper {
     }
   }
 
+  // Obtener clase CSS para tipo de movimiento
+  getMovementTypeClass(movementType) {
+    if (movementType.includes("Ingreso")) {
+      return "bg-success text-white"
+    } else if (movementType.includes("Pago")) {
+      return "bg-danger text-white"
+    } else if (movementType.includes("Transferencia")) {
+      return "bg-info text-white"
+    } else {
+      return "bg-secondary text-white"
+    }
+  }
+
+  // Obtener clase CSS para montos de ingresos y egresos
+  getAmountClass(amount, type) {
+    if (type === "income" && amount > 0) {
+      return "text-success fw-bold"
+    } else if (type === "expense" && amount > 0) {
+      return "text-danger fw-bold"
+    } else {
+      return "text-muted"
+    }
+  }
 }
