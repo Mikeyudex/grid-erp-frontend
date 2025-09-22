@@ -24,24 +24,35 @@ const TwosVerify = () => {
         return document.getElementById(`digit${index}-input`);
     }
 
-    const moveToNext = (index) => {
-        if (index === 1 && getInputElement(index).value.length === 0) {
-            setOtp('');
-        }
-        if (getInputElement(index).value.length === 1) {
-            if (index !== 6) {
-                getInputElement(index + 1).focus();
-                setOtp(otp.concat(getInputElement(index).value));
+    const moveToNext = (index, event) => {
+        const input = getInputElement(index);
+
+        if (event.key === "Backspace") {
+            // Si el input actual está vacío, mover foco al anterior
+            if (input.value === "" && index > 1) {
+                const prevInput = getInputElement(index - 1);
+                prevInput.focus();
+                prevInput.value = ""; // opcional: limpiar por si tenía algo
+                setOtp(otp.slice(0, -1));
             } else {
-                getInputElement(index).blur();
-                let _otp = otp.concat(getInputElement(index).value);
+                input.value = "";
+                setOtp(otp.slice(0, -1));
+            }
+            return;
+        }
+
+        // Si se escribió un dígito, avanzar al siguiente
+        if (input.value.length === 1) {
+            if (index < 6) {
+                getInputElement(index + 1).focus();
+                setOtp(otp.concat(input.value));
+            } else {
+                input.blur();
+                let _otp = otp.concat(input.value);
                 setOtp(_otp);
             }
-        } else if (getInputElement(index).value.length === 0) {
-            setOtp(otp.slice(0, -1));
         }
     };
-
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -137,7 +148,7 @@ const TwosVerify = () => {
                                                                         className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit1-input"
-                                                                        onKeyUp={() => moveToNext(1)}
+                                                                        onKeyUp={(e) => moveToNext(1, e)}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -149,7 +160,7 @@ const TwosVerify = () => {
                                                                         className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit2-input"
-                                                                        onKeyUp={() => moveToNext(2)}
+                                                                        onKeyUp={(e) => moveToNext(2, e)}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -161,7 +172,7 @@ const TwosVerify = () => {
                                                                         className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit3-input"
-                                                                        onKeyUp={() => moveToNext(3)}
+                                                                        onKeyUp={(e) => moveToNext(3, e)}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -173,7 +184,7 @@ const TwosVerify = () => {
                                                                         className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit4-input"
-                                                                        onKeyUp={() => moveToNext(4)}
+                                                                        onKeyUp={(e) => moveToNext(4, e)}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -185,7 +196,7 @@ const TwosVerify = () => {
                                                                         className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit5-input"
-                                                                        onKeyUp={() => moveToNext(5)}
+                                                                        onKeyUp={(e) => moveToNext(5, e)}
                                                                     />
                                                                 </div>
                                                             </Col>
@@ -197,7 +208,7 @@ const TwosVerify = () => {
                                                                         className="form-control form-control-lg bg-light text-center"
                                                                         maxLength="1"
                                                                         id="digit6-input"
-                                                                        onKeyUp={() => moveToNext(6)}
+                                                                        onKeyUp={(e) => moveToNext(6, e)}
                                                                     />
                                                                 </div>
                                                             </Col>
