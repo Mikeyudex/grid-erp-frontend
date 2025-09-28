@@ -46,142 +46,32 @@ export class ReportsHelper {
 
   // Obtener clientes con información completa para rótulos
   async getClientsForLabels() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            _id: "1",
-            name: "Empresa ABC S.A.S",
-            commercialName: "ABC Corp",
-            documentNumber: "900123456-7",
-            address: "Carrera 15 # 93-47, Oficina 501",
-            city: "Bogotá",
-            state: "Cundinamarca",
-            postalCode: "110221",
-            phone: "+57 1 234-5678",
-            contactPerson: "Carlos Mendoza",
-            email: "contacto@abccorp.com.co",
-          },
-          {
-            _id: "2",
-            name: "Comercial XYZ Ltda",
-            commercialName: "XYZ Store",
-            documentNumber: "800987654-3",
-            address: "Calle 50 # 46-36, Local 102",
-            city: "Medellín",
-            state: "Antioquia",
-            postalCode: "050012",
-            phone: "+57 4 567-8901",
-            contactPerson: "María Rodríguez",
-            email: "ventas@xyzstore.com.co",
-          },
-          {
-            _id: "3",
-            name: "Distribuidora 123",
-            commercialName: "Dist 123",
-            documentNumber: "900456789-1",
-            address: "Avenida 6 Norte # 23-45, Bodega 8",
-            city: "Cali",
-            state: "Valle del Cauca",
-            postalCode: "760042",
-            phone: "+57 2 345-6789",
-            contactPerson: "Juan Carlos Pérez",
-            email: "pedidos@dist123.com.co",
-          },
-          {
-            _id: "4",
-            name: "Tapetes del Norte",
-            commercialName: "Norte Tapetes",
-            documentNumber: "800234567-9",
-            address: "Carrera 38 # 74-25, Centro Comercial Norte",
-            city: "Barranquilla",
-            state: "Atlántico",
-            postalCode: "080020",
-            phone: "+57 5 678-9012",
-            contactPerson: "Ana López",
-            email: "info@nortetapetes.com.co",
-          },
-          {
-            _id: "5",
-            name: "Decoraciones Sur",
-            commercialName: "Deco Sur",
-            documentNumber: "900345678-2",
-            address: "Calle 36 # 19-62, Barrio Cabecera",
-            city: "Bucaramanga",
-            state: "Santander",
-            postalCode: "680003",
-            phone: "+57 7 890-1234",
-            contactPerson: "Luis Martínez",
-            email: "contacto@decosur.com.co",
-          },
-          {
-            _id: "6",
-            name: "Pisos y Más S.A.S",
-            commercialName: "Pisos Plus",
-            documentNumber: "900567890-4",
-            address: "Carrera 7 # 15-23, Zona Industrial",
-            city: "Pereira",
-            state: "Risaralda",
-            postalCode: "660003",
-            phone: "+57 6 123-4567",
-            contactPerson: "Sandra García",
-            email: "ventas@pisosplus.com.co",
-          },
-          {
-            _id: "7",
-            name: "Hogar Ideal Ltda",
-            commercialName: "Hogar Ideal",
-            documentNumber: "800678901-5",
-            address: "Avenida Santander # 20-45, Centro",
-            city: "Manizales",
-            state: "Caldas",
-            postalCode: "170004",
-            phone: "+57 6 234-5678",
-            contactPerson: "Roberto Silva",
-            email: "info@hogarideal.com.co",
-          },
-          {
-            _id: "8",
-            name: "Construcciones Beta",
-            commercialName: "Beta Construcciones",
-            documentNumber: "900789012-6",
-            address: "Calle 30 # 17-89, Sector Histórico",
-            city: "Cartagena",
-            state: "Bolívar",
-            postalCode: "130001",
-            phone: "+57 5 345-6789",
-            contactPerson: "Patricia Morales",
-            email: "proyectos@betaconstrucciones.com.co",
-          },
-          {
-            _id: "9",
-            name: "Oficinas Modernas",
-            commercialName: "Oficinas Plus",
-            documentNumber: "800890123-7",
-            address: "Carrera 5 # 12-34, Torre Empresarial",
-            city: "Ibagué",
-            state: "Tolima",
-            postalCode: "730001",
-            phone: "+57 8 456-7890",
-            contactPerson: "Fernando Castro",
-            email: "contacto@oficinasplus.com.co",
-          },
-          {
-            _id: "10",
-            name: "Espacios Creativos",
-            commercialName: "Creativos Design",
-            documentNumber: "900901234-8",
-            address: "Calle 40 # 25-67, Barrio La Esperanza",
-            city: "Villavicencio",
-            state: "Meta",
-            postalCode: "500001",
-            phone: "+57 8 567-8901",
-            contactPerson: "Diana Ruiz",
-            email: "diseno@creativosdesign.com.co",
-          },
-        ])
-      }, 500)
-    })
+    try {
+      let clients = await customerHelper.getCustomers(1, 100);
+      let mappedClients = clients.map((client) => ({
+        _id: client._id,
+        name: `${client.name} ${client.lastname}`,
+        commercialName: client.commercialName,
+        documentNumber: client.documento ? client.documento : "",
+        address: client?.shippingAddress,
+        city: client.shippingCity,
+        state: client.shippingCity,
+        postalCode: client.shippingPostalCode,
+        phone: client.phone,
+        email: client.email,
+        contactPerson: this.customizeContactPerson(client?.contacts),
+      }));
+      return mappedClients;
+    } catch (error) {
+      console.error("Error al obtener clientes:", error)
+      throw error
+    }
+  }
+
+  customizeContactPerson(contacts) {
+    if (contacts && Array.isArray(contacts) && contacts.length > 0) {
+      return `${contacts[0].contactName} ${contacts[0].contactLastname}`
+    }
   }
 
   // Obtener productos para el filtro
@@ -808,6 +698,24 @@ export class ReportsHelper {
       console.error("Error al obtener reporte de cuentas por cobrar:", error)
       throw error
     }
+  }
+
+  // Obtener información predeterminada del remitente
+  async getDefaultSender() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve({
+          name: "QUALITY S.A.S.",
+          documentNumber: "900123456-7",
+          address: "Carrera 10 # 26-51, Zona Industrial",
+          city: "Bucaramanga",
+          state: "Santander",
+          postalCode: "110111",
+          phone: "+57 300 000 0000",
+          email: "ventas@quality.com.co",
+        })
+      }, 300)
+    })
   }
 
   // Reporte de cuentas por cobrar detallado por pedidos

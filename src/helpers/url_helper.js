@@ -1,4 +1,4 @@
-const urlLocal = "http://localhost:5000";
+const urlLocal = "http://localhost:5001";
 const urlDev = "http://149.130.186.128:8080/backend/dev";
 const urlProd = "http://149.130.186.128:8080/backend/prod";
 
@@ -10,7 +10,7 @@ export const BASE_URL_IMPORT = process.env.REACT_APP_ENV === "LOCAL" ?
     process.env.REACT_APP_API_IMPORT_LOCAL : process.env.REACT_APP_ENV === "DEV" ?
         process.env.REACT_APP_API_IMPORT_DEV : process.env.REACT_APP_API_IMPORT_PROD;
 
-export const URL_BASE_WEBSOCKET = process.env.REACT_APP_ENV === "LOCAL" ? "http://localhost:5000" : "ws://149.130.186.128:8080/backend/dev";
+export const URL_BASE_WEBSOCKET = process.env.REACT_APP_ENV === "LOCAL" ? "http://localhost:5001" : "ws://149.130.186.128:8080/backend/dev";
 
 export const PATH_SOCKETIO_BACKOFFICE = process.env.REACT_APP_ENV === "PROD" ?
     "/prod/socket.io/" :

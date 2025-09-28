@@ -1,5 +1,5 @@
 import { Container, Row, Col, Card, CardHeader, CardBody, CardTitle, Button } from "reactstrap"
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { TrendingUp, FileText, Package, CreditCard, DollarSign, BarChart3, Truck } from "lucide-react"
 import { TopLayoutGeneralView } from "../../../Components/Common/TopLayoutGeneralView"
 
@@ -94,7 +94,7 @@ export default function ReportsPage() {
               const IconComponent = report.icon
               return (
                 <Col key={index} lg={3} md={4} sm={6} className="mb-4">
-                  <Link href={report.href} className="text-decoration-none">
+                  <Link to={report.href} className="text-decoration-none">
                     <Card className="h-100 shadow-sm hover-card">
                       <CardBody className="text-center">
                         <div className={`text-${report.color} mb-3`}>

@@ -153,22 +153,6 @@ export default function BankMovementsReport() {
 
   return (
     <Container fluid className="py-4">
-      {/* Header */}
-      <Row className="mb-4">
-        <Col>
-          <Card>
-            <CardHeader className="bg-secondary text-white">
-              <h3 className="mb-0">
-                <i className="fas fa-exchange-alt me-2"></i>
-                Movimientos Bancarios - Detalle por Cuenta
-              </h3>
-              <p className="mb-0 mt-2 text-light">
-                Consulta detallada de todos los movimientos de una cuenta bancaria específica
-              </p>
-            </CardHeader>
-          </Card>
-        </Col>
-      </Row>
 
       {/* Filtros */}
       <Row className="mb-4">

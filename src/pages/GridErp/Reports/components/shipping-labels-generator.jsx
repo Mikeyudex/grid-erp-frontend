@@ -328,24 +328,11 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
         </Alert>
       )}
 
-      <Row className="mb-4">
-        <Col>
-          <Card>
-            <CardHeader className="bg-primary text-white">
-              <div className="d-flex align-items-center">
-                <Package className="me-2" size={24} />
-                <h4 className="mb-0">Generador de Rótulos de Envío</h4>
-              </div>
-            </CardHeader>
-          </Card>
-        </Col>
-      </Row>
-
       <Row>
         {/* Sección Remitente */}
         <Col lg={6} className="mb-4">
           <Card className="h-100">
-            <CardHeader className="bg-info text-white">
+            <CardHeader className="bg-light text-dark">
               <div className="d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center">
                   <User className="me-2" size={20} />
@@ -393,7 +380,7 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
                         id="senderPhone"
                         value={sender.phone}
                         onChange={(e) => handleSenderChange("phone", e.target.value)}
-                        placeholder="+57 1 234-5678"
+                        placeholder="+57 300 000 0000"
                       />
                     </FormGroup>
                   </Col>
@@ -459,7 +446,7 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
         {/* Sección Destinatario */}
         <Col lg={6} className="mb-4">
           <Card className="h-100">
-            <CardHeader className="bg-success text-white">
+            <CardHeader className="bg-light text-dark">
               <div className="d-flex justify-content-between align-items-center">
                 <div className="d-flex align-items-center">
                   <MapPin className="me-2" size={20} />
@@ -527,7 +514,7 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
                         id="recipientPhone"
                         value={recipient.phone}
                         onChange={(e) => handleRecipientChange("phone", e.target.value)}
-                        placeholder="+57 1 234-5678"
+                        placeholder="+57 300 000 0000"
                       />
                     </FormGroup>
                   </Col>
@@ -580,7 +567,7 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
       </Row>
 
       {/* Información del Paquete */}
-      <Row className="mb-4">
+      {/* <Row className="mb-4">
         <Col>
           <Card>
             <CardHeader className="bg-warning text-dark">
@@ -665,14 +652,14 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
             </CardBody>
           </Card>
         </Col>
-      </Row>
+      </Row> */}
 
       {/* Vista Previa del Rótulo */}
       {(sender.name || recipient.name) && (
         <Row className="mb-4">
           <Col>
             <Card>
-              <CardHeader className="bg-secondary text-white">
+              <CardHeader className="bg-light text-dark">
                 <h5 className="mb-0">Vista Previa del Rótulo</h5>
               </CardHeader>
               <CardBody>
@@ -705,7 +692,7 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
                       {recipient.documentNumber && <div>{recipient.documentNumber}</div>}
                       {recipient.address && <div>{recipient.address}</div>}
                       {recipient.phone && <div>{recipient.phone}</div>}
-                      {recipient.contactPerson && <div>Contacto: {recipient.contactPerson}</div>}
+                      {/* {recipient.contactPerson && <div>Contacto: {recipient.contactPerson}</div>} */}
                     </div>
                   )}
 
