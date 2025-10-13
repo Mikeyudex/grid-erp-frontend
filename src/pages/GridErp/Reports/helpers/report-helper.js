@@ -1,5 +1,7 @@
 // Helpers para el módulo de reportes
 
+import { getToken } from "../../../../helpers/jwt-token-access/get_token";
+import { BASE_URL } from "../../../../helpers/url_helper";
 import { CustomerHelper } from "../../Customers/helper/customer-helper";
 import { PurchaseHelper } from "../../PurchaseOrder/helper/purchase_helper";
 import { ZonesHelper } from "../../Zones/helper/zones_helper";
@@ -8,6 +10,11 @@ const zonesHelper = new ZonesHelper();
 const purchaseHelper = new PurchaseHelper();
 const customerHelper = new CustomerHelper();
 export class ReportsHelper {
+  constructor() {
+    this.baseUrl = `${BASE_URL}/reports`;
+  }
+
+
   // Obtener sedes para el filtro
   async getOffices() {
     try {
@@ -174,81 +181,40 @@ export class ReportsHelper {
   async getAccumulatedSalesReport(filters) {
     try {
       const { officeId, advisorId, startDate, endDate } = filters
-
-      // Simulación - reemplazar con llamada real a la API
-      // const response = await fetch('/api/reports/accumulated-sales', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ officeId, advisorId, startDate, endDate })
-      // });
-      // return await response.json();
-
-      // Datos simulados para demostración
+      const token = getToken();
+      const response = await fetch(`${this.baseUrl}/cumulative-sales-report?zoneId=${officeId}&advisorId=${advisorId}&startDate=${startDate}&endDate=${endDate}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      let data = await response.json();
+      if (data && Array.isArray(data) && data.length > 0) {
+        let dataMapped = data.map((item) => {
+          return {
+            office: item.sede,
+            advisor: item.asesor,
+            ordersCount: item.pedidos,
+            carpetsCount: item.tapetes,
+            baseValue: item.valorBase,
+            discount: item.descuento,
+            subtotal: item.subtotal,
+            iva: item.iva,
+            retention: item.retencion,
+            totalValue: item.valorTotal,
+          }
+        })
+        return {
+          success: true,
+          data: dataMapped,
+        }
+      }
       return {
         success: true,
-        data: [
-          {
-            office: "Sede Principal",
-            advisor: "Juan Pérez",
-            ordersCount: 15,
-            carpetsCount: 45,
-            baseValue: 2500000,
-            discount: 125000,
-            subtotal: 2375000,
-            iva: 451250,
-            retention: 47500,
-            totalValue: 2778750,
-          },
-          {
-            office: "Sede Norte",
-            advisor: "María García",
-            ordersCount: 12,
-            carpetsCount: 38,
-            baseValue: 1800000,
-            discount: 90000,
-            subtotal: 1710000,
-            iva: 324900,
-            retention: 34200,
-            totalValue: 2000700,
-          },
-          {
-            office: "Sede Sur",
-            advisor: "Carlos López",
-            ordersCount: 8,
-            carpetsCount: 22,
-            baseValue: 1200000,
-            discount: 60000,
-            subtotal: 1140000,
-            iva: 216600,
-            retention: 22800,
-            totalValue: 1333800,
-          },
-          {
-            office: "Sede Centro",
-            advisor: "Ana Rodríguez",
-            ordersCount: 10,
-            carpetsCount: 30,
-            baseValue: 1500000,
-            discount: 75000,
-            subtotal: 1425000,
-            iva: 270750,
-            retention: 28500,
-            totalValue: 1667250,
-          },
-          {
-            office: "Sede Principal",
-            advisor: "Luis Martínez",
-            ordersCount: 6,
-            carpetsCount: 18,
-            baseValue: 900000,
-            discount: 45000,
-            subtotal: 855000,
-            iva: 162450,
-            retention: 17100,
-            totalValue: 1000350,
-          },
-        ],
+        data: [],
       }
+
     } catch (error) {
       console.error("Error al obtener reporte de ventas acumuladas:", error)
       throw error
@@ -259,140 +225,43 @@ export class ReportsHelper {
   async getDetailedSalesReport(filters) {
     try {
       const { officeId, advisorId, clientId, startDate, endDate } = filters
+      const token = getToken();
+      const response = await fetch(`${this.baseUrl}/detailed-sales-report?zoneId=${officeId}&advisorId=${advisorId}&clientId=${clientId}&startDate=${startDate}&endDate=${endDate}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`,
+        },
 
-      // Simulación - reemplazar con llamada real a la API
-      // const response = await fetch('/api/reports/detailed-sales', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ officeId, advisorId, clientId, startDate, endDate })
-      // });
-      // return await response.json();
+      });
+      let data = await response.json();
 
-      // Datos simulados para demostración
+      if (data && Array.isArray(data) && data.length > 0) {
+        let dataMapped = data.map((item) => {
+          return {
+            date: item.fecha,
+            office: item.sede,
+            advisor: item.asesor,
+            client: item.cliente,
+            commercialName: item.nombreComercial,
+            invoiceNumber: item.numeroFactura,
+            carpetsCount: item.tapetes,
+            baseValue: item.valorBase,
+            discount: item.descuento,
+            subtotal: item.subtotal,
+            iva: item.iva,
+            retention: item.retencion,
+            totalValue: item.valorTotal,
+          }
+        })
+        return {
+          success: true,
+          data: dataMapped,
+        }
+      }
       return {
         success: true,
-        data: [
-          {
-            date: "2024-01-15",
-            office: "Sede Principal",
-            advisor: "Juan Pérez",
-            client: "Empresa ABC",
-            commercialName: "ABC Comercial",
-            invoiceNumber: "FAC-001",
-            carpetsCount: 12,
-            baseValue: 850000,
-            discount: 42500,
-            subtotal: 807500,
-            iva: 153425,
-            retention: 16150,
-            totalValue: 944775,
-          },
-          {
-            date: "2024-01-16",
-            office: "Sede Norte",
-            advisor: "María García",
-            client: "Distribuidora XYZ",
-            commercialName: "XYZ Ltda",
-            invoiceNumber: "FAC-002",
-            carpetsCount: 8,
-            baseValue: 600000,
-            discount: 30000,
-            subtotal: 570000,
-            iva: 108300,
-            retention: 11400,
-            totalValue: 666900,
-          },
-          {
-            date: "2024-01-17",
-            office: "Sede Sur",
-            advisor: "Carlos López",
-            client: "Corporación 123",
-            commercialName: "Corp 123",
-            invoiceNumber: "FAC-003",
-            carpetsCount: 15,
-            baseValue: 1200000,
-            discount: 60000,
-            subtotal: 1140000,
-            iva: 216600,
-            retention: 22800,
-            totalValue: 1333800,
-          },
-          {
-            date: "2024-01-18",
-            office: "Sede Centro",
-            advisor: "Ana Rodríguez",
-            client: "Servicios Generales",
-            commercialName: "ServiGen",
-            invoiceNumber: "FAC-004",
-            carpetsCount: 6,
-            baseValue: 450000,
-            discount: 22500,
-            subtotal: 427500,
-            iva: 81225,
-            retention: 8550,
-            totalValue: 500175,
-          },
-          {
-            date: "2024-01-19",
-            office: "Sede Principal",
-            advisor: "Luis Martínez",
-            client: "Importadora Nacional",
-            commercialName: "ImpNacional",
-            invoiceNumber: "FAC-005",
-            carpetsCount: 20,
-            baseValue: 1500000,
-            discount: 75000,
-            subtotal: 1425000,
-            iva: 270750,
-            retention: 28500,
-            totalValue: 1667250,
-          },
-          {
-            date: "2024-01-20",
-            office: "Sede Norte",
-            advisor: "María García",
-            client: "Empresa ABC",
-            commercialName: "ABC Comercial",
-            invoiceNumber: "FAC-006",
-            carpetsCount: 10,
-            baseValue: 750000,
-            discount: 37500,
-            subtotal: 712500,
-            iva: 135375,
-            retention: 14250,
-            totalValue: 833625,
-          },
-          {
-            date: "2024-01-21",
-            office: "Sede Sur",
-            advisor: "Carlos López",
-            client: "Distribuidora XYZ",
-            commercialName: "XYZ Ltda",
-            invoiceNumber: "FAC-007",
-            carpetsCount: 5,
-            baseValue: 350000,
-            discount: 17500,
-            subtotal: 332500,
-            iva: 63175,
-            retention: 6650,
-            totalValue: 389025,
-          },
-          {
-            date: "2024-01-22",
-            office: "Sede Centro",
-            advisor: "Ana Rodríguez",
-            client: "Corporación 123",
-            commercialName: "Corp 123",
-            invoiceNumber: "FAC-008",
-            carpetsCount: 18,
-            baseValue: 1350000,
-            discount: 67500,
-            subtotal: 1282500,
-            iva: 243675,
-            retention: 25650,
-            totalValue: 1500525,
-          },
-        ],
+        data: [],
       }
     } catch (error) {
       console.error("Error al obtener reporte de ventas detalladas:", error)
@@ -403,171 +272,42 @@ export class ReportsHelper {
   // Obtener datos del reporte de ventas por producto
   async getProductSalesReport(filters) {
     try {
-      const { officeId, advisorId, clientId, productId, carpetTypeId, materialId, startDate, endDate } = filters
-
-      // Simulación - reemplazar con llamada real a la API
-      // const response = await fetch('/api/reports/product-sales', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ officeId, advisorId, clientId, productId, carpetTypeId, materialId, startDate, endDate })
-      // });
-      // return await response.json();
-
-      // Datos simulados para demostración
+      const { officeId, advisorId, clientId, productId, carpetTypeId, materialId, startDate, endDate } = filters;
+      const token = getToken();
+      const response = await fetch(`${this.baseUrl}/product-sales-report?zoneId=${officeId}&advisorId=${advisorId}&clientId=${clientId}&productId=${productId}&carpetTypeId=${carpetTypeId}&materialId=${materialId}&startDate=${startDate}&endDate=${endDate}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`
+        },
+      });
+      let data = await response.json();
+      if (data && Array.isArray(data) && data.length > 0) {
+        let dataMapped = data.map((item) => {
+          return {
+            office: item.sede,
+            advisor: item.asesor,
+            client: item.cliente,
+            product: item.producto,
+            carpetType: item.tipoTapete,
+            material: item.material,
+            quantity: item.cantidad,
+            baseValue: item.valorBase,
+            discount: item.descuento,
+            subtotal: item.subtotal,
+            iva: item.iva,
+            retention: item.retencion,
+            totalValue: item.valorTotal,
+          }
+        })
+        return {
+          success: true,
+          data: dataMapped,
+        }
+      }
       return {
         success: true,
-        data: [
-          {
-            office: "Sede Principal",
-            advisor: "Juan Pérez",
-            client: "Empresa ABC",
-            product: "Tapete Premium 120x180",
-            carpetType: "Premium",
-            material: "Nylon",
-            quantity: 5,
-            baseValue: 425000,
-            discount: 21250,
-            subtotal: 403750,
-            iva: 76713,
-            retention: 8075,
-            totalValue: 472388,
-          },
-          {
-            office: "Sede Norte",
-            advisor: "María García",
-            client: "Distribuidora XYZ",
-            product: "Tapete Clásico 100x150",
-            carpetType: "Clásico",
-            material: "Polipropileno",
-            quantity: 8,
-            baseValue: 320000,
-            discount: 16000,
-            subtotal: 304000,
-            iva: 57760,
-            retention: 6080,
-            totalValue: 355680,
-          },
-          {
-            office: "Sede Sur",
-            advisor: "Carlos López",
-            client: "Corporación 123",
-            product: "Tapete Moderno 80x120",
-            carpetType: "Moderno",
-            material: "Lana",
-            quantity: 12,
-            baseValue: 720000,
-            discount: 36000,
-            subtotal: 684000,
-            iva: 129960,
-            retention: 13680,
-            totalValue: 800280,
-          },
-          {
-            office: "Sede Centro",
-            advisor: "Ana Rodríguez",
-            client: "Servicios Generales",
-            product: "Tapete Ejecutivo 200x300",
-            carpetType: "Ejecutivo",
-            material: "Algodón",
-            quantity: 3,
-            baseValue: 450000,
-            discount: 22500,
-            subtotal: 427500,
-            iva: 81225,
-            retention: 8550,
-            totalValue: 500175,
-          },
-          {
-            office: "Sede Principal",
-            advisor: "Luis Martínez",
-            client: "Importadora Nacional",
-            product: "Tapete Decorativo 60x90",
-            carpetType: "Decorativo",
-            material: "Fibra Sintética",
-            quantity: 15,
-            baseValue: 375000,
-            discount: 18750,
-            subtotal: 356250,
-            iva: 67688,
-            retention: 7125,
-            totalValue: 416813,
-          },
-          {
-            office: "Sede Norte",
-            advisor: "María García",
-            client: "Empresa ABC",
-            product: "Tapete Premium 120x180",
-            carpetType: "Premium",
-            material: "Nylon",
-            quantity: 7,
-            baseValue: 595000,
-            discount: 29750,
-            subtotal: 565250,
-            iva: 107398,
-            retention: 11305,
-            totalValue: 661343,
-          },
-          {
-            office: "Sede Sur",
-            advisor: "Carlos López",
-            client: "Distribuidora XYZ",
-            product: "Tapete Clásico 100x150",
-            carpetType: "Clásico",
-            material: "Polipropileno",
-            quantity: 10,
-            baseValue: 400000,
-            discount: 20000,
-            subtotal: 380000,
-            iva: 72200,
-            retention: 7600,
-            totalValue: 444600,
-          },
-          {
-            office: "Sede Centro",
-            advisor: "Ana Rodríguez",
-            client: "Corporación 123",
-            product: "Tapete Moderno 80x120",
-            carpetType: "Moderno",
-            material: "Lana",
-            quantity: 6,
-            baseValue: 360000,
-            discount: 18000,
-            subtotal: 342000,
-            iva: 64980,
-            retention: 6840,
-            totalValue: 400140,
-          },
-          {
-            office: "Sede Principal",
-            advisor: "Juan Pérez",
-            client: "Servicios Generales",
-            product: "Tapete Ejecutivo 200x300",
-            carpetType: "Ejecutivo",
-            material: "Algodón",
-            quantity: 2,
-            baseValue: 300000,
-            discount: 15000,
-            subtotal: 285000,
-            iva: 54150,
-            retention: 5700,
-            totalValue: 333450,
-          },
-          {
-            office: "Sede Norte",
-            advisor: "María García",
-            client: "Importadora Nacional",
-            product: "Tapete Decorativo 60x90",
-            carpetType: "Decorativo",
-            material: "Fibra Sintética",
-            quantity: 20,
-            baseValue: 500000,
-            discount: 25000,
-            subtotal: 475000,
-            iva: 90250,
-            retention: 9500,
-            totalValue: 555750,
-          },
-        ],
+        data: [],
       }
     } catch (error) {
       console.error("Error al obtener reporte de ventas por producto:", error)
@@ -579,120 +319,37 @@ export class ReportsHelper {
   async getAccountsReceivableReport(filters) {
     try {
       const { clientId, officeId, advisorId } = filters
-
-      // Simulación - reemplazar con llamada real a la API
-      // const response = await fetch('/api/reports/accounts-receivable', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ clientId, officeId, advisorId })
-      // });
-      // return await response.json();
-
-      // Datos simulados para demostración
+      const token = getToken();
+      const response = await fetch(`${this.baseUrl}/accounts-receivable-report?clientId=${clientId}&zoneId=${officeId}&advisorId=${advisorId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      let data = await response.json();
+      if (data && Array.isArray(data) && data.length > 0) {
+        let dataMapped = data.map((item) => {
+          return {
+            client: item.cliente,
+            commercialName: item.nombreComercial,
+            city: item.ciudad,
+            advisor: item.asesor,
+            office: item.sede,
+            ordersCount: item.cantidadFacturas,
+            overdueDays: item.diasMora,
+            totalValue: item.totalDeuda,
+            colorMora: item.colorMora,
+          }
+        })
+        return {
+          success: true,
+          data: dataMapped,
+        }
+      }
       return {
         success: true,
-        data: [
-          {
-            client: "Empresa ABC",
-            commercialName: "ABC Comercial",
-            city: "Bogotá",
-            advisor: "Juan Pérez",
-            office: "Sede Principal",
-            ordersCount: 8,
-            overdueDays: -5, // Pago adelantado
-            totalValue: 2450000,
-          },
-          {
-            client: "Distribuidora XYZ",
-            commercialName: "XYZ Ltda",
-            city: "Medellín",
-            advisor: "María García",
-            office: "Sede Norte",
-            ordersCount: 12,
-            overdueDays: 15, // Dentro del rango normal
-            totalValue: 3200000,
-          },
-          {
-            client: "Corporación 123",
-            commercialName: "Corp 123",
-            city: "Cali",
-            advisor: "Carlos López",
-            office: "Sede Sur",
-            ordersCount: 6,
-            overdueDays: 45, // Mora alta
-            totalValue: 1850000,
-          },
-          {
-            client: "Servicios Generales",
-            commercialName: "ServiGen",
-            city: "Barranquilla",
-            advisor: "Ana Rodríguez",
-            office: "Sede Centro",
-            ordersCount: 4,
-            overdueDays: 0, // Al día
-            totalValue: 980000,
-          },
-          {
-            client: "Importadora Nacional",
-            commercialName: "ImpNacional",
-            city: "Cartagena",
-            advisor: "Luis Martínez",
-            office: "Sede Principal",
-            ordersCount: 15,
-            overdueDays: 62, // Mora muy alta
-            totalValue: 4750000,
-          },
-          {
-            client: "Comercializadora Sur",
-            commercialName: "ComSur",
-            city: "Bucaramanga",
-            advisor: "María García",
-            office: "Sede Norte",
-            ordersCount: 9,
-            overdueDays: 22, // Dentro del rango normal
-            totalValue: 2100000,
-          },
-          {
-            client: "Distribuciones Norte",
-            commercialName: "DistNorte",
-            city: "Pereira",
-            advisor: "Carlos López",
-            office: "Sede Sur",
-            ordersCount: 7,
-            overdueDays: -2, // Pago adelantado
-            totalValue: 1650000,
-          },
-          {
-            client: "Empresa Textil",
-            commercialName: "TextilCorp",
-            city: "Manizales",
-            advisor: "Ana Rodríguez",
-            office: "Sede Centro",
-            ordersCount: 11,
-            overdueDays: 38, // Mora alta
-            totalValue: 2890000,
-          },
-          {
-            client: "Comercial Andina",
-            commercialName: "ComAndina",
-            city: "Ibagué",
-            advisor: "Juan Pérez",
-            office: "Sede Principal",
-            ordersCount: 5,
-            overdueDays: 8, // Dentro del rango normal
-            totalValue: 1320000,
-          },
-          {
-            client: "Distribuidora Central",
-            commercialName: "DistCentral",
-            city: "Villavicencio",
-            advisor: "Luis Martínez",
-            office: "Sede Principal",
-            ordersCount: 13,
-            overdueDays: 75, // Mora muy alta
-            totalValue: 3580000,
-          },
-        ],
+        data: [],
       }
     } catch (error) {
       console.error("Error al obtener reporte de cuentas por cobrar:", error)
@@ -720,289 +377,76 @@ export class ReportsHelper {
 
   // Reporte de cuentas por cobrar detallado por pedidos
   async getDetailedAccountsReceivableReport(filters) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const mockData = [
-          {
-            client: "Empresa ABC S.A.S",
-            commercialName: "ABC Corp",
-            city: "Bogotá",
-            advisor: "Carlos Rodríguez",
-            office: "Sede Bogotá",
-            invoiceNumber: "F-001234",
-            dueDate: "2024-02-15",
-            overdueDays: -5, // Pago adelantado
-            totalValue: 2731250,
-          },
-          {
-            client: "Empresa ABC S.A.S",
-            commercialName: "ABC Corp",
-            city: "Bogotá",
-            advisor: "Carlos Rodríguez",
-            office: "Sede Bogotá",
-            invoiceNumber: "F-001245",
-            dueDate: "2024-02-20",
-            overdueDays: -10, // Pago adelantado
-            totalValue: 1850000,
-          },
-          {
-            client: "Comercial XYZ Ltda",
-            commercialName: "XYZ Store",
-            city: "Medellín",
-            advisor: "María González",
-            office: "Sede Medellín",
-            invoiceNumber: "F-001235",
-            dueDate: "2024-02-10",
-            overdueDays: 0, // Al día
-            totalValue: 1966500,
-          },
-          {
-            client: "Comercial XYZ Ltda",
-            commercialName: "XYZ Store",
-            city: "Medellín",
-            advisor: "María González",
-            office: "Sede Medellín",
-            invoiceNumber: "F-001250",
-            dueDate: "2024-01-25",
-            overdueDays: 16, // Mora normal
-            totalValue: 980000,
-          },
-          {
-            client: "Distribuidora 123",
-            commercialName: "Dist 123",
-            city: "Cali",
-            advisor: "Juan Pérez",
-            office: "Sede Cali",
-            invoiceNumber: "F-001236",
-            dueDate: "2024-01-26",
-            overdueDays: 15, // Mora normal
-            totalValue: 4588500,
-          },
-          {
-            client: "Tapetes del Norte",
-            commercialName: "Norte Tapetes",
-            city: "Barranquilla",
-            advisor: "Ana López",
-            office: "Sede Barranquilla",
-            invoiceNumber: "F-001240",
-            dueDate: "2023-12-28",
-            overdueDays: 44, // Mora alta
-            totalValue: 1250000,
-          },
-          {
-            client: "Tapetes del Norte",
-            commercialName: "Norte Tapetes",
-            city: "Barranquilla",
-            advisor: "Ana López",
-            office: "Sede Barranquilla",
-            invoiceNumber: "F-001241",
-            dueDate: "2023-12-30",
-            overdueDays: 42, // Mora alta
-            totalValue: 2000000,
-          },
-          {
-            client: "Decoraciones Sur",
-            commercialName: "Deco Sur",
-            city: "Bucaramanga",
-            advisor: "Luis Martínez",
-            office: "Sede Bogotá",
-            invoiceNumber: "F-001242",
-            dueDate: "2023-11-30",
-            overdueDays: 72, // Mora crítica
-            totalValue: 950000,
-          },
-          {
-            client: "Decoraciones Sur",
-            commercialName: "Deco Sur",
-            city: "Bucaramanga",
-            advisor: "Luis Martínez",
-            office: "Sede Bogotá",
-            invoiceNumber: "F-001243",
-            dueDate: "2023-12-05",
-            overdueDays: 67, // Mora crítica
-            totalValue: 900000,
-          },
-          {
-            client: "Pisos y Más S.A.S",
-            commercialName: "Pisos Plus",
-            city: "Pereira",
-            advisor: "Carlos Rodríguez",
-            office: "Sede Medellín",
-            invoiceNumber: "F-001244",
-            dueDate: "2024-01-19",
-            overdueDays: 22, // Mora normal
-            totalValue: 980000,
-          },
-          {
-            client: "Hogar Ideal Ltda",
-            commercialName: "Hogar Ideal",
-            city: "Manizales",
-            advisor: "María González",
-            office: "Sede Cali",
-            invoiceNumber: "F-001246",
-            dueDate: "2024-02-12",
-            overdueDays: -2, // Pago adelantado
-            totalValue: 750000,
-          },
-          {
-            client: "Hogar Ideal Ltda",
-            commercialName: "Hogar Ideal",
-            city: "Manizales",
-            advisor: "María González",
-            office: "Sede Cali",
-            invoiceNumber: "F-001247",
-            dueDate: "2024-02-18",
-            overdueDays: -8, // Pago adelantado
-            totalValue: 1400000,
-          },
-          {
-            client: "Construcciones Beta",
-            commercialName: "Beta Construcciones",
-            city: "Cartagena",
-            advisor: "Juan Pérez",
-            office: "Sede Barranquilla",
-            invoiceNumber: "F-001248",
-            dueDate: "2023-12-15",
-            overdueDays: 57, // Mora crítica
-            totalValue: 2600000,
-          },
-          {
-            client: "Construcciones Beta",
-            commercialName: "Beta Construcciones",
-            city: "Cartagena",
-            advisor: "Juan Pérez",
-            office: "Sede Barranquilla",
-            invoiceNumber: "F-001249",
-            dueDate: "2024-01-08",
-            overdueDays: 33, // Mora alta
-            totalValue: 2600000,
-          },
-          {
-            client: "Oficinas Modernas",
-            commercialName: "Oficinas Plus",
-            city: "Ibagué",
-            advisor: "Ana López",
-            office: "Sede Bogotá",
-            invoiceNumber: "F-001251",
-            dueDate: "2024-02-02",
-            overdueDays: 8, // Mora normal
-            totalValue: 875000,
-          },
-          {
-            client: "Oficinas Modernas",
-            commercialName: "Oficinas Plus",
-            city: "Ibagué",
-            advisor: "Ana López",
-            office: "Sede Bogotá",
-            invoiceNumber: "F-001252",
-            dueDate: "2024-02-05",
-            overdueDays: 5, // Mora normal
-            totalValue: 875000,
-          },
-          {
-            client: "Espacios Creativos",
-            commercialName: "Creativos Design",
-            city: "Villavicencio",
-            advisor: "Luis Martínez",
-            office: "Sede Medellín",
-            invoiceNumber: "F-001253",
-            dueDate: "2024-02-10",
-            overdueDays: 0, // Al día
-            totalValue: 1320000,
-          },
-        ]
-
-        resolve({
-          success: true,
-          data: mockData,
+    try {
+      const { clientId, officeId, advisorId } = filters
+      const token = getToken();
+      const response = await fetch(`${this.baseUrl}/accounts-receivable-report?clientId=${clientId}&zoneId=${officeId}&advisorId=${advisorId}&mode=detallado`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      let data = await response.json();
+      if (data && Array.isArray(data) && data.length > 0) {
+        let dataMapped = data.map((item) => {
+          return {
+            client: item.cliente,
+            commercialName: item.nombreComercial,
+            city: item.ciudad,
+            advisor: item.asesor,
+            office: item.sede ?? "Sin Sede",
+            invoiceNumber: item.nroFactura,
+            dueDate: item.vence,
+            overdueDays: item.diasMora,
+            totalValue: item.valorTotal,
+            colorMora: item.colorMora,
+          }
         })
-      }, 1000)
-    })
+        return {
+          success: true,
+          data: dataMapped,
+        }
+      }
+      return {
+        success: true,
+        data: [],
+      }
+    } catch (error) {
+      console.log("Error al obtener reporte de cuentas por cobrar detallado:", error);
+      throw error
+    }
   }
 
   // Reporte de saldos de cuentas bancarias
   async getBankAccountsBalanceReport() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const mockData = [
-          {
-            accountNumber: "1234567890",
-            bankName: "Banco de Bogotá",
-            accountType: "Cuenta Corriente",
-            accountName: "Tapetes Premium S.A.S - Principal",
-            balance: 45750000,
-          },
-          {
-            accountNumber: "0987654321",
-            bankName: "Bancolombia",
-            accountType: "Cuenta de Ahorros",
-            accountName: "Tapetes Premium S.A.S - Nómina",
-            balance: 12300000,
-          },
-          {
-            accountNumber: "5555666677",
-            bankName: "Banco Popular",
-            accountType: "Cuenta Corriente",
-            accountName: "Tapetes Premium S.A.S - Proveedores",
-            balance: 8950000,
-          },
-          {
-            accountNumber: "1111222233",
-            bankName: "BBVA Colombia",
-            accountType: "Cuenta de Ahorros",
-            accountName: "Tapetes Premium S.A.S - Reserva",
-            balance: 25600000,
-          },
-          {
-            accountNumber: "9999888877",
-            bankName: "Banco Davivienda",
-            accountType: "Cuenta Corriente",
-            accountName: "Tapetes Premium S.A.S - Operaciones",
-            balance: 18750000,
-          },
-          {
-            accountNumber: "4444333322",
-            bankName: "Banco Caja Social",
-            accountType: "Cuenta de Ahorros",
-            accountName: "Tapetes Premium S.A.S - Inversiones",
-            balance: 32100000,
-          },
-          {
-            accountNumber: "7777888899",
-            bankName: "Banco Agrario",
-            accountType: "Cuenta Corriente",
-            accountName: "Tapetes Premium S.A.S - Sede Medellín",
-            balance: 6850000,
-          },
-          {
-            accountNumber: "2222111100",
-            bankName: "Banco AV Villas",
-            accountType: "Cuenta de Ahorros",
-            accountName: "Tapetes Premium S.A.S - Sede Cali",
-            balance: 9200000,
-          },
-          {
-            accountNumber: "6666555544",
-            bankName: "Banco Occidente",
-            accountType: "Cuenta Corriente",
-            accountName: "Tapetes Premium S.A.S - Exportaciones",
-            balance: 15400000,
-          },
-          {
-            accountNumber: "3333444455",
-            bankName: "Banco Colpatria",
-            accountType: "Cuenta de Ahorros",
-            accountName: "Tapetes Premium S.A.S - Emergencias",
-            balance: 5250000,
-          },
-        ]
-
-        resolve({
-          success: true,
-          data: mockData,
-        })
-      }, 1000)
-    })
+    try {
+      const token = getToken();
+      const response = await fetch(`${this.baseUrl}/bank-accounts-balance-report`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      let data = await response.json();
+      let dataMapped = data?.cuentas.map((item) => {
+        return {
+          accountNumber: item.numberAccount,
+          bankName: item.bankAccount,
+          accountType: item.typeAccount,
+          accountName: item.cuenta,
+          balance: item.saldo,
+        }
+      })
+      return {
+        success: true,
+        data: dataMapped,
+      }
+    } catch (error) {
+      console.log("Error al obtener reporte de saldos bancarios:", error);
+      throw error
+    }
   }
 
   // Calcular totales consolidados

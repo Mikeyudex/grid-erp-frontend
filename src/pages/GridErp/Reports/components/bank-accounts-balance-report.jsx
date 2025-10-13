@@ -190,7 +190,7 @@ const BankAccountsBalanceReport = () => {
                 <Table striped bordered hover className="mb-0">
                   <thead className="table-dark">
                     <tr>
-                      <th>Cuenta</th>
+                      <th>No. Cuenta</th>
                       <th>Banco</th>
                       <th>Tipo</th>
                       <th>Nombre de la Cuenta</th>

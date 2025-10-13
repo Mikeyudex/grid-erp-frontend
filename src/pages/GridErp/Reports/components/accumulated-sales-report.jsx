@@ -31,6 +31,7 @@ export default function AccumulatedSalesReport() {
   const [selectedAdvisor, setSelectedAdvisor] = useState("all")
   const [startDate, setStartDate] = useState("")
   const [endDate, setEndDate] = useState("")
+  const [selectedZone, setSelectedZone] = useState("all")
 
   // Estados para datos y UI
   const [reportData, setReportData] = useState([])
@@ -80,7 +81,6 @@ export default function AccumulatedSalesReport() {
         startDate,
         endDate,
       }
-
       const response = await reportsHelper.getAccumulatedSalesReport(filters)
 
       if (response.success) {

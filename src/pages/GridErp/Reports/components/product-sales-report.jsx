@@ -126,10 +126,10 @@ export default function ProductSalesReport() {
 
   // Validar filtros
   const validateFilters = () => {
-    if (!filters.startDate || !filters.endDate) {
+    /* if (!filters.startDate || !filters.endDate) {
       setError("Las fechas de inicio y fin son obligatorias")
       return false
-    }
+    } */
 
     if (new Date(filters.startDate) > new Date(filters.endDate)) {
       setError("La fecha de inicio no puede ser mayor a la fecha de fin")
@@ -148,6 +148,10 @@ export default function ProductSalesReport() {
     setHasSearched(true)
 
     try {
+      if(!filters.productId || filters.productId === "all") filters.productId = "";
+      if(!filters.carpetTypeId  || filters.carpetTypeId === "all") filters.carpetTypeId = "";
+      if(!filters.materialId || filters.materialId === "all") filters.materialId = "";
+
       const response = await reportsHelper.getProductSalesReport(filters)
 
       if (response.success) {
@@ -256,7 +260,7 @@ export default function ProductSalesReport() {
                           >
                             <option value="all">Todos los Asesores</option>
                             {advisors.map((advisor) => (
-                              <option key={advisor._id} value={advisor._id}>
+                              <option key={advisor.id} value={advisor.id}>
                                 {advisor.name} {advisor.lastname}
                               </option>
                             ))}

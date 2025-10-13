@@ -299,7 +299,7 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
         }
         
         <div style="text-align: center; margin-top: 30px; font-size: 12px;">
-            Generado el ${new Date().toLocaleDateString("es-CO")} - Tapetes Premium S.A.S
+            Generado el ${new Date().toLocaleDateString("es-CO")} - Quality S.A.S
         </div>
     </div>
 </body>
@@ -742,7 +742,7 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
                   )}
 
                   <div style={{ textAlign: "center", marginTop: "30px", fontSize: "12px" }}>
-                    Generado el {new Date().toLocaleDateString("es-CO")} - Tapetes Premium S.A.S
+                    Generado el {new Date().toLocaleDateString("es-CO")} - Quality S.A.S
                   </div>
                 </div>
               </CardBody>
@@ -769,10 +769,10 @@ ${labelInfo.specialInstructions ? `Instrucciones: ${labelInfo.specialInstruction
                   <Copy className="me-2" size={16} />
                   Copiar Datos
                 </Button>
-                <Button color="secondary" onClick={generateTrackingNumber} className="d-flex align-items-center">
+                {/* <Button color="secondary" onClick={generateTrackingNumber} className="d-flex align-items-center">
                   <Phone className="me-2" size={16} />
                   Generar Seguimiento
-                </Button>
+                </Button> */}
               </div>
               <div className="text-center mt-3">
                 <small className="text-muted">

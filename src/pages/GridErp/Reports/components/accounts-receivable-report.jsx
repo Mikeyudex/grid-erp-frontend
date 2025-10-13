@@ -82,6 +82,10 @@ export default function AccountsReceivableReport() {
       setLoadingReport(true)
       setError("")
 
+      if(!filters.clientId || filters.clientId === "all") filters.clientId = "";
+      if(!filters.officeId || filters.officeId === "all") filters.officeId = "";
+      if(!filters.advisorId || filters.advisorId === "all") filters.advisorId = "";
+
       const response = await reportsHelper.getAccountsReceivableReport(filters)
 
       if (response.success) {
