@@ -2,6 +2,7 @@
 
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import { BASE_URL } from "../../../../helpers/url_helper";
+import { AccountHelper } from "../../Accounts/helpers/account_helper";
 import { CustomerHelper } from "../../Customers/helper/customer-helper";
 import { PurchaseHelper } from "../../PurchaseOrder/helper/purchase_helper";
 import { ZonesHelper } from "../../Zones/helper/zones_helper";
@@ -9,11 +10,13 @@ import { ZonesHelper } from "../../Zones/helper/zones_helper";
 const zonesHelper = new ZonesHelper();
 const purchaseHelper = new PurchaseHelper();
 const customerHelper = new CustomerHelper();
+const accountHelper = new AccountHelper();
+
+
 export class ReportsHelper {
   constructor() {
     this.baseUrl = `${BASE_URL}/reports`;
   }
-
 
   // Obtener sedes para el filtro
   async getOffices() {
@@ -134,47 +137,13 @@ export class ReportsHelper {
 
   // Obtener cuentas bancarias para filtros
   async getBankAccounts() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            _id: "1",
-            accountNumber: "1234567890",
-            bankName: "Banco de Bogotá",
-            accountType: "Cuenta Corriente",
-            accountName: "Tapetes Premium S.A.S - Principal",
-          },
-          {
-            _id: "2",
-            accountNumber: "0987654321",
-            bankName: "Bancolombia",
-            accountType: "Cuenta de Ahorros",
-            accountName: "Tapetes Premium S.A.S - Nómina",
-          },
-          {
-            _id: "3",
-            accountNumber: "5555666677",
-            bankName: "Banco Popular",
-            accountType: "Cuenta Corriente",
-            accountName: "Tapetes Premium S.A.S - Proveedores",
-          },
-          {
-            _id: "4",
-            accountNumber: "1111222233",
-            bankName: "BBVA Colombia",
-            accountType: "Cuenta de Ahorros",
-            accountName: "Tapetes Premium S.A.S - Reserva",
-          },
-          {
-            _id: "5",
-            accountNumber: "9999888877",
-            bankName: "Banco Davivienda",
-            accountType: "Cuenta Corriente",
-            accountName: "Tapetes Premium S.A.S - Operaciones",
-          },
-        ])
-      }, 500)
-    })
+    try {
+      let response = await accountHelper.getAccounts();
+      return response.data;
+    } catch (error) {
+      console.log("Error al obtener cuentas bancarias:", error);
+      throw error
+    }
   }
 
   // Obtener datos del reporte de ventas acumuladas
@@ -567,205 +536,45 @@ export class ReportsHelper {
 
   // Reporte de movimientos bancarios detallado
   async getBankMovementsReport(filters) {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        // Generar datos simulados basados en la cuenta seleccionada
-        const accountInfo = {
-          1: {
-            accountNumber: "1234567890",
-            bankName: "Banco de Bogotá",
-            accountName: "Tapetes Premium S.A.S - Principal",
-          },
-          2: { accountNumber: "0987654321", bankName: "Bancolombia", accountName: "Tapetes Premium S.A.S - Nómina" },
-          3: {
-            accountNumber: "5555666677",
-            bankName: "Banco Popular",
-            accountName: "Tapetes Premium S.A.S - Proveedores",
-          },
-          4: { accountNumber: "1111222233", bankName: "BBVA Colombia", accountName: "Tapetes Premium S.A.S - Reserva" },
-          5: {
-            accountNumber: "9999888877",
-            bankName: "Banco Davivienda",
-            accountName: "Tapetes Premium S.A.S - Operaciones",
-          },
+    try {
+      const { accountId, startDate, endDate } = filters
+      const token = getToken();
+      const response = await fetch(`${this.baseUrl}/get-account-movements-report?accountId=${accountId}&startDate=${startDate}&endDate=${endDate}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          "Authorization": `Bearer ${token}`
         }
-
-        const selectedAccount = accountInfo[filters.accountId] || accountInfo["1"]
-
-        const mockData = [
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Empresa ABC S.A.S",
-            voucherNumber: "REC-001234",
-            date: "2024-01-02",
-            income: 2731250,
-            expense: 0,
-            balance: 45750000,
-            movementType: "Ingreso por Venta",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Proveedor Materiales Ltda",
-            voucherNumber: "PAG-001235",
-            date: "2024-01-03",
-            income: 0,
-            expense: 1500000,
-            balance: 44250000,
-            movementType: "Pago a Proveedor",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Comercial XYZ Ltda",
-            voucherNumber: "REC-001236",
-            date: "2024-01-05",
-            income: 1966500,
-            expense: 0,
-            balance: 46216500,
-            movementType: "Ingreso por Venta",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Servicios Públicos EPM",
-            voucherNumber: "PAG-001237",
-            date: "2024-01-08",
-            income: 0,
-            expense: 850000,
-            balance: 45366500,
-            movementType: "Pago Servicios",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Distribuidora 123",
-            voucherNumber: "REC-001238",
-            date: "2024-01-10",
-            income: 4588500,
-            expense: 0,
-            balance: 49955000,
-            movementType: "Ingreso por Venta",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Nómina Empleados",
-            voucherNumber: "NOM-001239",
-            date: "2024-01-15",
-            income: 0,
-            expense: 8500000,
-            balance: 41455000,
-            movementType: "Pago Nómina",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Tapetes del Norte",
-            voucherNumber: "REC-001240",
-            date: "2024-01-18",
-            income: 3250000,
-            expense: 0,
-            balance: 44705000,
-            movementType: "Ingreso por Venta",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Transporte y Logística S.A.S",
-            voucherNumber: "PAG-001241",
-            date: "2024-01-20",
-            income: 0,
-            expense: 650000,
-            balance: 44055000,
-            movementType: "Pago Transporte",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Decoraciones Sur",
-            voucherNumber: "REC-001242",
-            date: "2024-01-22",
-            income: 1850000,
-            expense: 0,
-            balance: 45905000,
-            movementType: "Ingreso por Venta",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Mantenimiento Industrial",
-            voucherNumber: "PAG-001243",
-            date: "2024-01-25",
-            income: 0,
-            expense: 1200000,
-            balance: 44705000,
-            movementType: "Pago Mantenimiento",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Pisos y Más S.A.S",
-            voucherNumber: "REC-001244",
-            date: "2024-01-28",
-            income: 980000,
-            expense: 0,
-            balance: 45685000,
-            movementType: "Ingreso por Venta",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Seguros Bolívar",
-            voucherNumber: "PAG-001245",
-            date: "2024-01-30",
-            income: 0,
-            expense: 450000,
-            balance: 45235000,
-            movementType: "Pago Seguros",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Hogar Ideal Ltda",
-            voucherNumber: "REC-001246",
-            date: "2024-02-02",
-            income: 2150000,
-            expense: 0,
-            balance: 47385000,
-            movementType: "Ingreso por Venta",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Publicidad y Marketing",
-            voucherNumber: "PAG-001247",
-            date: "2024-02-05",
-            income: 0,
-            expense: 750000,
-            balance: 46635000,
-            movementType: "Pago Publicidad",
-          },
-          {
-            accountNumber: selectedAccount.accountNumber,
-            accountName: selectedAccount.accountName,
-            thirdPartyName: "Construcciones Beta",
-            voucherNumber: "REC-001248",
-            date: "2024-02-08",
-            income: 5200000,
-            expense: 0,
-            balance: 51835000,
-            movementType: "Ingreso por Venta",
-          },
-        ]
-
-        resolve({
-          success: true,
-          data: mockData,
+      });
+      let data = await response.json();
+      if (data && Array.isArray(data) && data.length > 0) {
+        let dataMapped = data.map((item) => {
+          return {
+            accountNumber: item.accountNumber,
+            accountName: item.cuenta,
+            thirdPartyName: item.nombreTercero,
+            voucherNumber: item.comprobante,
+            date: item.fecha,
+            income: item.ingreso,
+            expense: item.egreso,
+            balance: item.saldo,
+            movementType: item?.movementType,
+          }
         })
-      }, 1000)
-    })
+        return {
+          success: true,
+          data: dataMapped,
+        }
+      }
+      return {
+        success: true,
+        data: [],
+      }
+
+    } catch (error) {
+      console.error("Error al obtener reporte de movimientos bancarios:", error)
+      throw error
+    }
   }
 
   // Calcular totales para movimientos bancarios

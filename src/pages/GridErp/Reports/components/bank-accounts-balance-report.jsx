@@ -61,6 +61,12 @@ const BankAccountsBalanceReport = () => {
     document.body.removeChild(link)
   }
 
+  const getColorBadgeType = (type) => {
+    if (type.toLowerCase() === "corriente") return "primary"
+    if (type.toLowerCase() === "efectivo") return "warning"
+    if (type.toLowerCase() === "ahorros") return "info"
+  }
+
   if (loading) {
     return (
       <Container fluid className="py-4">
@@ -134,6 +140,7 @@ const BankAccountsBalanceReport = () => {
                     <CardBody>
                       <Row>
                         <Col md={6}>
+
                           <div className="d-flex justify-content-between align-items-center mb-2">
                             <span>
                               <Badge color="primary" className="me-2">
@@ -141,39 +148,66 @@ const BankAccountsBalanceReport = () => {
                               </Badge>
                             </span>
                             <span className="fw-bold">
-                              {reportData.filter((account) => account.accountType === "Cuenta Corriente").length}{" "}
+                              {reportData.filter((account) => account.accountType.toLowerCase() === "corriente").length}{" "}
                               cuentas
                             </span>
                           </div>
-                          <div className="d-flex justify-content-between align-items-center">
+
+                          <div className="d-flex justify-content-between align-items-center mb-2">
                             <span>
                               <Badge color="info" className="me-2">
                                 Cuenta de Ahorros
                               </Badge>
                             </span>
                             <span className="fw-bold">
-                              {reportData.filter((account) => account.accountType === "Cuenta de Ahorros").length}{" "}
+                              {reportData.filter((account) => account.accountType.toLowerCase() === "ahorros").length}{" "}
                               cuentas
                             </span>
                           </div>
+
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span>
+                              <Badge color="warning" className="me-2">
+                                Efectivo
+                              </Badge>
+                            </span>
+                            <span className="fw-bold">
+                              {reportData.filter((account) => account.accountType.toLowerCase() === "efectivo").length}{" "}
+                              cuentas
+                            </span>
+                          </div>
+
                         </Col>
                         <Col md={6}>
+
                           <div className="d-flex justify-content-between align-items-center mb-2">
                             <span className="text-muted">Saldo Cuentas Corrientes:</span>
                             <span className="fw-bold text-primary">
                               {reportsHelper.formatCurrency(
                                 reportData
-                                  .filter((account) => account.accountType === "Cuenta Corriente")
+                                  .filter((account) => account.accountType.toLowerCase() === "corriente")
                                   .reduce((sum, account) => sum + account.balance, 0),
                               )}
                             </span>
                           </div>
-                          <div className="d-flex justify-content-between align-items-center">
+
+                          <div className="d-flex justify-content-between align-items-center mb-2">
                             <span className="text-muted">Saldo Cuentas de Ahorros:</span>
                             <span className="fw-bold text-info">
                               {reportsHelper.formatCurrency(
                                 reportData
-                                  .filter((account) => account.accountType === "Cuenta de Ahorros")
+                                  .filter((account) => account.accountType.toLowerCase() === "ahorros")
+                                  .reduce((sum, account) => sum + account.balance, 0),
+                              )}
+                            </span>
+                          </div>
+
+                          <div className="d-flex justify-content-between align-items-center">
+                            <span className="text-muted">Saldo Efectivo:</span>
+                            <span className="fw-bold text-info">
+                              {reportsHelper.formatCurrency(
+                                reportData
+                                  .filter((account) => account.accountType.toLowerCase() === "efectivo")
                                   .reduce((sum, account) => sum + account.balance, 0),
                               )}
                             </span>
@@ -207,7 +241,7 @@ const BankAccountsBalanceReport = () => {
                           <strong>{account.bankName}</strong>
                         </td>
                         <td>
-                          <Badge color={account.accountType === "Cuenta Corriente" ? "primary" : "info"}>
+                          <Badge color={getColorBadgeType(account.accountType)}>
                             {account.accountType}
                           </Badge>
                         </td>

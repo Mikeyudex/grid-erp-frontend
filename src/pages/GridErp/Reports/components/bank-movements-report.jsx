@@ -182,7 +182,7 @@ export default function BankMovementsReport() {
                         <option value="">Seleccionar cuenta...</option>
                         {accounts.map((account) => (
                           <option key={account._id} value={account._id}>
-                            {account.accountNumber} - {account.bankName} ({account.accountType})
+                            {account.numberAccount} - {account.bankAccount} ({account.typeAccount})
                           </option>
                         ))}
                       </Input>
