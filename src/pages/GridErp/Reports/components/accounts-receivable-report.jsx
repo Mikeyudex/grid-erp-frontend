@@ -154,7 +154,7 @@ export default function AccountsReceivableReport() {
                     <option value="all">Todos los Clientes</option>
                     {clients.map((client) => (
                       <option key={client._id} value={client._id}>
-                        {client.name} - {client.commercialName}
+                        {client.name} {client?.lastname ?? ""} - {client?.commercialName ?? ""}
                       </option>
                     ))}
                   </Input>
@@ -193,7 +193,7 @@ export default function AccountsReceivableReport() {
                   >
                     <option value="all">Todos los Asesores</option>
                     {advisors.map((advisor) => (
-                      <option key={advisor._id} value={advisor._id}>
+                      <option key={advisor.id} value={advisor.id}>
                         {advisor.name} {advisor.lastname}
                       </option>
                     ))}
