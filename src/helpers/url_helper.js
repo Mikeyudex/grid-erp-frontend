@@ -15,7 +15,7 @@ export const URL_BASE_WEBSOCKET = process.env.REACT_APP_ENV === "LOCAL" ? "http:
 export const PATH_SOCKETIO_BACKOFFICE = process.env.REACT_APP_ENV === "PROD" ?
     "/backend/prod/socket.io/" :
     process.env.REACT_APP_ENV === "DEV" ?
-    "/backend/ev/socket.io/" :
+    "/backend/dev/socket.io/" :
     "/socket.io/";
 
 //REGISTER
