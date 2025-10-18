@@ -13,7 +13,9 @@ export const BASE_URL_IMPORT = process.env.REACT_APP_ENV === "LOCAL" ?
 export const URL_BASE_WEBSOCKET = process.env.REACT_APP_ENV === "LOCAL" ? "http://localhost:5001" : "ws://149.130.186.128:8080/backend/dev";
 
 export const PATH_SOCKETIO_BACKOFFICE = process.env.REACT_APP_ENV === "PROD" ?
-    "/prod/socket.io/" :
+    "/backend/prod/socket.io/" :
+    process.env.REACT_APP_ENV === "DEV" ?
+    "/backend/ev/socket.io/" :
     "/socket.io/";
 
 //REGISTER
