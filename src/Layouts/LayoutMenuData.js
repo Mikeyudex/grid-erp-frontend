@@ -237,7 +237,7 @@ const Navdata = () => {
         },
       ],
     },
-    {
+   /*  {
       id: "stock",
       label: "Stock",
       icon: "bx bxs-package",
@@ -269,7 +269,7 @@ const Navdata = () => {
           parentId: "stock",
         },
       ],
-    },
+    }, */
     {
       id: "warehouse",
       label: "Mis bodegas",
@@ -404,7 +404,7 @@ const Navdata = () => {
           link: "/zones",
           parentId: "configurations",
         },
-        {
+       /*  {
           id: "conf-company",
           label: "Mi Empresa",
           link: "/company-conf",
@@ -423,7 +423,7 @@ const Navdata = () => {
               parentId: "configurations",
             },
           ],
-        },
+        }, */
       ],
     },
   ];

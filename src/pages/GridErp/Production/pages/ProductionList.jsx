@@ -131,7 +131,7 @@ export default function ProductionListPage() {
             let userValue = await indexedDBService.getItemById(localStorage.getItem("userId"));
             let zoneId = userValue?.zoneId;
             let response = await productHelper.getPurchaseOrdersFromViewProduction(currentPage, itemsPerPage, zoneId);
-            return response.data;
+            return response?.data ?? response;
         } catch (error) {
             console.log(error);
             return [];
@@ -141,7 +141,7 @@ export default function ProductionListPage() {
     const handleGetUsers = async () => {
         try {
             let response = await userHelper.getUsers();
-            return response.data;
+            return response?.data ?? response;
         } catch (error) {
             console.log(error);
             return [];
@@ -152,7 +152,7 @@ export default function ProductionListPage() {
     const handleGetZones = async () => {
         let response = await authHelper.getZones();
         if (response?.statusCode === 200) {
-            setZones(response?.data);
+            setZones(response?.data ?? response);
         }
         if (response?.error) {
             console.log(response?.message);
@@ -162,6 +162,8 @@ export default function ProductionListPage() {
     useEffect(() => {
         handleGetUsers()
             .then(async (data) => {
+                console.log(data);
+                
                 let users = data;
                 let usersMap = users.map((u) => {
                     return {

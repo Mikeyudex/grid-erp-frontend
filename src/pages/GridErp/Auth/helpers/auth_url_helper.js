@@ -1,7 +1,7 @@
 import { BASE_URL } from "../../../../helpers/url_helper";
 
 export const BASE_URL_API = BASE_URL;
-export const companyId = "3423f065-bb88-4cc5-b53a-63290b960c1a";
+export const companyId = "66becedd790bddbc9b1e2cbc";
 
 
 export const SIGN_IN = BASE_URL_API + '/auth/login';

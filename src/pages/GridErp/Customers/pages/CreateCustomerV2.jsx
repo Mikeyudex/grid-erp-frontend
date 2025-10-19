@@ -46,7 +46,7 @@ export default function CreateClientV2({
             city: "",
             address: "",
             postalCode: "",
-            sameAddress: false,
+            sameAddress: true,
         },
         shippingData: {
             shippingName: "",

@@ -218,7 +218,7 @@ export default function ProductionListByItems() {
             let userValue = await indexedDBService.getItemById(localStorage.getItem("userId"));
             let zoneId = userValue?.zoneId;
             let response = await productHelper.getPurchaseOrdersFromViewProduction(currentPage, itemsPerPage, zoneId);
-            return response.data;
+            return response?.data ?? response;
         } catch (error) {
             console.log(error);
             return [];
@@ -228,7 +228,7 @@ export default function ProductionListByItems() {
     const handleGetUsers = async () => {
         try {
             let response = await userHelper.getUsers();
-            return response.data;
+            return response?.data ?? response;
         } catch (error) {
             console.log(error);
             return [];
@@ -238,7 +238,7 @@ export default function ProductionListByItems() {
     const handleGetZones = async () => {
         let response = await authHelper.getZones();
         if (response?.statusCode === 200) {
-            setZones(response?.data);
+            setZones(response?.data ?? response);
         }
         if (response?.error) {
             console.log(response?.message);

@@ -205,11 +205,11 @@ export const ListPurchaseOrder = ({
 
     const columns = [
         { key: "orderNumber", label: "No.", type: "text", editable: false, searchable: true, sortable: true },
-        { key: "name", label: "Nombre", type: "text", editable: false, searchable: true, sortable: true, },
+        { key: "name", label: "Nombre", type: "truncate", editable: false, searchable: true, sortable: true, truncateLength: 5 },
         { key: "commercialName", label: "Nombre Comercial", type: "text", editable: false, searchable: true, sortable: true, },
         { key: "email", label: "Email", type: "text", editable: false, searchable: true, sortable: true, },
         { key: "phone", label: "Teléfono", type: "text", editable: false, searchable: true },
-        { key: "shippingAddress", label: "Dirección", type: "text", editable: false, searchable: true },
+        { key: "shippingAddress", label: "Dirección", type: "truncate", editable: false, searchable: true, truncateLength: 8 },
         { key: "itemsQuantity", label: "Cantidad", type: "number", editable: false, searchable: true, sortable: true, },
         { key: "totalOrder", label: "Total", type: "price", editable: false, searchable: true },
         {

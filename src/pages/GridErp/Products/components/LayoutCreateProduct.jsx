@@ -31,7 +31,7 @@ registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
 const acceptedFileTypes = ['image/jpeg', 'image/png', 'image/gif'];
 const helper = new ProductHelper();
-const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
+const companyId = '66becedd790bddbc9b1e2cbc';
 const typeOfPiecesDefault = ['Conductor', 'Copiloto'];
 
 export default function LayoutCreateProduct(props) {

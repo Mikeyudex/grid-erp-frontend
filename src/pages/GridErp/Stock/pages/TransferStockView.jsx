@@ -17,7 +17,7 @@ import { CreateTransferStock } from "../components/CreateTransferStock";
 
 const helper = new StockHelper();
 const helperProduct = new ProductHelper();
-const companyId = '3423f065-bb88-4cc5-b53a-63290b960c1a';
+const companyId = '66becedd790bddbc9b1e2cbc';
 
 export const TransferStockView = (props) => {
     document.title = "Stock | Innventa-G";

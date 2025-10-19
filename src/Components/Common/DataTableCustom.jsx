@@ -250,7 +250,7 @@ const DataTable = ({
       handleSetSelectedRows([]);
     } else {
       setSelectedRows(currentItems.map((item) => item._id));
-      if(handleSetSelectedRows) {
+      if (handleSetSelectedRows) {
         handleSetSelectedRows(currentItems.map((item) => item._id))
       }
     }
@@ -368,6 +368,8 @@ const DataTable = ({
           )
         case "custom": // Nuevo caso para renderizado personalizado
           return column.render ? column.render(value, item) : value || "-"
+        case "truncate":
+          return value?.length > column.truncateLength ? `${value.substring(0, column.truncateLength)}...` : value
         default:
           return value
       }
@@ -409,6 +411,8 @@ const DataTable = ({
           )
         }
         return "-"
+      case "truncate":
+        return value?.length > column.truncateLength ? `${value.substring(0, column.truncateLength)}...` : value
       default:
         return value ?? "-"
     }

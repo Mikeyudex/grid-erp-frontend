@@ -1,6 +1,6 @@
 
 export const baseUrl = "http://localhost:5000";
-export const companyId = "3423f065-bb88-4cc5-b53a-63290b960c1a";
+export const companyId = "66becedd790bddbc9b1e2cbc";
 export const createdByMock = "66d4ed2f825f2d54204555c1";
 
 // woocommerce
