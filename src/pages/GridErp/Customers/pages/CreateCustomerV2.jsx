@@ -108,12 +108,15 @@ export default function CreateClientV2({
         setError("");
         setSuccess("");
         try {
-            handleGetCities();
+            const citiesOptions = citys.map((c) => ({ value: c.name, label: c.toponymName }));
             let customerData = await customerHelper.getCustomerById(clientId);
             if (!customerData) {
                 setError("No se ha seleccionado ningun cliente");
                 return;
             }
+            let basicCity = citiesOptions.find((c) => c.value === customerData?.city);
+            let shippingCity = citiesOptions.find((c) => c.value === customerData?.shippingCity);
+
             setFormData({
                 typeCustomerId: customerData?.typeCustomerId?._id,
                 basics: {
@@ -125,7 +128,7 @@ export default function CreateClientV2({
                     phone: customerData?.phone,
                     email: customerData?.email,
                     documento: customerData?.documento,
-                    city: cities.find((c) => c.value === customerData?.city),
+                    city: basicCity,
                     address: customerData?.address,
                     postalCode: customerData?.postalCode,
                     sameAddress: validateIsSameAddress(customerData),
@@ -137,7 +140,7 @@ export default function CreateClientV2({
                     shippingEmail: customerData?.shippingEmail,
                     shippingDocumento: customerData?.shippingDocumento,
                     shippingAddress: customerData?.shippingAddress,
-                    shippingCity: cities.find((c) => c.value === customerData?.shippingCity),
+                    shippingCity: shippingCity,
                     shippingPostalCode: customerData?.shippingPostalCode,
                 },
                 contacts: customerData?.contacts,
@@ -155,7 +158,7 @@ export default function CreateClientV2({
             }
         } catch (error) {
             setError("Error al cargar los datos del cliente")
-            console.error("Error loading client data:", err)
+            console.error("Error loading client data:", error)
         } finally {
             setIsInitialLoading(false);
         }
@@ -169,8 +172,6 @@ export default function CreateClientV2({
     }
 
     const handleInputChange = (section, field, value) => {
-        console.log(section, field, value);
-
         setFormData({
             ...formData,
             [section]: {

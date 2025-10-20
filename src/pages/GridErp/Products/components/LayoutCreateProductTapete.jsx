@@ -221,7 +221,7 @@ export default function LayoutCreateProductTapete({
         } catch (error) {
             console.log(error);
             handleCloseBackdrop();
-            openSnackbarDanger('Ocurrió un error al crear el producto.');
+            openSnackbarDanger(`Error al ${mode === "edit" ? "actualizar" : "crear"} el producto. Inténtalo de nuevo.`);
             setHasSuccessProductCreate(false);
         }
     };
