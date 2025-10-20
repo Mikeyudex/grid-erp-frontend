@@ -230,6 +230,10 @@ const ProductForm = ({ onSuccess }) => {
         let warehouses = respWarehouses.data;
         let providers = respProviders.data;
 
+        //ordenar alphabeticamente las categorías
+        categories.sort((a, b) => a.name.localeCompare(b.name));
+        console.log(categories);
+        
         setCategories(categories ?? []);
         setWarehouses(warehouses ?? []);
         setProviders(providers ?? []);

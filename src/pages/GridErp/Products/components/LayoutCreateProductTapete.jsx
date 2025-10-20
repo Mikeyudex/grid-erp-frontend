@@ -55,14 +55,14 @@ export default function LayoutCreateProductTapete({
     const [formData, setFormData] = useState({
         companyId: helper.companyId,
         externalId: '',
-        warehouseId: '',
-        providerId: '',
+        //warehouseId: '',
+        //providerId: '',
         historyActivityUserId: localStorage.getItem("userId"),
         name: '',
         description: '',
         id_type_product: '',
         id_category: '',
-        id_sub_category: '',
+        //id_sub_category: '',
         quantity: 1,
         unitOfMeasureId: '',
         taxId: '',
@@ -155,13 +155,13 @@ export default function LayoutCreateProductTapete({
         setFormData(
             {
                 externalId: '',
-                warehouseId: '',
-                providerId: '',
+                //warehouseId: '',
+                //providerId: '',
                 name: '',
                 description: '',
                 id_type_product: '',
                 id_category: '',
-                id_sub_category: '',
+                //id_sub_category: '',
                 quantity: 0,
                 unitOfMeasureId: '',
                 taxId: '',
@@ -286,6 +286,8 @@ export default function LayoutCreateProductTapete({
                     await handleSetLastSku();
                 }
                 let categories = respCategoriesFull?.data.filter((c) => c.shortCode.toLowerCase() !== "general");
+                //ordenar alphabeticamente las categorías
+                categories.sort((a, b) => a.name.localeCompare(b.name));
                 setCategories(categories ?? []);
                 setUnits(unitOfMeasures ?? []);
                 setTaxes(taxes ?? []);
