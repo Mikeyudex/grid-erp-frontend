@@ -287,7 +287,6 @@ export default function OrderGrid({
                     let adjustedPrice = data;
                     let finalPrice = adjustedPrice * item.quantity;
 
-                    // Asegurarse de volver a copiar y actualizar
                     const updatedItems = [...newItems];
                     updatedItems[rowIndex] = {
                         ...updatedItems[rowIndex],
@@ -301,11 +300,10 @@ export default function OrderGrid({
 
             return;
         }
+
         if (isEditMode && onUpdateItem) {
-            // En modo edición, notificar al componente padre
             onUpdateItem(rowIndex, newItems[rowIndex])
         } else {
-            // En modo creación, manejar internamente
             setOrderItems(newItems)
         }
     }
@@ -693,7 +691,7 @@ export default function OrderGrid({
                 setSelectedRows([]);
                 setEditingRowIndex(null);
                 setSelectedZoneId(null);
-            }else{
+            } else {
                 setMesssageAlert('Ocurrió un error :(, intenta más tarde.');
                 setTypeModal('danger');
                 setIsOpenModal(true);
@@ -1367,7 +1365,7 @@ export default function OrderGrid({
                                                             <Edit2 size={14} />
                                                         </Button>
                                                     </div>
-                                                    
+
                                                 </td>
 
                                                 {/* Tipo Tapete */}
@@ -1382,9 +1380,25 @@ export default function OrderGrid({
                                                                 type="select"
                                                                 value={item.matType}
                                                                 onChange={(e) => {
-                                                                    updateCellValue(index, "matType", e.target.value)
+                                                                    const newMatType = e.target.value;
+
+                                                                    // Actualizar ambos campos en una sola llamada
+                                                                    const newItems = [...orderItems];
+                                                                    newItems[index] = {
+                                                                        ...newItems[index],
+                                                                        matType: newMatType,
+                                                                        materialType: "Selecciona una opción",
+                                                                    };
+                                                                    setOrderItems(newItems);
+
+                                                                    // Filtrar materiales disponibles
+                                                                    purchaseOrderHelper.filterMaterialByMat(
+                                                                        newMatType,
+                                                                        setFilteredMaterialTypes,
+                                                                        matMaterialPrices
+                                                                    );
+
                                                                     setEditingCell(null);
-                                                                    purchaseOrderHelper.filterMaterialByMat(e.target.value, setFilteredMaterialTypes, matMaterialPrices);
                                                                 }}
                                                                 onBlur={() => setEditingCell(null)}
                                                                 autoFocus
@@ -1460,7 +1474,7 @@ export default function OrderGrid({
 
                                                 {/* Precio Base */}
                                                 <td className="text-end">
-                                            
+
                                                     <div
                                                         className="p-1"
                                                         onClick={() => setEditingCell({ row: index, field: "basePrice" })}
