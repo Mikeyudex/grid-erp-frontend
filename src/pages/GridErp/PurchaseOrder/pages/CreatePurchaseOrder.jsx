@@ -19,8 +19,8 @@ const purchaseHelper = new PurchaseHelper();
 export default function PurchaseOrderPage() {
     document.title = "Crear pedido | Quality";
     const [selectedClient, setSelectedClient] = useState(null);
-    const [products, setProducts] = useState([]);
-    const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+    //const [products, setProducts] = useState([]);
+    //const [isLoadingProducts, setIsLoadingProducts] = useState(true);
     const [clients, setClients] = useState([]);
     const [matMaterialPrices, setMatMaterialPrices] = useState([]);
     const [matTypeOptions, setMatTypeOptions] = useState([]);
@@ -124,7 +124,7 @@ export default function PurchaseOrderPage() {
             .catch(e => console.log(e))
     }, []);
 
-    useEffect(() => {
+    /* useEffect(() => {
         handleGetProducts()
             .then(async (data) => {
                 let products = data;
@@ -134,7 +134,7 @@ export default function PurchaseOrderPage() {
             .finally(() => {
                 setIsLoadingProducts(false);
             });
-    }, []);
+    }, []); */
 
     useEffect(() => {
         if (selectedClient) {
@@ -156,41 +156,24 @@ export default function PurchaseOrderPage() {
     }, [selectedClient]);
 
 
-    if (isLoadingProducts) {
-        return (
-            <div className="page-content">
-                <ToastContainer closeButton={false} limit={1} />
-                <Container fluid>
-                    <BreadCrumb title="Crear Orden de Pedido" pageTitle="Pedidos" />
-
-                    <div className="d-flex justify-content-center mt-5">
-                        <div className="spinner-border text-primary" role="status">
-                        </div>
-                        <h6 className="ms-3 fw-semibold">Cargando productos...</h6>
-                    </div>
-                </Container>
-            </div>
-        )
-    } else {
-        return (
-            <div className="page-content">
-                <ToastContainer closeButton={false} limit={1} />
-                <Container fluid>
-                    <BreadCrumb title="Crear Orden de Pedido" pageTitle="Pedidos" to={`/purchase-orders`} />
-                    <OrderGrid
-                        selectedClient={selectedClient}
-                        onClientSelect={handleClientSelect}
-                        clients={clients}
-                        products={products}
-                        matTypeOptions={matTypeOptions}
-                        materialTypeOptions={materialTypeOptions}
-                        matMaterialPrices={matMaterialPrices}
-                        accountList={accountList}
-                        advances={advances}
-                    />
-                </Container>
-            </div>
-        )
-    }
+    return (
+        <div className="page-content">
+            <ToastContainer closeButton={false} limit={1} />
+            <Container fluid>
+                <BreadCrumb title="Crear Orden de Pedido" pageTitle="Pedidos" to={`/purchase-orders`} />
+                <OrderGrid
+                    selectedClient={selectedClient}
+                    onClientSelect={handleClientSelect}
+                    clients={clients}
+                    /* products={products} */
+                    matTypeOptions={matTypeOptions}
+                    materialTypeOptions={materialTypeOptions}
+                    matMaterialPrices={matMaterialPrices}
+                    accountList={accountList}
+                    advances={advances}
+                />
+            </Container>
+        </div>
+    )
 }
 

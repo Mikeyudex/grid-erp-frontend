@@ -16,6 +16,7 @@ export class PurchaseHelper {
     dispatchOrder = async (orderId, userId) => apiFetch.update(`${url.DISPATCH_ORDER}/${orderId}/${userId}`);
     autoAsignarOrder = async (orderId, userId, zoneId) => apiFetch.update(`${url.AUTO_ASIGN_ORDER}/${orderId}/${userId}/${zoneId}`);
     getSalesAdvisors = async () => apiFetch.get(`${url.GET_SALES_ADVISORS}`);
+    searchProductByFullText = async (typeProduct, search) => apiFetch.get(`${url.SEARCH_PRODUCT_BY_FULL_TEXT}?typeProduct=${typeProduct}&search=${search}`);
 
     getAdvanceByCustomer = async (customerId, typeOperation = 'anticipo', page = 1, limit = 10) => {
         try {

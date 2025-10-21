@@ -15,3 +15,4 @@ export const AUTO_ASIGN_ORDER = baseUrl + "/purchase-order/auto-assign-order";
 export const DELETE_PURCHASE_ORDER = baseUrl + "/purchase-order/delete-order";
 export const BULK_DELETE_PURCHASE_ORDER = baseUrl + "/purchase-order/bulk-delete";
 export const GET_SALES_ADVISORS = baseUrl + "/users/advisors/getAll";
+export const SEARCH_PRODUCT_BY_FULL_TEXT = baseUrl + "/products/searchProductByFullText";

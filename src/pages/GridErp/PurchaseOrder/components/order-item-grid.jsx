@@ -60,7 +60,7 @@ export default function OrderGrid({
     selectedClient,
     onClientSelect,
     clients,
-    products,
+    /* products, */
     matTypeOptions,
     materialTypeOptions,
     matMaterialPrices,
@@ -88,12 +88,11 @@ export default function OrderGrid({
 
     // Estados para edición en línea
     const [productSearchTerm, setProductSearchTerm] = useState("")
-    const [filteredProducts, setFilteredProducts] = useState(products || []);
+    const [filteredProducts, setFilteredProducts] = useState([]);
     const [productSelected, setProductSelected] = useState(null);
     const [editingCell, setEditingCell] = useState(null)
     const [observationsModalOpen, setObservationsModalOpen] = useState(false)
     const [currentObservations, setCurrentObservations] = useState("")
-    const [errors, setErrors] = useState({});
     const inputRef = useRef(null);
     const rowRefs = useRef([]);
     const [rowError, setRowError] = useState({ rowIndex: null, message: "" });
@@ -116,6 +115,8 @@ export default function OrderGrid({
     const [editingDateOrder, setEditingDateOrder] = useState(false);
     const [editingContact, setEditingContact] = useState(false);
     const [orderDate, setOrderDate] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
+
     // Estados para controlar las secciones colapsables
     const [openSections, setOpenSections] = useState({
         customer: false,
@@ -447,12 +448,42 @@ export default function OrderGrid({
 
     // Funciones para búsqueda de productos
     useEffect(() => {
-        if (productSearchTerm) {
-            setFilteredProducts(products.filter((product) => product?.name.toLowerCase().includes(productSearchTerm.toLowerCase())));
-        } else {
-            setFilteredProducts(products)
+        const typeProduct = "Livianos";
+
+        // Evitar llamadas si no hay búsqueda
+        if (!productSearchTerm || productSearchTerm.length < 2) {
+            //setFilteredProducts(products || []);
+            setIsSearching(false);
+            return;
         }
-    }, [productSearchTerm])
+
+        const fetchProducts = async () => {
+            setIsSearching(true);
+            try {
+                const resp = await purchaseOrderHelper.searchProductByFullText(typeProduct, productSearchTerm);
+                const result = Array.isArray(resp?.data)
+                    ? resp.data
+                    : Array.isArray(resp?.data?.data)
+                        ? resp.data.data
+                        : Array.isArray(resp)
+                            ? resp
+                            : [];
+                setFilteredProducts(result);
+            } catch (error) {
+                console.error("❌ Error fetching products:", error);
+                setFilteredProducts([]); // fallback vacío
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        // pequeño debounce para evitar spam de llamadas al escribir rápido
+        const timeout = setTimeout(() => {
+            fetchProducts();
+        }, 400);
+
+        return () => clearTimeout(timeout);
+    }, [productSearchTerm]);
 
     // Abrir modal de observaciones
     const openObservationsModal = (rowIndex) => {
@@ -1329,21 +1360,34 @@ export default function OrderGrid({
                                                                             setProductSearchTerm("");
                                                                         }}
                                                                     >
-                                                                        {filteredProducts.map((product, idx) => (
-                                                                            <div
-                                                                                key={idx}
-                                                                                className="p-1 border-bottom"
-                                                                                onClick={() => {
-                                                                                    updateCellValue(index, "productName", product?.name, product);
-                                                                                    setProductSearchTerm("");
-                                                                                    setEditingCell(null);
-                                                                                    setProductSelected(product);
-                                                                                }}
-                                                                                style={{ cursor: "pointer" }}
-                                                                            >
-                                                                                {product?.name}
+                                                                        {isSearching ? (
+                                                                            <div className="flex items-center gap-2 p-2 text-gray-500 italic">
+                                                                                <span className="animate-spin border-2 border-gray-400 border-t-transparent rounded-full w-4 h-4"></span>
+                                                                                Buscando...
                                                                             </div>
-                                                                        ))}
+                                                                        ) : productSearchTerm.length < 2 ? (
+                                                                            <div className="p-2 text-gray-400 italic text-sm">
+                                                                                Escribe al menos 2 caracteres para buscar
+                                                                            </div>
+                                                                        ) : filteredProducts?.length > 0 ? (
+                                                                            filteredProducts.map((product, idx) => (
+                                                                                <div
+                                                                                    key={idx}
+                                                                                    className="p-1 border-bottom hover:bg-gray-100"
+                                                                                    onClick={() => {
+                                                                                        updateCellValue(index, "productName", product?.name, product);
+                                                                                        setProductSearchTerm("");
+                                                                                        setEditingCell(null);
+                                                                                        setProductSelected(product);
+                                                                                    }}
+                                                                                    style={{ cursor: "pointer" }}
+                                                                                >
+                                                                                    {product?.name}
+                                                                                </div>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className="p-2 text-gray-500 italic">No se encontraron productos</div>
+                                                                        )}
                                                                     </DropdownPortal>
                                                                 )}
                                                             </div>
