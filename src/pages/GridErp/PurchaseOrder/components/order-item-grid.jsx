@@ -20,7 +20,6 @@ import {
     Row,
     Col,
 } from "reactstrap";
-import { useSnackbar } from 'react-simple-snackbar';
 import {
     PlusCircle,
     Trash2,
@@ -36,7 +35,9 @@ import {
     CheckCircle,
     StoreIcon,
     CreditCard,
-} from "lucide-react"
+} from "lucide-react";
+import moment from "moment";
+
 import { ProductHelper } from "../../Products/helper/product_helper"
 import DropdownPortal from "./DropdownPortal"
 import { CREATE_PURCHASE_ORDER } from "../../Products/helper/url_helper"
@@ -46,7 +47,6 @@ import { PurchaseHelper, purchaseOrderStatus } from "../helper/purchase_helper";
 import AssignModal from "./assign-modal";
 import { AuthHelper } from "../../Auth/helpers/auth_helper";
 import { CollapsibleSection } from "../../../../Components/Common/CollapsibleSection";
-import moment from "moment";
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import { BASE_URL, UPLOAD_FILE } from "../../../../helpers/url_helper";
 import ToastComponent from "../../../../Components/Common/Toast";
@@ -271,7 +271,7 @@ export default function OrderGrid({
             newItems[rowIndex] = {
                 ...newItems[rowIndex],
                 productName: product.name,
-                productId: product.id,
+                productId: product._id,
                 basePrice: product.salePrice || 0,
                 selectedPieces: product?.typeOfPieces.slice(0, 3).map((p) => p._id),
                 pieces: product?.typeOfPieces.slice(0, 3).length || 0,
@@ -293,9 +293,8 @@ export default function OrderGrid({
                         ...updatedItems[rowIndex],
                         adjustedPrice: adjustedPrice,
                         finalPrice: finalPrice,
-                        basePublicPrice: adjustedPrice / item.quantity,
+                        basePublicPrice: getBasePublicPrice(adjustedPrice, newItems[rowIndex]?.basePrice, item.basePrice, item.quantity),
                     };
-
                     setOrderItems(updatedItems);
                 });
 
@@ -324,14 +323,25 @@ export default function OrderGrid({
                     ...updatedItems[rowIndex],
                     adjustedPrice: adjustedPrice,
                     finalPrice: finalPrice,
-                    basePublicPrice: adjustedPrice / item.quantity,// se debe obtener el valor unitario
+                    basePublicPrice: getBasePublicPrice(adjustedPrice, newItems[rowIndex]?.basePrice, value, item.quantity),
                 };
 
                 setOrderItems(updatedItems); // ✅ Actualizamos después del cálculo
                 setEditingCell(null);
             });
-
         return;
+    }
+
+    const getBasePublicPrice = (adjustedPrice, salePrice, basePrice, quantity) => {
+        if (adjustedPrice && salePrice && basePrice) {
+            if (basePrice !== salePrice) {
+                return basePrice;
+            } else {
+                return adjustedPrice / quantity;
+            }
+        } else {
+            return 0;
+        }
     }
 
     // Abrir modal de piezas para una fila específica
@@ -379,7 +389,7 @@ export default function OrderGrid({
         if (selectedPiecesTemp.length === typeOfPiecesRow.length) {
             setSelectedPiecesTemp([])
         } else {
-            setSelectedPiecesTemp(typeOfPiecesRow.map((pieza) => pieza.id))
+            setSelectedPiecesTemp(typeOfPiecesRow.map((pieza) => pieza._id))
         }
     }
 
@@ -1419,7 +1429,7 @@ export default function OrderGrid({
                                                         onClick={() => setEditingCell({ row: index, field: "matType" })}
                                                         style={{ cursor: "pointer" }}
                                                     >
-                                                        {editingCell?.row === index && editingCell?.field === "matType" ? (
+                                                        {editingCell?.row === index && editingCell?.field === "matType" && item.productName ? (
                                                             <Input
                                                                 type="select"
                                                                 value={item.matType}
@@ -1446,6 +1456,7 @@ export default function OrderGrid({
                                                                 }}
                                                                 onBlur={() => setEditingCell(null)}
                                                                 autoFocus
+                                                                disabled={!item.productName}
                                                             >
                                                                 <option value="0">Selecciona una opción</option>
                                                                 {matTypeOptions.map((mat, idx) => (
@@ -1468,7 +1479,7 @@ export default function OrderGrid({
                                                         onClick={() => setEditingCell({ row: index, field: "materialType" })}
                                                         style={{ cursor: "pointer" }}
                                                     >
-                                                        {editingCell?.row === index && editingCell?.field === "materialType" ? (
+                                                        {editingCell?.row === index && editingCell?.field === "materialType" && item.productName ? (
                                                             <Input
                                                                 type="select"
                                                                 value={item.materialType}
@@ -1477,6 +1488,7 @@ export default function OrderGrid({
                                                                     setEditingCell(null)
                                                                 }}
                                                                 onBlur={() => setEditingCell(null)}
+                                                                disabled={!item.productName}
                                                                 autoFocus
                                                             >
                                                                 <option value="0">Selecciona una opción</option>
@@ -1499,7 +1511,7 @@ export default function OrderGrid({
                                                         onClick={() => setEditingCell({ row: index, field: "quantity" })}
                                                         style={{ cursor: "pointer" }}
                                                     >
-                                                        {editingCell?.row === index && editingCell?.field === "quantity" ? (
+                                                        {editingCell?.row === index && editingCell?.field === "quantity" && item.productName ? (
                                                             <Input
                                                                 type="number"
                                                                 min="1"
@@ -1508,6 +1520,7 @@ export default function OrderGrid({
                                                                     updateCellValue(index, "quantity", Number.parseInt(e.target.value) || 1)
                                                                 }}
                                                                 onBlur={() => setEditingCell(null)}
+                                                                disabled={!item.productName}
                                                                 autoFocus
                                                             />
                                                         ) : (
@@ -1524,7 +1537,7 @@ export default function OrderGrid({
                                                         onClick={() => setEditingCell({ row: index, field: "basePrice" })}
                                                         style={{ cursor: "pointer" }}
                                                     >
-                                                        {editingCell?.row === index && editingCell?.field === "basePrice" ? (
+                                                        {editingCell?.row === index && editingCell?.field === "basePrice" && item.productName ? (
                                                             <Input
                                                                 type="number"
                                                                 value={item.basePublicPrice}
@@ -1537,6 +1550,7 @@ export default function OrderGrid({
                                                                         handleOnChangeBasePrice(index, item.basePublicPrice);
                                                                     }
                                                                 }}
+                                                                disabled={!item.productName}
                                                                 autoFocus
                                                             />
                                                         ) : (
