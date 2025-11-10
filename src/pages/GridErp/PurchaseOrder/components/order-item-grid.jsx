@@ -119,7 +119,7 @@ export default function OrderGrid({
 
     // Estados para controlar las secciones colapsables
     const [openSections, setOpenSections] = useState({
-        customer: false,
+        customer: true,
         products: true,
         total: false,
         methodOfPayment: false,
@@ -1031,10 +1031,10 @@ export default function OrderGrid({
 
             {/* Botones de Acción */}
             <div className="d-flex gap-2 mb-4">
-                <Button color="secondary" onClick={toggleClientModal} className="d-flex align-items-center gap-2">
+                {/* <Button color="secondary" onClick={toggleClientModal} className="d-flex align-items-center gap-2">
                     <User size={18} />
                     {selectedClient ? "Cambiar Cliente" : "Seleccionar Cliente"}
-                </Button>
+                </Button> */}
 
                 {/* <Button
                     color="primary"
@@ -1046,7 +1046,7 @@ export default function OrderGrid({
                     Añadir Producto
                 </Button> */}
 
-                <Button
+               {/*  <Button
                     color="light"
                     onClick={handleOpenAssignModal}
                     className="d-flex align-items-center gap-2"
@@ -1054,7 +1054,7 @@ export default function OrderGrid({
                 >
                     <CheckCircle size={18} />
                     Asignar Pedido
-                </Button>
+                </Button> */}
 
                 {selectedRows.length > 0 && (
                     <Button color="info" onClick={openBulkEditModal} className="d-flex align-items-center gap-2 ms-auto">
@@ -1079,7 +1079,7 @@ export default function OrderGrid({
                             <Col md={6}>
                                 <div>
                                     <span className="fw-medium">Cliente: </span>
-                                    <span>{selectedClient?.name ?? "Sin seleccionar"}</span>
+                                    <span className="cursor-pointer" onClick={toggleClientModal}>{selectedClient?.name ?? "Sin seleccionar"}</span>
                                     {selectedClient?.company && <span className="ms-2 text-muted">({selectedClient?.company})</span>}
                                 </div>
                             </Col>
@@ -1612,6 +1612,33 @@ export default function OrderGrid({
 
             </CollapsibleSection>
 
+            {/* Total del Pedido */}
+            {
+                orderItems.length > 0 && !isEditMode && (
+                    <div className="bg-light p-3 rounded shadow-sm mb-4" style={{ /* position: "sticky", */ /* bottom: '25px', */ height: '110px' }}>
+                        <div className="d-flex justify-content-between align-items-center">
+                            <h2 className="h5 fw-semibold mb-0">Total del Pedido:</h2>
+                            <span className="h4 fw-bold mb-0">${calculateTotal().toLocaleString()}</span>
+                        </div>
+
+                        <div className="mt-3 d-flex justify-content-between">
+                            <div>
+
+                            </div>
+
+                            <Button
+                                color="success"
+                                className="d-flex align-items-center gap-2"
+                                onClick={handleSubmit}
+                            >
+                                <Save size={18} />
+                                Finalizar Pedido
+                            </Button>
+                        </div>
+                    </div>
+                )
+            }
+
             <CollapsibleSection id="methodOfPayment" title="Formas de pago" icon={CreditCard} isOpen={openSections.methodOfPayment} onToggle={toggleSection}>
                 <Row>
                     <Col md={12}>
@@ -1786,32 +1813,7 @@ export default function OrderGrid({
                 </Row>
             </CollapsibleSection >
 
-            {/* Total del Pedido */}
-            {
-                orderItems.length > 0 && !isEditMode && (
-                    <div className="bg-light p-3 rounded shadow-sm mb-4" style={{ position: "sticky", bottom: '25px', height: '110px' }}>
-                        <div className="d-flex justify-content-between align-items-center">
-                            <h2 className="h5 fw-semibold mb-0">Total del Pedido:</h2>
-                            <span className="h4 fw-bold mb-0">${calculateTotal().toLocaleString()}</span>
-                        </div>
-
-                        <div className="mt-3 d-flex justify-content-between">
-                            <div>
-
-                            </div>
-
-                            <Button
-                                color="success"
-                                className="d-flex align-items-center gap-2"
-                                onClick={handleSubmit}
-                            >
-                                <Save size={18} />
-                                Finalizar Pedido
-                            </Button>
-                        </div>
-                    </div>
-                )
-            }
+            
         </>
     )
 }

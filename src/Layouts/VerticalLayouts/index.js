@@ -53,6 +53,7 @@ const VerticalLayout = (props) => {
             }
 
         } else if (windowSize < 1025 && windowSize > 767) {
+            
             document.body.classList.remove("twocolumn-panel");
             if (document.documentElement.getAttribute("data-layout") === "vertical") {
                 document.documentElement.setAttribute("data-sidebar-size", "sm");
@@ -63,6 +64,7 @@ const VerticalLayout = (props) => {
             if (document.querySelector(".hamburger-icon")) {
                 document.querySelector(".hamburger-icon").classList.add("open");
             }
+            
         } else if (windowSize <= 767) {
             document.body.classList.remove("vertical-sidebar-enable");
             if (document.documentElement.getAttribute("data-layout") !== "horizontal") {
