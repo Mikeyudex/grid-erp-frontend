@@ -306,13 +306,17 @@ export default function ViewDetailPurchaseOrder() {
                                                 </Button>
                                             )
                                     }
-
-                                    <Button
-                                        title="Despachar Pedido"
-                                        color="secondary"
-                                        onClick={() => handleDespacharPedido(pedido?.id)}>
-                                        <LucideContainer size={18} className="me-2" /> Despachar
-                                    </Button>
+                                    {
+                                        !isFree && (
+                                            <Button
+                                                title="Despachar Pedido"
+                                                color="secondary"
+                                                onClick={() => handleDespacharPedido(pedido?.id)}>
+                                                <LucideContainer size={18} className="me-2" /> Despachar
+                                            </Button>
+                                        )
+                                    }
+                                    
                                 </div>
                             </div>
 

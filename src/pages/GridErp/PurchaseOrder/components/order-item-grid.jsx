@@ -530,6 +530,10 @@ export default function OrderGrid({
         return orderItems.reduce((total, item) => total + (item.adjustedPrice || 0), 0)
     };
 
+    const calcSaldoPendiente = () => {
+        return (calculateTotal() - calculateTotalPayments())
+    }
+
     // Funciones para selección de filas
     const toggleRowSelection = (index) => {
         if (selectedRows.includes(index)) {
@@ -751,6 +755,7 @@ export default function OrderGrid({
 
     useEffect(() => {
         addNewRow();
+        addPaymentMethod();
     }, []);
 
     useEffect(() => {
@@ -1046,7 +1051,7 @@ export default function OrderGrid({
                     Añadir Producto
                 </Button> */}
 
-               {/*  <Button
+                {/*  <Button
                     color="light"
                     onClick={handleOpenAssignModal}
                     className="d-flex align-items-center gap-2"
@@ -1707,9 +1712,9 @@ export default function OrderGrid({
                                                                 size="sm"
                                                             >
                                                                 <option value="">Seleccionar tipo operación...</option>
-                                                                <option value="anticipo">Anticipo</option>
+                                                                {/*  <option value="anticipo">Anticipo</option> */}
                                                                 <option value="ventas">Venta</option>
-                                                                <option value="recibos">Recibo</option>
+                                                                {/* <option value="recibos">Recibo</option> */}
                                                                 <option value="credito">Crédito</option>
                                                             </Input>
                                                         </td>
@@ -1793,9 +1798,9 @@ export default function OrderGrid({
                                                         Saldo Pendiente:
                                                     </td>
                                                     <td
-                                                        className={`fw-bold ${(calculateTotal() - calculateTotalPayments()) > 0 ? "text-danger" : "text-success"}`}
+                                                        className={`fw-bold ${calcSaldoPendiente() > 0 ? "text-danger" : "text-success"}`}
                                                     >
-                                                        ${(calculateTotal() - calculateTotalPayments()).toLocaleString()}
+                                                        ${calcSaldoPendiente().toLocaleString()}
                                                     </td>
                                                     <td colSpan="2"></td>
                                                 </tr>
@@ -1813,7 +1818,7 @@ export default function OrderGrid({
                 </Row>
             </CollapsibleSection >
 
-            
+
         </>
     )
 }
