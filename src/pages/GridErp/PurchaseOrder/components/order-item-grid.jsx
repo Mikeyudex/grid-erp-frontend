@@ -55,6 +55,7 @@ import ToastComponent from "../../../../Components/Common/Toast";
 const productHelper = new ProductHelper();
 const authHelper = new AuthHelper();
 const purchaseOrderHelper = new PurchaseHelper();
+const typeProduct = "Livianos";
 
 export default function OrderGrid({
     selectedClient,
@@ -281,9 +282,18 @@ export default function OrderGrid({
 
         // Actualizar precio base y final si cambia el tipo de tapete o material
         if (field === "matType" || field === "materialType" || field === "quantity") {
-            const item = newItems[rowIndex]
+            const item = newItems[rowIndex];
 
-            handleGetAdjustedPriceFromBasePrice(item.basePrice, item.matType, item.materialType, item.quantity, selectedClient?.typeCustomerId)
+            // Usar SIEMPRE el precio actualizado por el usuario
+            const basePriceToUse = item.basePublicPrice || item.basePrice;
+
+            handleGetAdjustedPriceFromBasePrice(
+                basePriceToUse,
+                item.matType,
+                item.materialType,
+                item.quantity,
+                selectedClient?.typeCustomerId
+            )
                 .then(data => {
                     let adjustedPrice = data;
                     let finalPrice = adjustedPrice * item.quantity;
@@ -456,43 +466,37 @@ export default function OrderGrid({
         setProductSelected(null);
     }
 
+    const fetchProducts = async () => {
+        setIsSearching(true);
+        try {
+            const resp = await purchaseOrderHelper.searchProductByFullText(typeProduct, productSearchTerm ?? "");
+            const result = Array.isArray(resp?.data)
+                ? resp.data
+                : Array.isArray(resp?.data?.data)
+                    ? resp.data.data
+                    : Array.isArray(resp)
+                        ? resp
+                        : [];
+            setFilteredProducts(result);
+        } catch (error) {
+            console.error("❌ Error fetching products:", error);
+            setFilteredProducts([]); // fallback vacío
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
     // Funciones para búsqueda de productos
     useEffect(() => {
-        const typeProduct = "Livianos";
-
-        // Evitar llamadas si no hay búsqueda
-        if (!productSearchTerm || productSearchTerm.length < 2) {
-            //setFilteredProducts(products || []);
-            setIsSearching(false);
+        if (productSearchTerm === "") {
+            fetchProducts() // carga listado inicial
             return;
         }
 
-        const fetchProducts = async () => {
-            setIsSearching(true);
-            try {
-                const resp = await purchaseOrderHelper.searchProductByFullText(typeProduct, productSearchTerm);
-                const result = Array.isArray(resp?.data)
-                    ? resp.data
-                    : Array.isArray(resp?.data?.data)
-                        ? resp.data.data
-                        : Array.isArray(resp)
-                            ? resp
-                            : [];
-                setFilteredProducts(result);
-            } catch (error) {
-                console.error("❌ Error fetching products:", error);
-                setFilteredProducts([]); // fallback vacío
-            } finally {
-                setIsSearching(false);
-            }
-        };
-
-        // pequeño debounce para evitar spam de llamadas al escribir rápido
-        const timeout = setTimeout(() => {
-            fetchProducts();
-        }, 400);
-
-        return () => clearTimeout(timeout);
+        if (productSearchTerm.length >= 3) {
+            const delay = setTimeout(() => fetchProducts(), 300);
+            return () => clearTimeout(delay);
+        }
     }, [productSearchTerm]);
 
     // Abrir modal de observaciones
@@ -755,8 +759,13 @@ export default function OrderGrid({
 
     useEffect(() => {
         addNewRow();
-        addPaymentMethod();
     }, []);
+
+    useEffect(() => { 
+        if(orderItems.length > 0 && orderItems.length < 2 && paymentMethods.length === 0 && orderItems[0]?.finalPrice > 0) {
+            addPaymentMethod();
+        }
+     }, [orderItems]);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -776,7 +785,21 @@ export default function OrderGrid({
 
     // Agregar nueva forma de pago
     const addPaymentMethod = () => {
-        setPaymentMethods([...paymentMethods, createEmptyPaymentMethod()])
+        const saldoPendiente = calcSaldoPendiente();
+
+        setPaymentMethods(prev => {
+            const nuevoValor = saldoPendiente > 0 ? saldoPendiente : 0;
+            return [
+                ...prev,
+                {
+                    cuenta: "",
+                    typeOperation: "",
+                    fecha: new Date().toISOString().split("T")[0],
+                    valor: nuevoValor,
+                    soporte: null,
+                }
+            ];
+        });
     }
 
     // Eliminar forma de pago
@@ -1342,6 +1365,7 @@ export default function OrderGrid({
                                                                         onChange={(e) => setProductSearchTerm(e.target.value)}
                                                                         onFocus={() => {
                                                                             setProductSearchTerm("")
+                                                                            fetchProducts(); // cargar la primera página
                                                                         }}
                                                                         onBlur={() => {
                                                                             setTimeout(() => {
@@ -1367,7 +1391,7 @@ export default function OrderGrid({
                                                                     )}
                                                                 </InputGroup>
 
-                                                                {productSearchTerm && inputRef.current && (
+                                                                {inputRef.current && (
                                                                     <DropdownPortal
                                                                         targetRef={inputRef}
                                                                         onClickOutside={() => {
@@ -1380,24 +1404,20 @@ export default function OrderGrid({
                                                                                 <span className="animate-spin border-2 border-gray-400 border-t-transparent rounded-full w-4 h-4"></span>
                                                                                 Buscando...
                                                                             </div>
-                                                                        ) : productSearchTerm.length < 2 ? (
-                                                                            <div className="p-2 text-gray-400 italic text-sm">
-                                                                                Escribe al menos 2 caracteres para buscar
-                                                                            </div>
                                                                         ) : filteredProducts?.length > 0 ? (
                                                                             filteredProducts.map((product, idx) => (
                                                                                 <div
                                                                                     key={idx}
                                                                                     className="p-1 border-bottom hover:bg-gray-100"
                                                                                     onClick={() => {
-                                                                                        updateCellValue(index, "productName", product?.name, product);
+                                                                                        updateCellValue(index, "productName", `${product?.id_category?.name} - ${product.name}`, product);
                                                                                         setProductSearchTerm("");
                                                                                         setEditingCell(null);
                                                                                         setProductSelected(product);
                                                                                     }}
                                                                                     style={{ cursor: "pointer" }}
                                                                                 >
-                                                                                    {product?.name}
+                                                                                    {product?.id_category?.name ? `${product.id_category?.name} - ${product.name}` : product.name}
                                                                                 </div>
                                                                             ))
                                                                         ) : (
@@ -1728,11 +1748,20 @@ export default function OrderGrid({
                                                         </td>
                                                         <td>
                                                             <Input
-                                                                type="number"
-                                                                min="0"
-                                                                step="1000"
-                                                                value={method.valor}
-                                                                onChange={(e) => updatePaymentMethod(index, "valor", Number(e.target.value) || 0)}
+                                                                type="text"
+                                                                value={Number(method.valor || 0).toLocaleString("es-CO", {
+                                                                    style: "currency",
+                                                                    currency: "COP",
+                                                                    minimumFractionDigits: 0
+                                                                })}
+                                                                onChange={(e) => {
+                                                                    const raw = e.target.value
+                                                                        .replace(/[^\d]/g, "")      // deja solo números
+                                                                        .replace(/^0+/, "");        // elimina ceros a la izquierda
+
+                                                                    const parsedValue = raw ? parseInt(raw, 10) : 0;
+                                                                    updatePaymentMethod(index, "valor", parsedValue);
+                                                                }}
                                                                 placeholder="$0"
                                                                 size="sm"
                                                             />
