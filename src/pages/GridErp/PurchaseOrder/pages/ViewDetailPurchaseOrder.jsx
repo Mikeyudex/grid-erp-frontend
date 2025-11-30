@@ -126,6 +126,7 @@ export default function ViewDetailPurchaseOrder() {
             let userId = localStorage.getItem("userId");
             await purchaseOrderHelper.releaseOrder(id, userId);
             setSuccess("Pedido liberado con éxito.");
+            handleReturnToList();
         } catch (error) {
             setError(error);
         } finally {
@@ -152,6 +153,7 @@ export default function ViewDetailPurchaseOrder() {
             } else {
                 setError("Error al despachar el pedido");
             }
+            handleReturnToList();
         } catch (error) {
             setError(error);
         } finally {
@@ -171,6 +173,7 @@ export default function ViewDetailPurchaseOrder() {
             let zoneId = userData?.zoneId;
             await purchaseOrderHelper.autoAsignarOrder(id, userId, zoneId);
             setSuccess("Pedido autoasignado con éxito.");
+            handleReturnToList();
         } catch (error) {
             setError(error);
         } finally {
@@ -190,6 +193,11 @@ export default function ViewDetailPurchaseOrder() {
         }
         return selectedPieces
             .join(", ")
+    }
+
+    const handleReturnToList = async () => {
+        await new Promise(r => setTimeout(r, 3000));
+        return navigate("/purchase-orders")
     }
 
 

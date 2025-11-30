@@ -162,8 +162,6 @@ export default function ProductionListPage() {
     useEffect(() => {
         handleGetUsers()
             .then(async (data) => {
-                console.log(data);
-                
                 let users = data;
                 let usersMap = users.map((u) => {
                     return {
@@ -1080,7 +1078,7 @@ export default function ProductionListPage() {
                                 {
                                     isLoading && (
                                         <tr>
-                                            <td colSpan="8" className="text-center py-4">
+                                            <td colSpan="12" className="text-center py-4">
                                                 <div className="text-muted">Cargando...</div>
                                             </td>
                                         </tr>
@@ -1134,7 +1132,7 @@ export default function ProductionListPage() {
                                                 </td>
                                             </tr>
                                             <tr key={`collapse-${pedido.id}`}>
-                                                <td colSpan="8" className="p-0 border-0">
+                                                <td colSpan="12" className="p-0 border-0">
                                                     <Collapse isOpen={expandedRows[pedido.id]}>
                                                         <div className="bg-light p-3 w-100">
                                                             <h6 className="mb-3">Productos del Pedido #{pedido.id}</h6>

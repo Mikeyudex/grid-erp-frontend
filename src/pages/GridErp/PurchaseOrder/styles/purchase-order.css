@@ -2,7 +2,7 @@
 
 .card-header-custom {
     background-color: #1b3460;
-    
+    z-index: 10;
 }
 
 .card-header-custom h5 {

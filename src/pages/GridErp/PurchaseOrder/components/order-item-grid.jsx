@@ -50,6 +50,7 @@ import { CollapsibleSection } from "../../../../Components/Common/CollapsibleSec
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import { BASE_URL, UPLOAD_FILE } from "../../../../helpers/url_helper";
 import ToastComponent from "../../../../Components/Common/Toast";
+import { useNavigate } from "react-router-dom";
 
 
 const productHelper = new ProductHelper();
@@ -74,6 +75,7 @@ export default function OrderGrid({
     accountList,
     advances = [],
 }) {
+    const navigate = useNavigate();
     const [orderItems, setOrderItems] = useState(initialOrderItems)
     const [clientModalOpen, setClientModalOpen] = useState(false)
     const [clientSearchTerm, setClientSearchTerm] = useState("")
@@ -123,7 +125,7 @@ export default function OrderGrid({
         customer: true,
         products: true,
         total: false,
-        methodOfPayment: false,
+        methodOfPayment: true,
     });
 
     // Estados para formas de pago (agregar después de los otros estados)
@@ -268,6 +270,11 @@ export default function OrderGrid({
             [field]: value,
         }
 
+        // Nuevo: si el campo actualizado es quantity
+        if (field === "quantity") {
+            handleQuantityUpdateAffectsPayment();
+        }
+
         if (field === "productName" && product) {
             newItems[rowIndex] = {
                 ...newItems[rowIndex],
@@ -401,22 +408,6 @@ export default function OrderGrid({
         } else {
             setSelectedPiecesTemp(typeOfPiecesRow.map((pieza) => pieza._id))
         }
-    }
-
-    // Obtener texto de piezas seleccionadas
-    const getSelectedPiecesText = (selectedPieces) => {
-        if (!selectedPieces || selectedPieces.length === 0) {
-            return "Ninguna pieza seleccionada"
-        }
-
-        const selectedNames = selectedPieces
-            .map((id) => {
-                const pieza = typeOfPiecesRow.find((p) => p._id === id)
-                return pieza ? pieza.name : ""
-            })
-            .filter(Boolean)
-
-        return selectedNames.join(", ")
     }
 
     // Funciones para el modal de cliente
@@ -696,7 +687,7 @@ export default function OrderGrid({
                         paymentDate: m.fecha,
                         value: m.valor,
                         paymentSupport: m.soporte,
-                        typeOperation: m.typeOperation || 'ventas',
+                        typeOperation: "ventas"
                     }
                 }),
             }
@@ -740,6 +731,7 @@ export default function OrderGrid({
                 setSelectedRows([]);
                 setEditingRowIndex(null);
                 setSelectedZoneId(null);
+                return navigate("/purchase-orders");
             } else {
                 setMesssageAlert('Ocurrió un error :(, intenta más tarde.');
                 setTypeModal('danger');
@@ -761,11 +753,15 @@ export default function OrderGrid({
         addNewRow();
     }, []);
 
-    useEffect(() => { 
-        if(orderItems.length > 0 && orderItems.length < 2 && paymentMethods.length === 0 && orderItems[0]?.finalPrice > 0) {
+    useEffect(() => {
+        if (orderItems.length === 0) return;
+
+        if (orderItems.length > 0 && orderItems.length < 2 && paymentMethods.length === 0 && orderItems[0]?.finalPrice > 0) {
             addPaymentMethod();
+            return;
         }
-     }, [orderItems]);
+    }, [orderItems]);
+
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -793,7 +789,6 @@ export default function OrderGrid({
                 ...prev,
                 {
                     cuenta: "",
-                    typeOperation: "",
                     fecha: new Date().toISOString().split("T")[0],
                     valor: nuevoValor,
                     soporte: null,
@@ -817,6 +812,36 @@ export default function OrderGrid({
             return updated;
         });
     };
+
+    const handleQuantityUpdateAffectsPayment = () => {
+        const saldo = calcSaldoPendiente();
+
+        if (saldo <= 0) return;
+
+        setPaymentMethods(prev => {
+            // Si no hay métodos de pago → crear uno con el saldo completo
+            if (prev.length === 0) {
+                return [{
+                    cuenta: "",
+                    fecha: new Date().toISOString().split("T")[0],
+                    valor: saldo,
+                    soporte: null,
+                }];
+            }
+
+            // Si ya existe → actualizar SOLO el último
+            const updated = [...prev];
+            const lastIndex = updated.length - 1;
+
+            updated[lastIndex] = {
+                ...updated[lastIndex],
+                valor: saldo
+            };
+
+            return updated;
+        });
+    };
+
 
     // Manejar carga de archivos
     const handleFileUpload = async (index, file) => {
@@ -1664,7 +1689,12 @@ export default function OrderGrid({
                 )
             }
 
-            <CollapsibleSection id="methodOfPayment" title="Formas de pago" icon={CreditCard} isOpen={openSections.methodOfPayment} onToggle={toggleSection}>
+            <CollapsibleSection
+                id="methodOfPayment"
+                title="Formas de pago"
+                icon={CreditCard}
+                isOpen={openSections.methodOfPayment}
+                onToggle={toggleSection}>
                 <Row>
                     <Col md={12}>
                         {orderItems.length > 0 && (
@@ -1683,7 +1713,7 @@ export default function OrderGrid({
                                             <thead>
                                                 <tr className="bg-white">
                                                     <th style={{ width: "25%" }}>Cuenta</th>
-                                                    <th style={{ width: "20%" }}>Tipo Operación</th>
+                                                  {/*   <th style={{ width: "20%" }}>Tipo Operación</th> */}
                                                     <th style={{ width: "20%" }}>Fecha</th>
                                                     <th style={{ width: "20%" }}>Valor</th>
                                                     <th style={{ width: "25%" }}>Soporte</th>
@@ -1712,32 +1742,7 @@ export default function OrderGrid({
                                                                 ))}
                                                             </Input>
                                                         </td>
-                                                        <td>
-                                                            <Input
-                                                                type="select"
-                                                                value={method.typeOperation}
-                                                                onChange={(e) => {
 
-                                                                    if (e.target.value === 'anticipo') {
-                                                                        let incomeId = method?.cuenta;
-                                                                        let advance = advances.find(a => a._id === incomeId);
-
-                                                                        if (advance) {
-                                                                            let advanceValue = advance?.value;
-                                                                            updatePaymentMethod(index, "valor", advanceValue);
-                                                                        }
-                                                                    }
-                                                                    updatePaymentMethod(index, "typeOperation", e.target.value);
-                                                                }}
-                                                                size="sm"
-                                                            >
-                                                                <option value="">Seleccionar tipo operación...</option>
-                                                                {/*  <option value="anticipo">Anticipo</option> */}
-                                                                <option value="ventas">Venta</option>
-                                                                {/* <option value="recibos">Recibo</option> */}
-                                                                <option value="credito">Crédito</option>
-                                                            </Input>
-                                                        </td>
                                                         <td>
                                                             <Input
                                                                 type="date"

@@ -103,3 +103,17 @@ export const getProgressText = (percentage) => {
     if (percentage <= 66) return "Medio"
     return "Alto"
 }
+
+
+// helper local para sumar totales de items
+export const sumTotalOrderFromItems = (items) =>
+  items.reduce((acc, it) => acc + (it.totalItem ?? (it.priceItem * (it.quantity ?? 1))), 0);
+
+// helper para crear un método de pago por defecto
+export const createDefaultPayment = (valor = 0) => ({
+  cuenta: "",
+  typeOperation: "",
+  fecha: new Date().toISOString().split("T")[0],
+  valor,
+  soporte: null,
+});
