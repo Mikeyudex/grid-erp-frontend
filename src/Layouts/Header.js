@@ -111,12 +111,12 @@ const Header = ({ onChangeLayoutMode, layoutModeType, headerClass }) => {
 
                         <div className="d-flex align-items-center">
 
-                            <HeaderConnectedUsers
+                            {/* <HeaderConnectedUsers
                                 websocketUrl={`${URL_BASE_WEBSOCKET}`}
                                 maxVisibleAvatars={5}
                                 showConnectionStatus={false}
                                 currentUserId={localStorage.getItem('userId')}
-                            />
+                            /> */}
 
 
                             <Dropdown isOpen={search} toggle={toogleSearch} className="d-md-none topbar-head-dropdown header-item">

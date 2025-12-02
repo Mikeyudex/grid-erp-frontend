@@ -138,7 +138,7 @@ const Layout = (props) => {
                     layoutModeType={layoutModeType}
                     onChangeLayoutMode={onChangeLayoutMode} />
                 <Sidebar layoutType={layoutType} />
-                <SocketNotifier />
+               {/*  <SocketNotifier /> */}
                 <div className="main-content">{props.children}
                     <Footer />
                 </div>
