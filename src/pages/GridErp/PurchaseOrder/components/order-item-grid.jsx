@@ -197,6 +197,7 @@ export default function OrderGrid({
             finalPrice: 0,
             adjustedPrice: 0,
             basePublicPrice: 0,
+            filteredMaterialTypes: [],
         }
     }
 
@@ -282,10 +283,21 @@ export default function OrderGrid({
             setTypeOfPiecesRow(product?.typeOfPieces);
         }
 
+        if (
+            field === "matType" ||
+            field === "materialType" ||
+            field === "quantity"
+        ) {
+            const item = newItems[rowIndex];
+
+            if (!item.matType || !item.materialType || !item.quantity) return;
+        }
+
         // Actualizar precio base y final si cambia el tipo de tapete, material o cantidad
         if (field === "matType" || field === "materialType" || field === "quantity") {
             const item = newItems[rowIndex];
-            const basePriceToUse = item.basePublicPrice || item.basePrice;
+            const basePriceToUse =
+                field === "matType" ? item.basePrice : (item.basePublicPrice || item.basePrice);
 
             handleGetAdjustedPriceFromBasePrice(
                 basePriceToUse,
@@ -1492,37 +1504,28 @@ export default function OrderGrid({
 
                                                 {/* Tipo Tapete */}
                                                 <td>
-
                                                     <Input
                                                         type="select"
                                                         value={item.matType}
                                                         onChange={(e) => {
                                                             const newMatType = e.target.value;
 
-                                                            // Actualizar ambos campos en una sola llamada
                                                             const newItems = [...orderItems];
                                                             newItems[index] = {
                                                                 ...newItems[index],
                                                                 matType: newMatType,
-                                                                materialType: "Selecciona una opción",
+                                                                materialType: "0", // reset material
+                                                                basePublicPrice: 0,
+                                                                adjustedPrice: 0,
+                                                                finalPrice: 0,
                                                             };
+
                                                             setOrderItems(newItems);
-
-                                                            // Filtrar materiales disponibles
-                                                            purchaseOrderHelper.filterMaterialByMat(
-                                                                newMatType,
-                                                                setFilteredMaterialTypes,
-                                                                matMaterialPrices
-                                                            );
-
-                                                            setEditingCell(null);
                                                         }}
-                                                        onBlur={() => setEditingCell(null)}
-                                                        autoFocus
                                                         disabled={!item.productName}
                                                     >
                                                         <option value="0">Selecciona una opción</option>
-                                                        {matTypeOptions.map((mat, idx) => (
+                                                        {Object.keys(matMaterialPrices).map((mat, idx) => (
                                                             <option key={idx} value={mat}>
                                                                 {mat}
                                                             </option>
@@ -1532,34 +1535,24 @@ export default function OrderGrid({
 
                                                 {/* Material */}
                                                 <td>
-                                                    {/* <div
-                                                        className="p-1"
-                                                        onClick={() => setEditingCell({ row: index, field: "materialType" })}
-                                                        style={{ cursor: "pointer" }}
-                                                    >
-                                                        {editingCell?.row === index && editingCell?.field === "materialType" && item.productName ? ( */}
                                                     <Input
                                                         type="select"
                                                         value={item.materialType}
                                                         onChange={(e) => {
-                                                            updateCellValue(index, "materialType", e.target.value)
-                                                            setEditingCell(null)
+                                                            updateCellValue(index, "materialType", e.target.value);
                                                         }}
-                                                        onBlur={() => setEditingCell(null)}
-                                                        disabled={!item.productName}
-                                                        autoFocus
+                                                        disabled={!item.productName || !item.matType}
                                                     >
                                                         <option value="0">Selecciona una opción</option>
-                                                        {filteredMaterialTypes.map((matType, index) => (
-                                                            <option key={index} value={matType}>
-                                                                {matType}
-                                                            </option>
-                                                        ))}
-                                                    </Input>
-                                                    {/* ) : (
-                                                            item.materialType
+
+                                                        {purchaseOrderHelper.filterMaterialByMatSync(item.matType, matMaterialPrices).map(
+                                                            (matType, idx) => (
+                                                                <option key={idx} value={matType}>
+                                                                    {matType}
+                                                                </option>
+                                                            )
                                                         )}
-                                                    </div> */}
+                                                    </Input>
                                                 </td>
 
                                                 {/* Cantidad */}

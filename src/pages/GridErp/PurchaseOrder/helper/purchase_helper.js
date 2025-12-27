@@ -45,6 +45,11 @@ export class PurchaseHelper {
         }
     };
 
+    filterMaterialByMatSync = (matType, matMaterialPrices) => {
+        if (!matType || !matMaterialPrices[matType]) return [];
+        return Object.keys(matMaterialPrices[matType]);
+    };
+
     handleKeyDown = (e, createEmptyRow, setOrderItems) => {
         // Si la tecla presionada NO es Enter, salir
         if (e.key !== 'Enter') return;
@@ -108,15 +113,15 @@ export const getProgressText = (percentage) => {
 
 // helper local para sumar totales de items
 export const sumTotalOrderFromItems = (items) =>
-  items.reduce((acc, it) => acc + (it.totalItem ?? (it.priceItem * (it.quantity ?? 1))), 0);
+    items.reduce((acc, it) => acc + (it.totalItem ?? (it.priceItem * (it.quantity ?? 1))), 0);
 
 // helper para crear un método de pago por defecto
 export const createDefaultPayment = (valor = 0) => ({
-  cuenta: "",
-  typeOperation: "",
-  fecha: new Date().toISOString().split("T")[0],
-  valor,
-  soporte: null,
+    cuenta: "",
+    typeOperation: "",
+    fecha: new Date().toISOString().split("T")[0],
+    valor,
+    soporte: null,
 });
 
 export const actionsSpeedDialPurchaseOrder = (mode, onClick) => {
