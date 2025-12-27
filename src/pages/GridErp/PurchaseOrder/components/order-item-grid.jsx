@@ -1387,7 +1387,10 @@ export default function OrderGrid({
                                                 <td>
                                                     <div
                                                         className="p-1 cursor-pointer"
-                                                        onClick={() => setEditingCell({ row: index, field: "productName" })}
+                                                        onClick={() => {
+                                                            setEditingCell({ row: index, field: "productName" });
+                                                            setProductSearchTerm(item.productName || "");
+                                                        }}
                                                     >
                                                         {editingCell?.row === index && editingCell?.field === "productName" ? (
                                                             <div className="position-relative">
@@ -1396,10 +1399,10 @@ export default function OrderGrid({
                                                                         innerRef={inputRef}
                                                                         size={"sm"}
                                                                         type="text"
-                                                                        value={productSearchTerm || item.productName}
+                                                                        value={productSearchTerm}
                                                                         onChange={(e) => setProductSearchTerm(e.target.value)}
                                                                         onFocus={() => {
-                                                                            setProductSearchTerm("")
+                                                                            /* setProductSearchTerm("") */
                                                                             fetchProducts(); // cargar la primera página
                                                                         }}
                                                                         onBlur={() => {
@@ -1419,7 +1422,7 @@ export default function OrderGrid({
                                                                             size="sm"
                                                                             color="secondary"
                                                                             onMouseDown={(e) => e.preventDefault()}
-                                                                            onClick={() => clearProductSelection(index)}
+                                                                            onClick={() => setProductSearchTerm("")}
                                                                         >
                                                                             <X size={8} />
                                                                         </Button>
@@ -1445,7 +1448,12 @@ export default function OrderGrid({
                                                                                     key={idx}
                                                                                     className="p-1 border-bottom hover:bg-gray-100"
                                                                                     onClick={() => {
-                                                                                        updateCellValue(index, "productName", `${product?.id_category?.name} - ${product.name}`, product);
+                                                                                        updateCellValue(
+                                                                                            index,
+                                                                                            "productName",
+                                                                                            `${product?.id_category?.name} - ${product.name}`,
+                                                                                            product
+                                                                                        );
                                                                                         setProductSearchTerm("");
                                                                                         setEditingCell(null);
                                                                                         setProductSelected(product);
