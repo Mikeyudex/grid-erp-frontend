@@ -72,7 +72,7 @@ export class ProductionHelper {
         }
     }
 
-    getStatusOptionsByOrder(){
+    getStatusOptionsByOrder() {
         return [
             { value: "libre", label: "Libre" },
             { value: "asignado", label: "Asignado" },
@@ -81,7 +81,7 @@ export class ProductionHelper {
         ];
     };
 
-    getStatusOptionsByProduct(){
+    getStatusOptionsByProduct() {
         return [
             { value: "pendiente", label: "Pendiente" },
             { value: "fabricacion", label: "Fabricación" },
@@ -89,5 +89,4 @@ export class ProductionHelper {
             { value: "finalizado", label: "Finalizado" },
         ];
     }
-
 }

@@ -43,7 +43,7 @@ import DropdownPortal from "./DropdownPortal"
 import { CREATE_PURCHASE_ORDER } from "../../Products/helper/url_helper"
 import { validatePayload } from "../utils/purchase-order.utils";
 import "./index.css";
-import { PurchaseHelper, purchaseOrderStatus } from "../helper/purchase_helper";
+import { actionsSpeedDialPurchaseOrder, PurchaseHelper, purchaseOrderStatus } from "../helper/purchase_helper";
 import AssignModal from "./assign-modal";
 import { AuthHelper } from "../../Auth/helpers/auth_helper";
 import { CollapsibleSection } from "../../../../Components/Common/CollapsibleSection";
@@ -51,6 +51,7 @@ import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import { BASE_URL, UPLOAD_FILE } from "../../../../helpers/url_helper";
 import ToastComponent from "../../../../Components/Common/Toast";
 import { useNavigate } from "react-router-dom";
+import SpeedDialProduct from "../../Products/components/SpeedDial";
 
 
 const productHelper = new ProductHelper();
@@ -262,18 +263,12 @@ export default function OrderGrid({
         }
     }
 
-    // Actualizar un valor en una celda
     const updateCellValue = (rowIndex, field, value, product = null) => {
-        const newItems = [...orderItems]
+        const newItems = [...orderItems];
         newItems[rowIndex] = {
             ...newItems[rowIndex],
             [field]: value,
-        }
-
-        // Nuevo: si el campo actualizado es quantity
-        if (field === "quantity") {
-            handleQuantityUpdateAffectsPayment();
-        }
+        };
 
         if (field === "productName" && product) {
             newItems[rowIndex] = {
@@ -283,15 +278,13 @@ export default function OrderGrid({
                 basePrice: product.salePrice || 0,
                 selectedPieces: product?.typeOfPieces.slice(0, 3).map((p) => p._id),
                 pieces: product?.typeOfPieces.slice(0, 3).length || 0,
-            }
-            setTypeOfPiecesRow(product?.typeOfPieces)
+            };
+            setTypeOfPiecesRow(product?.typeOfPieces);
         }
 
-        // Actualizar precio base y final si cambia el tipo de tapete o material
+        // Actualizar precio base y final si cambia el tipo de tapete, material o cantidad
         if (field === "matType" || field === "materialType" || field === "quantity") {
             const item = newItems[rowIndex];
-
-            // Usar SIEMPRE el precio actualizado por el usuario
             const basePriceToUse = item.basePublicPrice || item.basePrice;
 
             handleGetAdjustedPriceFromBasePrice(
@@ -310,20 +303,38 @@ export default function OrderGrid({
                         ...updatedItems[rowIndex],
                         adjustedPrice: adjustedPrice,
                         finalPrice: finalPrice,
-                        basePublicPrice: getBasePublicPrice(adjustedPrice, newItems[rowIndex]?.basePrice, item.basePrice, item.quantity),
+                        basePublicPrice: getBasePublicPrice(
+                            adjustedPrice,
+                            newItems[rowIndex]?.basePrice,
+                            item.basePrice,
+                            item.quantity
+                        ),
                     };
                     setOrderItems(updatedItems);
+
+                    // ⚠️ IMPORTANTE: Actualizar pagos DESPUÉS de que los precios se actualicen
+                    if (field === "quantity") {
+                        // Usar setTimeout para asegurar que el estado se actualizó
+                        setTimeout(() => {
+                            handleQuantityUpdateAffectsPayment();
+                        }, 0);
+                    }
                 });
 
             return;
         }
 
-        if (isEditMode && onUpdateItem) {
-            onUpdateItem(rowIndex, newItems[rowIndex])
-        } else {
-            setOrderItems(newItems)
+        // Si NO es un cambio de precio asíncrono, actualizar inmediatamente
+        if (field === "quantity") {
+            handleQuantityUpdateAffectsPayment();
         }
-    }
+
+        if (isEditMode && onUpdateItem) {
+            onUpdateItem(rowIndex, newItems[rowIndex]);
+        } else {
+            setOrderItems(newItems);
+        }
+    };
 
     const handleOnChangeBasePrice = (rowIndex, value) => {
         const newItems = [...orderItems];
@@ -775,6 +786,14 @@ export default function OrderGrid({
         };
     }, []);
 
+    // (si calcSaldoPendiente depende de orderItems)
+    useEffect(() => {
+        // Solo actualizar si hay métodos de pago
+        if (paymentMethods.length > 0) {
+            handleQuantityUpdateAffectsPayment();
+        }
+    }, [orderItems]); // Agregar dependencias necesarias
+
     const handleClickAddItem = () => {
         return purchaseOrderHelper.handleCreateEmptyRow(createEmptyRow, setOrderItems);
     }
@@ -829,19 +848,33 @@ export default function OrderGrid({
                 }];
             }
 
-            // Si ya existe → actualizar SOLO el último
+            // Si hay SOLO 1 método → actualizar ese único
+            if (prev.length === 1) {
+                return [{
+                    ...prev[0],
+                    valor: saldo
+                }];
+            }
+
+            // Si hay MÁS de 1 método → actualizar SOLO el último (resto del saldo)
             const updated = [...prev];
             const lastIndex = updated.length - 1;
 
+            // Calcular el saldo que falta después de los pagos anteriores
+            const sumaPagosAnteriores = updated
+                .slice(0, lastIndex)
+                .reduce((sum, method) => sum + (Number(method.valor) || 0), 0);
+
+            const saldoRestante = Math.max(0, saldo - sumaPagosAnteriores);
+
             updated[lastIndex] = {
                 ...updated[lastIndex],
-                valor: saldo
+                valor: saldoRestante
             };
 
             return updated;
         });
     };
-
 
     // Manejar carga de archivos
     const handleFileUpload = async (index, file) => {
@@ -899,6 +932,8 @@ export default function OrderGrid({
                     />
                 )
             }
+
+            <SpeedDialProduct actions={actionsSpeedDialPurchaseOrder(isEditMode ? "edit" : "create", handleSubmit)} />
 
             {/* Modal de Selección de Cliente */}
             <Modal isOpen={clientModalOpen} toggle={toggleClientModal}>
@@ -1084,31 +1119,6 @@ export default function OrderGrid({
 
             {/* Botones de Acción */}
             <div className="d-flex gap-2 mb-4">
-                {/* <Button color="secondary" onClick={toggleClientModal} className="d-flex align-items-center gap-2">
-                    <User size={18} />
-                    {selectedClient ? "Cambiar Cliente" : "Seleccionar Cliente"}
-                </Button> */}
-
-                {/* <Button
-                    color="primary"
-                    onClick={addNewRow}
-                    className="d-flex align-items-center gap-2"
-                    disabled={!selectedClient}
-                >
-                    <PlusCircle size={18} />
-                    Añadir Producto
-                </Button> */}
-
-                {/*  <Button
-                    color="light"
-                    onClick={handleOpenAssignModal}
-                    className="d-flex align-items-center gap-2"
-                    disabled={!selectedClient}
-                >
-                    <CheckCircle size={18} />
-                    Asignar Pedido
-                </Button> */}
-
                 {selectedRows.length > 0 && (
                     <Button color="info" onClick={openBulkEditModal} className="d-flex align-items-center gap-2 ms-auto">
                         <Edit size={18} />
@@ -1474,84 +1484,74 @@ export default function OrderGrid({
 
                                                 {/* Tipo Tapete */}
                                                 <td>
-                                                    <div
-                                                        className="p-1"
-                                                        onClick={() => setEditingCell({ row: index, field: "matType" })}
-                                                        style={{ cursor: "pointer" }}
+
+                                                    <Input
+                                                        type="select"
+                                                        value={item.matType}
+                                                        onChange={(e) => {
+                                                            const newMatType = e.target.value;
+
+                                                            // Actualizar ambos campos en una sola llamada
+                                                            const newItems = [...orderItems];
+                                                            newItems[index] = {
+                                                                ...newItems[index],
+                                                                matType: newMatType,
+                                                                materialType: "Selecciona una opción",
+                                                            };
+                                                            setOrderItems(newItems);
+
+                                                            // Filtrar materiales disponibles
+                                                            purchaseOrderHelper.filterMaterialByMat(
+                                                                newMatType,
+                                                                setFilteredMaterialTypes,
+                                                                matMaterialPrices
+                                                            );
+
+                                                            setEditingCell(null);
+                                                        }}
+                                                        onBlur={() => setEditingCell(null)}
+                                                        autoFocus
+                                                        disabled={!item.productName}
                                                     >
-                                                        {editingCell?.row === index && editingCell?.field === "matType" && item.productName ? (
-                                                            <Input
-                                                                type="select"
-                                                                value={item.matType}
-                                                                onChange={(e) => {
-                                                                    const newMatType = e.target.value;
-
-                                                                    // Actualizar ambos campos en una sola llamada
-                                                                    const newItems = [...orderItems];
-                                                                    newItems[index] = {
-                                                                        ...newItems[index],
-                                                                        matType: newMatType,
-                                                                        materialType: "Selecciona una opción",
-                                                                    };
-                                                                    setOrderItems(newItems);
-
-                                                                    // Filtrar materiales disponibles
-                                                                    purchaseOrderHelper.filterMaterialByMat(
-                                                                        newMatType,
-                                                                        setFilteredMaterialTypes,
-                                                                        matMaterialPrices
-                                                                    );
-
-                                                                    setEditingCell(null);
-                                                                }}
-                                                                onBlur={() => setEditingCell(null)}
-                                                                autoFocus
-                                                                disabled={!item.productName}
-                                                            >
-                                                                <option value="0">Selecciona una opción</option>
-                                                                {matTypeOptions.map((mat, idx) => (
-                                                                    <option key={idx} value={mat}>
-                                                                        {mat}
-                                                                    </option>
-                                                                ))}
-                                                            </Input>
-
-                                                        ) : (
-                                                            item.matType
-                                                        )}
-                                                    </div>
+                                                        <option value="0">Selecciona una opción</option>
+                                                        {matTypeOptions.map((mat, idx) => (
+                                                            <option key={idx} value={mat}>
+                                                                {mat}
+                                                            </option>
+                                                        ))}
+                                                    </Input>
                                                 </td>
 
                                                 {/* Material */}
                                                 <td>
-                                                    <div
+                                                    {/* <div
                                                         className="p-1"
                                                         onClick={() => setEditingCell({ row: index, field: "materialType" })}
                                                         style={{ cursor: "pointer" }}
                                                     >
-                                                        {editingCell?.row === index && editingCell?.field === "materialType" && item.productName ? (
-                                                            <Input
-                                                                type="select"
-                                                                value={item.materialType}
-                                                                onChange={(e) => {
-                                                                    updateCellValue(index, "materialType", e.target.value)
-                                                                    setEditingCell(null)
-                                                                }}
-                                                                onBlur={() => setEditingCell(null)}
-                                                                disabled={!item.productName}
-                                                                autoFocus
-                                                            >
-                                                                <option value="0">Selecciona una opción</option>
-                                                                {filteredMaterialTypes.map((matType, index) => (
-                                                                    <option key={index} value={matType}>
-                                                                        {matType}
-                                                                    </option>
-                                                                ))}
-                                                            </Input>
-                                                        ) : (
+                                                        {editingCell?.row === index && editingCell?.field === "materialType" && item.productName ? ( */}
+                                                    <Input
+                                                        type="select"
+                                                        value={item.materialType}
+                                                        onChange={(e) => {
+                                                            updateCellValue(index, "materialType", e.target.value)
+                                                            setEditingCell(null)
+                                                        }}
+                                                        onBlur={() => setEditingCell(null)}
+                                                        disabled={!item.productName}
+                                                        autoFocus
+                                                    >
+                                                        <option value="0">Selecciona una opción</option>
+                                                        {filteredMaterialTypes.map((matType, index) => (
+                                                            <option key={index} value={matType}>
+                                                                {matType}
+                                                            </option>
+                                                        ))}
+                                                    </Input>
+                                                    {/* ) : (
                                                             item.materialType
                                                         )}
-                                                    </div>
+                                                    </div> */}
                                                 </td>
 
                                                 {/* Cantidad */}
@@ -1665,25 +1665,10 @@ export default function OrderGrid({
             {/* Total del Pedido */}
             {
                 orderItems.length > 0 && !isEditMode && (
-                    <div className="bg-light p-3 rounded shadow-sm mb-4" style={{ /* position: "sticky", */ /* bottom: '25px', */ height: '110px' }}>
+                    <div className="bg-light p-3 rounded shadow-sm mb-4">
                         <div className="d-flex justify-content-between align-items-center">
                             <h2 className="h5 fw-semibold mb-0">Total del Pedido:</h2>
                             <span className="h4 fw-bold mb-0">${calculateTotal().toLocaleString()}</span>
-                        </div>
-
-                        <div className="mt-3 d-flex justify-content-between">
-                            <div>
-
-                            </div>
-
-                            <Button
-                                color="success"
-                                className="d-flex align-items-center gap-2"
-                                onClick={handleSubmit}
-                            >
-                                <Save size={18} />
-                                Finalizar Pedido
-                            </Button>
                         </div>
                     </div>
                 )
@@ -1713,7 +1698,7 @@ export default function OrderGrid({
                                             <thead>
                                                 <tr className="bg-white">
                                                     <th style={{ width: "25%" }}>Cuenta</th>
-                                                  {/*   <th style={{ width: "20%" }}>Tipo Operación</th> */}
+                                                    {/*   <th style={{ width: "20%" }}>Tipo Operación</th> */}
                                                     <th style={{ width: "20%" }}>Fecha</th>
                                                     <th style={{ width: "20%" }}>Valor</th>
                                                     <th style={{ width: "25%" }}>Soporte</th>

@@ -1,0 +1,38 @@
+.resizable-table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.resizable-th {
+  position: relative;
+  border-right: 1px solid #dee2e6;
+}
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  right: -5px;
+  width: 12px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 20;
+}
+
+.resize-handle::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  width: 2px;
+  height: 100%;
+  background: transparent;
+}
+
+.resizable-th:hover .resize-handle::after {
+  background: #0d6efd;
+}
+
+
+.resize-handle:hover::after {
+  background: #0d6efd;
+}

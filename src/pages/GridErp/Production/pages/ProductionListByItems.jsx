@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
     Container,
     Row,
@@ -12,8 +12,6 @@ import {
     Badge,
     Button,
     Input,
-    InputGroup,
-    Form,
     Alert,
     Pagination,
     PaginationItem,
@@ -26,16 +24,12 @@ import {
     UncontrolledTooltip,
 } from "reactstrap"
 import {
-    Search,
     ChevronDown,
     CheckSquare,
     Square,
     User,
-    Clock,
-    Filter,
     RefreshCw,
     CheckCircle,
-    AlertCircle,
     Edit,
     ChevronLeft,
     ChevronRightIcon,
@@ -55,8 +49,10 @@ import ModalCambioEstado from "../components/ModalCambioEstado"
 import ModalAsignacion from "../components/ModalAsignacion"
 import { ProductionHelper } from "../helper/production-helper"
 import { IndexedDBService } from "../../../../helpers/indexedDb/indexed-db-helper"
-import ModalAsignacionXZona from "../components/ModalAsignacionZona"
-import { AuthHelper } from "../../Auth/helpers/auth_helper"
+import { AuthHelper } from "../../Auth/helpers/auth_helper";
+import { useColumnResize } from "../../../../hooks/useColumnResize";
+import { ResizableTH } from "../../../../Components/Common/ResizableTH";
+import { ResizableTD } from "../../../../Components/Common/ResizableTD";
 
 const productHelper = new ProductHelper();
 const userHelper = new UserHelper();
@@ -82,6 +78,7 @@ const defaultColumns = [
 
 export default function ProductionListByItems() {
     document.title = "Ordenes de Producción - Items | Quality";
+
     const [selectedItems, setSelectedItems] = useState([])
     const [searchTerm, setSearchTerm] = useState("")
     const [filteredItems, setFilteredItems] = useState([])
@@ -107,6 +104,11 @@ export default function ProductionListByItems() {
     const [fabricacionItems, setFabricacionItems] = useState(0);
     const [inventarioItems, setInventarioItems] = useState(0);
     const [entregadoItems, setEntregadoItems] = useState(0);
+    const {
+        columnWidths,
+        onPointerDownResize,
+        onAutoFit,
+    } = useColumnResize("production-items-table");
 
     // Estados para operaciones asíncronas
     const [isLoading, setIsLoading] = useState(false)
@@ -142,6 +144,8 @@ export default function ProductionListByItems() {
         asignado: "",
         status: filterStatus,
     })
+
+
 
     // Estados disponibles para filtro
     const estadosDisponibles = [
@@ -822,7 +826,6 @@ export default function ProductionListByItems() {
         setFechaFin("")
         setFiltroFechaActivo(false)
     }
-
     const productosSeleccionadosInfo = getProductosSeleccionadosInfo();
 
     // Calcular índices para paginación
@@ -832,7 +835,7 @@ export default function ProductionListByItems() {
     const totalPages = Math.ceil(filteredItems.length / itemsPerPage)
 
     // Función para cambiar de página
-    const paginate = (pageNumber) => setCurrentPage(pageNumber)
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     return (
         <Container fluid className="py-4 mb-5">
@@ -1029,60 +1032,17 @@ export default function ProductionListByItems() {
                                 </th>
                                 {
                                     getVisibleColumns().map((column) => {
-                                        switch (column.key) {
-                                            case "id":
-                                                return <th onClick={() => handleSort("pedidoId")} className="cursor-pointer">
-                                                    {column.label} {sortField === "pedidoId" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "ciudad":
-                                                return <th onClick={() => handleSort("ciudad")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "ciudad" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "cliente":
-                                                return <th onClick={() => handleSort("cliente")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "cliente" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "commercialName":
-                                                return <th onClick={() => handleSort("commercialName")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "commercialName" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "producto":
-                                                return <th onClick={() => handleSort("producto")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "producto" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "marca":
-                                                return <th onClick={() => handleSort("marca")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "marca" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "linea":
-                                                return <th onClick={() => handleSort("linea")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "linea" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "tipo":
-                                                return <th onClick={() => handleSort("tipo")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "tipo" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "material":
-                                                return <th onClick={() => handleSort("material")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "material" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "piezas":
-                                                return <th onClick={() => handleSort("piezas")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "piezas" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "cantidad":
-                                                return <th onClick={() => handleSort("cantidad")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "cantidad" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "estado":
-                                                return <th onClick={() => handleSort("estado")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "estado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                            case "asignado":
-                                                return <th onClick={() => handleSort("asignado")} className="cursor-pointer">
-                                                    {column.label}  {sortField === "asignado" && <span>{sortDirection === "asc" ? "↑" : "↓"}</span>}
-                                                </th>
-                                        }
+                                        return (
+                                            <ResizableTH
+                                                columnKey={column.key}
+                                                label={column.label}
+                                                width={columnWidths[column.key]}
+                                                onSort={() => handleSort(column.key === "id" ? "pedidoId" : column.key)}
+                                                sortDirection={sortField === column.key ? sortDirection : null}
+                                                onResizeStart={onPointerDownResize}
+                                                onAutoFit={onAutoFit}
+                                            />
+                                        )
                                     })}
                                 <th></th>
                             </tr>
@@ -1226,7 +1186,8 @@ export default function ProductionListByItems() {
                             {currentItems.length > 0 ? (
                                 currentItems.map((item) => (
                                     <tr key={item.itemId} className={selectedItems.includes(item.itemId) ? "bg-light" : ""}>
-                                        <td className="text-center align-middle">
+                                        <td
+                                            className="text-center align-middle">
                                             <div
                                                 onClick={() => toggleItemSelection(item.itemId)}
                                                 style={{ cursor: "pointer" }}
@@ -1239,98 +1200,102 @@ export default function ProductionListByItems() {
                                             getVisibleColumns().map((column) => {
                                                 switch (column.key) {
                                                     case "id":
-                                                        return <td key={column.key} className="align-middle">
-                                                            <span className="text-muted">{item.id}</span>
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item.id}
+                                                            </ResizableTD>
+                                                        )
                                                     case "ciudad":
-                                                        return <td key={column.key} className="align-middle">
-                                                            {item?.cliente?.ciudad || "-"}
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item?.cliente?.ciudad || "-"}
+                                                            </ResizableTD>
+                                                        )
                                                     case "cliente":
-                                                        return <td key={column.key} className="align-middle">
-                                                            {
-                                                                renderCellWithTooltip(
-                                                                    truncateText(item?.cliente?.nombre, 5) || "-",
-                                                                    item?.cliente?.nombre,
-                                                                    `cliente-${item.itemId}`,
-                                                                    5
-                                                                )
-                                                            }
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item?.cliente?.nombre}
+                                                            </ResizableTD>
+                                                        )
                                                     case "commercialName":
-                                                        return <td key={column.key} className="align-middle">
-                                                            {
-                                                                renderCellWithTooltip(
-                                                                    truncateText(item?.cliente?.empresa, 10) || "-",
-                                                                    item?.cliente?.empresa,
-                                                                    `empresa-${item.itemId}`,
-                                                                    10
-                                                                )
-                                                            }
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item?.cliente?.empresa}
+                                                            </ResizableTD>
+                                                        )
                                                     case "marca":
-                                                        return <td key={column.key} className="align-middle">
-                                                            {
-                                                                renderCellWithTooltip(
-                                                                    truncateText(item.marca, 7) || "-",
-                                                                    item.marca,
-                                                                    `marca-${item.itemId}`,
-                                                                    7
-                                                                )
-                                                            }
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item.marca}
+                                                            </ResizableTD>
+                                                        )
                                                     case "linea":
-                                                        return <td key={column.key} className="align-middle">
-                                                            {
-                                                                renderCellWithTooltip(
-                                                                    truncateText(item.linea, 5) || "-",
-                                                                    item.linea,
-                                                                    `linea-${item.itemId}`,
-                                                                    5
-                                                                )
-                                                            }
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item.linea}
+                                                            </ResizableTD>
+                                                        )
                                                     case "tipo":
-                                                        return <td key={column.key} className="align-middle">
-                                                            {
-                                                                renderCellWithTooltip(
-                                                                    truncateText(item.tipo, 5) || "-",
-                                                                    item.tipo,
-                                                                    `tipo-${item.itemId}`,
-                                                                    5
-                                                                )
-                                                            }
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item.tipo}
+                                                            </ResizableTD>
+                                                        )
                                                     case "material":
-                                                        return <td key={column.key} className="align-middle">
-                                                            {
-                                                                renderCellWithTooltip(
-                                                                    truncateText(item.material, 5) || "-",
-                                                                    item.material,
-                                                                    `material-${item.itemId}`,
-                                                                    5
-                                                                )
-                                                            }
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item.material}
+                                                            </ResizableTD>
+                                                        )
                                                     case "piezas":
-                                                        return <td key={column.key} className="align-middle">
-                                                            {item.piezas || "-"}
-                                                            <Info size={14} className="text-muted ms-1" id={`tooltip-${column.key}`} style={{ cursor: "help" }} />
-                                                            <UncontrolledTooltip placement="top" target={`tooltip-${column.key}`}>
-                                                                {item?.piecesNames.join(", ")}
-                                                            </UncontrolledTooltip>
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item.piezas || "-"}
+                                                                <Info size={14} className="text-muted ms-1" id={`tooltip-${column.key}`} style={{ cursor: "help" }} />
+                                                                <UncontrolledTooltip placement="top" target={`tooltip-${column.key}`}>
+                                                                    {item?.piecesNames.join(", ")}
+                                                                </UncontrolledTooltip>
+                                                            </ResizableTD>
+                                                        )
                                                     case "cantidad":
-                                                        return <td key={column.key} className="align-middle">
-                                                            {item.cantidad || "-"}
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                {item.cantidad || "-"}
+                                                            </ResizableTD>
+                                                        )
                                                     case "estado":
-                                                        return <td key={column.key} className="align-middle">
-                                                            <Badge color={productionHelper.getStatusBadgeColorItem(item.estado)}>{productionHelper.getEstadoTextItem(item.estado)}</Badge>
-                                                        </td>
+                                                        return (
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
+                                                                <Badge color={productionHelper.getStatusBadgeColorItem(item.estado)}>{productionHelper.getEstadoTextItem(item.estado)}</Badge>
+                                                            </ResizableTD>
+                                                        )
                                                     case "asignado":
                                                         return (
-                                                            <td key={column.key} className="align-middle">
+                                                            <ResizableTD
+                                                                columnKey={column.key}
+                                                                width={columnWidths[column.key]}>
                                                                 {item?.asignado?.nombre ? (
                                                                     <div>
                                                                         <div className="fw-medium fs-12">{item.asignado.nombre}</div>
@@ -1338,10 +1303,12 @@ export default function ProductionListByItems() {
                                                                 ) : (
                                                                     <span className="text-muted fs-12">Libre</span>
                                                                 )}
-                                                            </td>
+                                                            </ResizableTD>
                                                         )
                                                     default:
-                                                        return <td key={column.key}>-</td>
+                                                        return <ResizableTD
+                                                            columnKey={column.key}
+                                                            width={columnWidths[column.key]}>-</ResizableTD>
                                                 }
                                             })
                                         }

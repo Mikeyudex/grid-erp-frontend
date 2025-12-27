@@ -37,15 +37,16 @@
   }
 }
 
-#layout-wrapper {
+/* #layout-wrapper {
   max-width: 100% !important;
   background-color:#e8e8e8;
-}
+} */
 
 html {
   min-height: 100% !important;
 }
 
-#scrollbar {
+/* #scrollbar {
   position: fixed;
 }
+ */

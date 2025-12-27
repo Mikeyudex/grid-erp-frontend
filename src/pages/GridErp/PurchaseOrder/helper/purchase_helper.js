@@ -1,3 +1,4 @@
+import { SaveIcon, SkipBackIcon, XCircleIcon } from "lucide-react";
 import { APIClient, ApiClientFetch } from "../../../../helpers/api_helper";
 import { getToken } from "../../../../helpers/jwt-token-access/get_token";
 import { BASE_URL } from "../../../../helpers/url_helper";
@@ -117,3 +118,11 @@ export const createDefaultPayment = (valor = 0) => ({
   valor,
   soporte: null,
 });
+
+export const actionsSpeedDialPurchaseOrder = (mode, onClick) => {
+
+    return [
+        { icon: <SaveIcon />, name: `${mode === "edit" ? "Actualizar" : "Crear"}`, onClick: onClick },
+        { icon: <XCircleIcon />, name: 'Cancelar' },
+    ];
+}
