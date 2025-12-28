@@ -240,7 +240,7 @@ export default function OrderGrid({
 
     const handleGetAdjustedPrice = async (productId, matType, materialType, quantity, typeCustomerId) => {
         try {
-            if (!productId || !matType || !materialType || !quantity || !typeCustomerId) {
+            if (!productId || !matType || !materialType || !quantity || !typeCustomerId ) {
                 return 0;
             }
             const response = await productHelper.calcularPrecioFinalProducto(productId, matType, materialType, quantity, typeCustomerId);
@@ -251,12 +251,12 @@ export default function OrderGrid({
         }
     }
 
-    const handleGetAdjustedPriceFromBasePrice = async (basePrice, matType, materialType, quantity, typeCustomerId) => {
+    const handleGetAdjustedPriceFromBasePrice = async (basePrice, matType, materialType, quantity, typeCustomerId, productId) => {
         try {
-            if (!basePrice || !matType || !materialType || !quantity || !typeCustomerId) {
+            if (!basePrice || !matType || !materialType || !quantity || !typeCustomerId || !productId) {
                 return 0;
             }
-            const response = await productHelper.calcularPrecioFinalProductoDesdePrecioBase(basePrice, matType, materialType, quantity, typeCustomerId);
+            const response = await productHelper.calcularPrecioFinalProductoDesdePrecioBase(basePrice, matType, materialType, quantity, typeCustomerId, productId);
             return response?.data?.precioFinal || 0;
         } catch (error) {
             console.log(error);
@@ -304,7 +304,8 @@ export default function OrderGrid({
                 item.matType,
                 item.materialType,
                 item.quantity,
-                selectedClient?.typeCustomerId
+                selectedClient?.typeCustomerId,
+                item?.productId
             )
                 .then(data => {
                     let adjustedPrice = data;
@@ -332,7 +333,6 @@ export default function OrderGrid({
                         }, 0);
                     }
                 });
-
             return;
         }
 
@@ -352,23 +352,45 @@ export default function OrderGrid({
         const newItems = [...orderItems];
         const item = newItems[rowIndex];
 
-        handleGetAdjustedPriceFromBasePrice(value, item.matType, item.materialType, item.quantity, selectedClient?.typeCustomerId)
-            .then(data => {
-                let adjustedPrice = data;
-                let finalPrice = adjustedPrice * item.quantity;
+        if (value === item.basePrice) {
+            handleGetAdjustedPriceFromBasePrice(
+                value,
+                item.matType,
+                item.materialType,
+                item.quantity,
+                selectedClient?.typeCustomerId,
+                item?.productId
+            )
+                .then(data => {
+                    let adjustedPrice = data;
+                    let finalPrice = adjustedPrice * item.quantity;
 
-                // Asegurarse de volver a copiar y actualizar
-                const updatedItems = [...newItems];
-                updatedItems[rowIndex] = {
-                    ...updatedItems[rowIndex],
-                    adjustedPrice: adjustedPrice,
-                    finalPrice: finalPrice,
-                    basePublicPrice: getBasePublicPrice(adjustedPrice, newItems[rowIndex]?.basePrice, value, item.quantity),
-                };
+                    // Asegurarse de volver a copiar y actualizar
+                    const updatedItems = [...newItems];
+                    updatedItems[rowIndex] = {
+                        ...updatedItems[rowIndex],
+                        adjustedPrice: adjustedPrice,
+                        finalPrice: finalPrice,
+                        basePublicPrice: getBasePublicPrice(adjustedPrice, newItems[rowIndex]?.basePrice, value, item.quantity),
+                    };
 
-                setOrderItems(updatedItems); // ✅ Actualizamos después del cálculo
-                setEditingCell(null);
-            });
+                    setOrderItems(updatedItems); // ✅ Actualizamos después del cálculo
+                    setEditingCell(null);
+                });
+        } else {
+            // Asegurarse de volver a copiar y actualizar
+            let finalPrice = value * item.quantity;
+            const updatedItems = [...newItems];
+            updatedItems[rowIndex] = {
+                ...updatedItems[rowIndex],
+                adjustedPrice: finalPrice,
+                finalPrice: finalPrice,
+                basePublicPrice: value,
+            };
+
+            setOrderItems(updatedItems); // ✅ Actualizamos después del cálculo
+            setEditingCell(null);
+        }
         return;
     }
 
@@ -1518,6 +1540,7 @@ export default function OrderGrid({
                                                                 basePublicPrice: 0,
                                                                 adjustedPrice: 0,
                                                                 finalPrice: 0,
+                                                                quantity: 1,
                                                             };
 
                                                             setOrderItems(newItems);
