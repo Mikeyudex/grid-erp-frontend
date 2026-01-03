@@ -4,7 +4,6 @@ import DashboardEcommerce from "../pages/DashboardEcommerce";
 import { ImportProductState } from '../pages/GridErp/Products/context/imports/importProductState';
 
 import { ListProducts } from "../pages/GridErp/Products/pages/ListProducts";
-import LayoutCreateProduct from "../pages/GridErp/Products/components/LayoutCreateProduct";
 import { SuccessProductCreateView } from "../pages/GridErp/Products/components/SuccessProductCreateView";
 import { AdjustmentStockView } from "../pages/GridErp/Stock/pages/AdjustmentStockView";
 import { TransferStockView } from "../pages/GridErp/Stock/pages/TransferStockView";
@@ -17,8 +16,6 @@ import { CategoryProductState } from "../pages/GridErp/Category/context/category
 import { ListSubCategories } from "../pages/GridErp/Subcategory/pages/ListSubcategories";
 import { SubCategoryProductState } from "../pages/GridErp/Subcategory/context/subcategoryState";
 import { CreateCustomer } from "../pages/GridErp/Customers/pages/CreateCustomer";
-import { ListCustomersView } from "../pages/GridErp/Customers/pages/ListCustomers";
-import { ListTypeCustomersView } from "../pages/GridErp/Customers/pages/ListTypesCustomer";
 import PurchaseOrderPage from "../pages/GridErp/PurchaseOrder/pages/CreatePurchaseOrder";
 import { ListPurchaseOrder } from "../pages/GridErp/PurchaseOrder/pages/ListPurchaseOrder";
 import ViewDetailPurchaseOrder from "../pages/GridErp/PurchaseOrder/pages/ViewDetailPurchaseOrder";
@@ -71,6 +68,7 @@ import DetailedAccountsReceivablePage from "../pages/GridErp/Reports/pages/cuent
 import BankAccountsBalancePage from "../pages/GridErp/Reports/pages/saldos-bancarios/page";
 import BankMovementsReportPage from "../pages/GridErp/Reports/pages/movimientos-bancarios/page";
 import ShippingLabelsPage from "../pages/GridErp/Reports/pages/rotulos-envio/page";
+import AdminUsersPage from "../pages/GridErp/Administration/AdminUsersPage";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -199,6 +197,9 @@ const authProtectedRoutes = [
     { path: "/reports-bank-accounts-balance", component: <BankAccountsBalancePage /> },
     { path: "/reports-bank-movements", component: <BankMovementsReportPage /> },
     { path: "/reports-shipping-labels", component: <ShippingLabelsPage /> },
+
+    //Admin Users
+    { path: "/admin-users", component: <AdminUsersPage /> },
 ]
 
 const publicRoutes = [

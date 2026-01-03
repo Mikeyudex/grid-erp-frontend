@@ -27,6 +27,7 @@ export const POST_FAKE_JWT_LOGIN = "/post-jwt-login";
 export const POST_FAKE_PASSWORD_FORGET = "/auth/forgot-password";
 export const POST_FAKE_JWT_PASSWORD_FORGET = "/jwt-forget-pwd";
 export const SOCIAL_LOGIN = "/social-login";
+export const VERIFY_OTP = "/users/verifyOtp";
 
 export const VALIDATE_TOKEN = "/auth/validatetoken";
 
@@ -39,6 +40,8 @@ export const POST_EDIT_PROFILE = "/user";
 
 export const UPDATE_USER_PROFILE = "/users";
 export const UPLOAD_USER_IMAGE = "/users/upload-avatar";
+export const ACTIVATE_USER = "/users/activate";
+export const DEACTIVATE_USER = "/users/deactivate";
 
 //Warehouse
 export const GET_WAREHOUSE_LIST = "/warehouse/getAll";
@@ -48,6 +51,16 @@ export const ADD_WAREHOUSE = "/warehouse/create";
 export const GET_ZONES = "/users/zones/getAll";
 export const ADD_ZONE = "/users/zones/create";
 export const ADD_ACCOUNT_TO_ZONE = "/users/zones/addAccounts";
+
+//ADMIN USERS
+export const GET_USERS = "/users";
+export const GET_RESOURCES_ROLE = "/resources";
+export const GET_ROLES = "/role-user";
+export const ADD_ROLE = "/role-user/create";
+export const ADD_RESOURCES_ROLE = "/role-user/add-resources";
+export const DELETE_ROLE = "/role-user/delete-role";
+export const UPDATE_ROLE = "/users/update-role";
+export const GET_RESORCES_BY_ROLE = "/role-user/get-resources-by-role";
 
 // Calendar
 export const GET_EVENTS = "/events";

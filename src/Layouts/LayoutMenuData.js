@@ -16,8 +16,7 @@ const Navdata = () => {
   const [isAccounting, setIsAccounting] = useState(false);
   const [isExpenses, setIsExpenses] = useState(false);
   const [isReports, setIsReports] = useState(false);
-
-
+  const [isAdministration, setIsAdministration] = useState(false);
 
   const [iscurrentState, setIscurrentState] = useState("Dashboard");
 
@@ -55,6 +54,9 @@ const Navdata = () => {
     if (iscurrentState !== "Reportes") {
       setIsReports(false);
     }
+    if (iscurrentState !== "Administración") {
+      setIsAdministration(false);
+    }
   }, [
     history,
     iscurrentState,
@@ -63,7 +65,8 @@ const Navdata = () => {
     isProduction,
     isAccounting,
     isExpenses,
-    isReports
+    isReports,
+    isAdministration
   ]);
 
   const menuItems = [
@@ -271,27 +274,6 @@ const Navdata = () => {
       ],
     }, */
     {
-      id: "warehouse",
-      label: "Mis bodegas",
-      icon: "ri-home-gear-line",
-      link: "/#",
-      click: function (e) {
-        e.preventDefault();
-        setIsWarehouses(!isWarehouses);
-        setIscurrentState("Mis bodegas");
-        updateIconSidebar(e);
-      },
-      stateVariables: isWarehouses,
-      subItems: [
-        {
-          id: "view-warehouses",
-          label: "Ver bodegas",
-          link: "/warehouses",
-          parentId: "warehouse",
-        },
-      ],
-    },
-    {
       label: "Contabilidad",
       isHeader: true,
     },
@@ -404,26 +386,33 @@ const Navdata = () => {
           link: "/zones",
           parentId: "configurations",
         },
-       /*  {
-          id: "conf-company",
-          label: "Mi Empresa",
-          link: "/company-conf",
-          isChildItem: true,
-          click: function (e) {
-            e.preventDefault();
-            setIsWoocommerce(!isWoocommerce);
-          },
+        {
+          id: "view-warehouses",
+          label: "Bodegas",
+          link: "/warehouses",
           parentId: "configurations",
-          stateVariables: isWoocommerce,
-          childItems: [
-            {
-              id: 1,
-              label: "General",
-              link: "/config-company",
-              parentId: "configurations",
-            },
-          ],
-        }, */
+        },
+      ],
+    },
+    {
+      id: "administration",
+      label: "Administración",
+      icon: "ri-shield-user-line",
+      link: "/#",
+      click: function (e) {
+        e.preventDefault();
+        setIsAdministration(!isAdministration);
+        setIscurrentState("Administración");
+        updateIconSidebar(e);
+      },
+      stateVariables: isAdministration,
+      subItems: [
+        {
+          id: "users",
+          label: "Usuarios",
+          link: "/admin-users",
+          parentId: "administration",
+        },
       ],
     },
   ];
