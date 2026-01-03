@@ -131,3 +131,13 @@ export const actionsSpeedDialPurchaseOrder = (mode, onClick) => {
         { icon: <XCircleIcon />, name: 'Cancelar' },
     ];
 }
+
+// Calcular total del pedido a partir de un array de items
+export const calculateTotalFromItems = (items) => {
+    return items.reduce((total, item) => total + (item.adjustedPrice || 0), 0);
+};
+
+// Calcular total de pagos a partir de un array de métodos
+export const calculateTotalPaymentsFromMethods = (methods) => {
+    return methods.reduce((total, method) => total + (Number(method.valor) || 0), 0);
+};

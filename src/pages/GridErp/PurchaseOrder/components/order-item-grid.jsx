@@ -43,7 +43,7 @@ import DropdownPortal from "./DropdownPortal"
 import { CREATE_PURCHASE_ORDER } from "../../Products/helper/url_helper"
 import { validatePayload } from "../utils/purchase-order.utils";
 import "./index.css";
-import { actionsSpeedDialPurchaseOrder, PurchaseHelper, purchaseOrderStatus } from "../helper/purchase_helper";
+import { actionsSpeedDialPurchaseOrder, calculateTotalFromItems, calculateTotalPaymentsFromMethods, PurchaseHelper, purchaseOrderStatus } from "../helper/purchase_helper";
 import AssignModal from "./assign-modal";
 import { AuthHelper } from "../../Auth/helpers/auth_helper";
 import { CollapsibleSection } from "../../../../Components/Common/CollapsibleSection";
@@ -240,7 +240,7 @@ export default function OrderGrid({
 
     const handleGetAdjustedPrice = async (productId, matType, materialType, quantity, typeCustomerId) => {
         try {
-            if (!productId || !matType || !materialType || !quantity || !typeCustomerId ) {
+            if (!productId || !matType || !materialType || !quantity || !typeCustomerId) {
                 return 0;
             }
             const response = await productHelper.calcularPrecioFinalProducto(productId, matType, materialType, quantity, typeCustomerId);
@@ -264,40 +264,95 @@ export default function OrderGrid({
         }
     }
 
-    const updateCellValue = (rowIndex, field, value, product = null) => {
-        const newItems = [...orderItems];
-        newItems[rowIndex] = {
-            ...newItems[rowIndex],
-            [field]: value,
-        };
+    const actualizarPagosConNuevoTotal = (nuevoTotal) => {
+        setPaymentMethods(prevMethods => {
+            // Si no hay métodos de pago → crear uno con el total completo
+            if (prevMethods.length === 0) {
+                return [{
+                    cuenta: "",
+                    fecha: new Date().toISOString().split("T")[0],
+                    valor: nuevoTotal,
+                    soporte: null,
+                }];
+            }
 
-        if (field === "productName" && product) {
+            // Si hay SOLO 1 método → actualizar con el total completo
+            if (prevMethods.length === 1) {
+                return [{
+                    ...prevMethods[0],
+                    valor: nuevoTotal
+                }];
+            }
+
+            // Si hay MÁS de 1 método → actualizar SOLO el último con el saldo restante
+            const updated = [...prevMethods];
+            const lastIndex = updated.length - 1;
+
+            // Suma de todos los pagos anteriores (excepto el último)
+            const sumaPagosAnteriores = updated
+                .slice(0, lastIndex)
+                .reduce((sum, method) => sum + (Number(method.valor) || 0), 0);
+
+            // Saldo restante para la última fila
+            const saldoRestante = Math.max(0, nuevoTotal - sumaPagosAnteriores);
+
+            updated[lastIndex] = {
+                ...updated[lastIndex],
+                valor: saldoRestante
+            };
+
+            return updated;
+        });
+    };
+
+    const updateCellValue = (rowIndex, field, value, product = null) => {
+        // Para campos que NO requieren cálculo asíncrono, actualizar directamente
+        if (field !== "matType" && field !== "materialType" && field !== "quantity") {
+            const newItems = [...orderItems];
             newItems[rowIndex] = {
                 ...newItems[rowIndex],
-                productName: product.name,
-                productId: product._id,
-                basePrice: product.salePrice || 0,
-                selectedPieces: product?.typeOfPieces.slice(0, 3).map((p) => p._id),
-                pieces: product?.typeOfPieces.slice(0, 3).length || 0,
+                [field]: value,
             };
-            setTypeOfPiecesRow(product?.typeOfPieces);
+
+            if (field === "productName" && product) {
+                newItems[rowIndex] = {
+                    ...newItems[rowIndex],
+                    productName: product.name,
+                    productId: product._id,
+                    basePrice: product.salePrice || 0,
+                    selectedPieces: product?.typeOfPieces.slice(0, 3).map((p) => p._id),
+                    pieces: product?.typeOfPieces.slice(0, 3).length || 0,
+                };
+                setTypeOfPiecesRow(product?.typeOfPieces);
+            }
+
+            if (isEditMode && onUpdateItem) {
+                onUpdateItem(rowIndex, newItems[rowIndex]);
+            } else {
+                setOrderItems(newItems);
+            }
+            return;
         }
 
-        if (
-            field === "matType" ||
-            field === "materialType" ||
-            field === "quantity"
-        ) {
-            const item = newItems[rowIndex];
+        // ✅ Para matType, materialType, quantity: actualizar PRIMERO el estado
+        setOrderItems(prevItems => {
+            const updatedItems = [...prevItems];
 
-            if (!item.matType || !item.materialType || !item.quantity) return;
-        }
+            // Actualizar el campo específico
+            updatedItems[rowIndex] = {
+                ...updatedItems[rowIndex],
+                [field]: value,
+            };
 
-        // Actualizar precio base y final si cambia el tipo de tapete, material o cantidad
-        if (field === "matType" || field === "materialType" || field === "quantity") {
-            const item = newItems[rowIndex];
-            const basePriceToUse =
-                field === "matType" ? item.basePrice : (item.basePublicPrice || item.basePrice);
+            const item = updatedItems[rowIndex];
+
+            // Validar que tenemos todos los datos necesarios
+            if (!item.matType || !item.materialType || !item.quantity || !item.productId) {
+                return updatedItems;
+            }
+
+            // Calcular precio de forma asíncrona
+            const basePriceToUse = field === "matType" ? item.basePrice : (item.basePublicPrice || item.basePrice);
 
             handleGetAdjustedPriceFromBasePrice(
                 basePriceToUse,
@@ -306,93 +361,95 @@ export default function OrderGrid({
                 item.quantity,
                 selectedClient?.typeCustomerId,
                 item?.productId
-            )
-                .then(data => {
-                    let adjustedPrice = data;
-                    let finalPrice = adjustedPrice * item.quantity;
+            ).then(data => {
+                let adjustedPrice = data;
+                let finalPrice = adjustedPrice * item.quantity;
 
-                    const updatedItems = [...newItems];
-                    updatedItems[rowIndex] = {
-                        ...updatedItems[rowIndex],
+                // ✅ Actualizar SOLO los precios
+                setOrderItems(currentItems => {
+                    const finalItems = [...currentItems];
+                    finalItems[rowIndex] = {
+                        ...finalItems[rowIndex],
                         adjustedPrice: adjustedPrice,
                         finalPrice: finalPrice,
                         basePublicPrice: getBasePublicPrice(
                             adjustedPrice,
-                            newItems[rowIndex]?.basePrice,
+                            finalItems[rowIndex]?.basePrice,
                             item.basePrice,
                             item.quantity
                         ),
                     };
-                    setOrderItems(updatedItems);
 
-                    // ⚠️ IMPORTANTE: Actualizar pagos DESPUÉS de que los precios se actualicen
-                    if (field === "quantity") {
-                        // Usar setTimeout para asegurar que el estado se actualizó
-                        setTimeout(() => {
-                            handleQuantityUpdateAffectsPayment();
-                        }, 0);
-                    }
+                    // Calcular y actualizar pagos
+                    const nuevoTotal = calculateTotalFromItems(finalItems);
+                    actualizarPagosConNuevoTotal(nuevoTotal);
+
+                    return finalItems;
                 });
-            return;
-        }
+            });
 
-        // Si NO es un cambio de precio asíncrono, actualizar inmediatamente
-        if (field === "quantity") {
-            handleQuantityUpdateAffectsPayment();
-        }
-
-        if (isEditMode && onUpdateItem) {
-            onUpdateItem(rowIndex, newItems[rowIndex]);
-        } else {
-            setOrderItems(newItems);
-        }
+            // ✅ Retornar los items con el campo actualizado (sin esperar el precio)
+            return updatedItems;
+        });
     };
 
     const handleOnChangeBasePrice = (rowIndex, value) => {
-        const newItems = [...orderItems];
-        const item = newItems[rowIndex];
+        setOrderItems(prevItems => {
+            const item = prevItems[rowIndex];
 
-        if (value === item.basePrice) {
-            handleGetAdjustedPriceFromBasePrice(
-                value,
-                item.matType,
-                item.materialType,
-                item.quantity,
-                selectedClient?.typeCustomerId,
-                item?.productId
-            )
-                .then(data => {
+            if (value === item.basePrice) {
+                handleGetAdjustedPriceFromBasePrice(
+                    value,
+                    item.matType,
+                    item.materialType,
+                    item.quantity,
+                    selectedClient?.typeCustomerId,
+                    item?.productId
+                ).then(data => {
                     let adjustedPrice = data;
                     let finalPrice = adjustedPrice * item.quantity;
 
-                    // Asegurarse de volver a copiar y actualizar
-                    const updatedItems = [...newItems];
-                    updatedItems[rowIndex] = {
-                        ...updatedItems[rowIndex],
-                        adjustedPrice: adjustedPrice,
-                        finalPrice: finalPrice,
-                        basePublicPrice: getBasePublicPrice(adjustedPrice, newItems[rowIndex]?.basePrice, value, item.quantity),
-                    };
+                    setOrderItems(currentItems => {
+                        const updatedItems = [...currentItems];
+                        updatedItems[rowIndex] = {
+                            ...updatedItems[rowIndex],
+                            adjustedPrice: adjustedPrice,
+                            finalPrice: finalPrice,
+                            basePublicPrice: getBasePublicPrice(
+                                adjustedPrice,
+                                updatedItems[rowIndex]?.basePrice,
+                                value,
+                                item.quantity
+                            ),
+                        };
 
-                    setOrderItems(updatedItems); // ✅ Actualizamos después del cálculo
-                    setEditingCell(null);
+                        const nuevoTotal = calculateTotalFromItems(updatedItems);
+                        actualizarPagosConNuevoTotal(nuevoTotal);
+
+                        return updatedItems;
+                    });
                 });
-        } else {
-            // Asegurarse de volver a copiar y actualizar
-            let finalPrice = value * item.quantity;
-            const updatedItems = [...newItems];
-            updatedItems[rowIndex] = {
-                ...updatedItems[rowIndex],
-                adjustedPrice: finalPrice,
-                finalPrice: finalPrice,
-                basePublicPrice: value,
-            };
 
-            setOrderItems(updatedItems); // ✅ Actualizamos después del cálculo
-            setEditingCell(null);
-        }
-        return;
-    }
+                setEditingCell(null);
+                return prevItems;
+            } else {
+                let finalPrice = value * item.quantity;
+                const updatedItems = [...prevItems];
+                updatedItems[rowIndex] = {
+                    ...updatedItems[rowIndex],
+                    adjustedPrice: finalPrice,
+                    finalPrice: finalPrice,
+                    basePublicPrice: value,
+                };
+
+                const nuevoTotal = calculateTotalFromItems(updatedItems);
+                actualizarPagosConNuevoTotal(nuevoTotal);
+
+                setEditingCell(null);
+                return updatedItems;
+            }
+        });
+    };
 
     const getBasePublicPrice = (adjustedPrice, salePrice, basePrice, quantity) => {
         if (adjustedPrice && salePrice && basePrice) {
@@ -571,7 +628,13 @@ export default function OrderGrid({
     };
 
     const calcSaldoPendiente = () => {
-        return (calculateTotal() - calculateTotalPayments())
+        let saldoPendiente = calculateTotal() - calculateTotalPayments();
+
+        if (saldoPendiente < 0) {
+            saldoPendiente = 0;
+        }
+
+        return saldoPendiente;
     }
 
     // Funciones para selección de filas
@@ -820,24 +883,18 @@ export default function OrderGrid({
         };
     }, []);
 
-    // (si calcSaldoPendiente depende de orderItems)
-    useEffect(() => {
-        // Solo actualizar si hay métodos de pago
-        if (paymentMethods.length > 0) {
-            handleQuantityUpdateAffectsPayment();
-        }
-    }, [orderItems]); // Agregar dependencias necesarias
-
     const handleClickAddItem = () => {
         return purchaseOrderHelper.handleCreateEmptyRow(createEmptyRow, setOrderItems);
     }
 
     // Agregar nueva forma de pago
     const addPaymentMethod = () => {
-        const saldoPendiente = calcSaldoPendiente();
-
         setPaymentMethods(prev => {
+            const totalPedido = calculateTotal();
+            const totalPagado = calculateTotalPaymentsFromMethods(prev);
+            const saldoPendiente = totalPedido - totalPagado;
             const nuevoValor = saldoPendiente > 0 ? saldoPendiente : 0;
+
             return [
                 ...prev,
                 {
@@ -848,14 +905,16 @@ export default function OrderGrid({
                 }
             ];
         });
-    }
+    };
 
     // Eliminar forma de pago
     const removePaymentMethod = (index) => {
-        const newMethods = [...paymentMethods]
-        newMethods.splice(index, 1)
-        setPaymentMethods(newMethods)
-    }
+        setPaymentMethods(prev => {
+            const newMethods = [...prev];
+            newMethods.splice(index, 1);
+            return newMethods;
+        });
+    };
 
     // Actualizar forma de pago
     const updatePaymentMethod = (index, field, value) => {
@@ -867,8 +926,18 @@ export default function OrderGrid({
     };
 
     const handleQuantityUpdateAffectsPayment = () => {
+        // Calcular el saldo basado en el total actual de items
+        const totalPedido = calculateTotal();
+        const totalPagado = calculateTotalPayments();
         const saldo = calcSaldoPendiente();
 
+        console.log(totalPedido);
+        console.log(totalPagado);
+        console.log(saldo);
+
+
+
+        // Si el saldo es 0 o negativo, no hacer nada
         if (saldo <= 0) return;
 
         setPaymentMethods(prev => {
@@ -882,24 +951,25 @@ export default function OrderGrid({
                 }];
             }
 
-            // Si hay SOLO 1 método → actualizar ese único
+            // Si hay SOLO 1 método → actualizar ese único con el saldo total
             if (prev.length === 1) {
                 return [{
                     ...prev[0],
-                    valor: saldo
+                    valor: totalPedido // Usar el total del pedido directamente
                 }];
             }
 
-            // Si hay MÁS de 1 método → actualizar SOLO el último (resto del saldo)
+            // Si hay MÁS de 1 método → actualizar SOLO el último con el saldo restante
             const updated = [...prev];
             const lastIndex = updated.length - 1;
 
-            // Calcular el saldo que falta después de los pagos anteriores
+            // Calcular suma de pagos anteriores (todas las filas excepto la última)
             const sumaPagosAnteriores = updated
                 .slice(0, lastIndex)
                 .reduce((sum, method) => sum + (Number(method.valor) || 0), 0);
 
-            const saldoRestante = Math.max(0, saldo - sumaPagosAnteriores);
+            // El saldo restante para la última fila
+            const saldoRestante = Math.max(0, totalPedido - sumaPagosAnteriores);
 
             updated[lastIndex] = {
                 ...updated[lastIndex],
