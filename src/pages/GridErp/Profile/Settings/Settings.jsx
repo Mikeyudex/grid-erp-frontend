@@ -1,20 +1,19 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardHeader, Col, Container, Form, Input, Label, Nav, NavItem, NavLink, Row, TabContent, TabPane } from 'reactstrap';
-import BreadCrumb from '../../../../Components/Common/BreadCrumb';
+import BreadCrumb from "../../Products/components/BreadCrumb";
 import classnames from "classnames";
 
 //import images
 import avatar1 from '../../../../assets/images/users/user-dummy-img.jpg';
 import { IndexedDBService } from '../../../../helpers/indexedDb/indexed-db-helper';
-import { capitalizeFirstLetter, homologateRole } from '../../../../helpers/transform_helper';
+import { capitalizeFirstLetter } from '../../../../helpers/transform_helper';
 import * as url from '../../../../helpers/url_helper';
 import AlertCustom from '../../commons/AlertCustom';
 import { validateEmail, validateEmailDomain } from '../../Auth/helpers/validations_helper';
 import { getToken } from '../../../../helpers/jwt-token-access/get_token';
 import { ProfileContext } from '../../../../context/profile/profileContext';
 import { AuthHelper } from '../../Auth/helpers/auth_helper';
-
 
 const indexedDBService = new IndexedDBService();
 const authHelper = new AuthHelper();
@@ -166,7 +165,8 @@ const ProfileSettings = () => {
             const data = await response.json();
 
             if (response.status === 200) {
-                let urlAvatar = data.data.url;
+                let _url = data.data.url;
+                let urlAvatar = `${url.BASE_URL}${_url}`;
                 let userData = await indexedDBService.getItemById(localStorage.getItem('userId'));
                 userData.avatar = urlAvatar;
                 await indexedDBService.updateItem(localStorage.getItem('userId'), userData);
@@ -186,7 +186,7 @@ const ProfileSettings = () => {
         <React.Fragment>
             <div className="page-content">
                 <Container fluid>
-                    <BreadCrumb title="Perfil" pageTitle="Home" />
+                    <BreadCrumb title="Perfil" pageTitle="Home" to="/home" />
                     <Row>
                         {
                             isOpenModal && (
