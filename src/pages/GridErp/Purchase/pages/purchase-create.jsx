@@ -267,7 +267,7 @@ export default function CreatePurchase() {
             if (response.success) {
                 setSuccess(response.message)
                 setTimeout(() => {
-                    navigate("/purchases")
+                    navigate("/accounting/purchases")
                 }, 2000)
             }
         } catch (err) {
@@ -356,7 +356,7 @@ export default function CreatePurchase() {
                     <Col>
                         <div className="d-flex justify-content-between align-items-center">
                             <div className="d-flex align-items-center gap-2">
-                                <Button color="light" size="sm" onClick={() => navigate("/purchases")}>
+                                <Button color="light" size="sm" onClick={() => navigate("/accounting/purchases")}>
                                     <ArrowLeft size={16} />
                                 </Button>
                                 <h4 className="mb-0">Nueva Orden de Compra</h4>

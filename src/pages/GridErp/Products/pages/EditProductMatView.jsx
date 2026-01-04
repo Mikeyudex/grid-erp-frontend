@@ -8,7 +8,7 @@ import { UPDATE_PRODUCT } from "../helper/url_helper";
 const EditProductMatView = () => {
     document.title = "Editar producto | Quality Erp";
 
-    const pathListProducts = '/products-list-v2';
+    const pathListProducts = '/products/list-v2';
     const navigate = useNavigate();
     const { id } = useParams();
 

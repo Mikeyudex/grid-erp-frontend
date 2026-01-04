@@ -4,16 +4,12 @@ import { IndexedDBService } from "../helpers/indexedDb/indexed-db-helper";
 
 const indexedDBService = new IndexedDBService();
 
-
 const Navdata = () => {
   const history = useNavigate();
   //state data
   const [isDashboard, setIsDashboard] = useState(false);
   const [isProducts, setIsProducts] = useState(false);
-  const [isWarehouses, setIsWarehouses] = useState(false);
-  const [isStock, setIsStock] = useState(false);
   const [isConfigurations, setIsConfigurations] = useState(false);
-  const [isWoocommerce, setIsWoocommerce] = useState(false);
   const [isCustomers, setIsCustomers] = useState(false);
   const [isPurchaseOrders, setIsPurchaseOrders] = useState(false);
   const [isProduction, setIsProduction] = useState(false);
@@ -126,31 +122,31 @@ const Navdata = () => {
         {
           id: "view-customers",
           label: "Ver clientes",
-          link: "/customers-list-v2",
+          link: "/customers/list-v2",
           parentId: "customers",
         },
         {
           id: "create-customer",
           label: "Crear cliente",
-          link: "/customers-create-v2",
+          link: "/customers/create-v2",
           parentId: "customers",
         },
         {
           id: "customer-types-list",
           label: "Categoría de cliente",
-          link: "/customers-types-list-v2",
+          link: "/customers/types-list-v2",
           parentId: "customers",
         },
         {
           id: "type-customer",
           label: "Tipo de cliente",
-          link: "/type-of-customer-list",
+          link: "/customers/type-of-customer-list",
           parentId: "customers",
         },
         {
           id: "type-document",
           label: "Tipo de documento",
-          link: "/type-of-document-list",
+          link: "/customers/type-of-document-list",
           parentId: "customers",
         },
       ],
@@ -237,7 +233,7 @@ const Navdata = () => {
         {
           id: "view-products",
           label: "Ver productos",
-          link: "/products-list-v2",
+          link: "/products/list-v2",
           parentId: "products",
         },
         {
@@ -249,19 +245,19 @@ const Navdata = () => {
         {
           id: "category",
           label: "Marcas (Categorías)",
-          link: "/category-v2",
+          link: "/products/category-v2",
           parentId: "products",
         },
         {
           id: "mat-material-price",
           label: "Tipo - Material",
-          link: "/mat-material-price-v2",
+          link: "/products/mat-material-price-v2",
           parentId: "products",
         },
         {
           id: "uploads",
           label: "Historial de cargues",
-          link: "/uploads",
+          link: "/products/uploads",
           parentId: "products",
         },
       ],
@@ -319,19 +315,19 @@ const Navdata = () => {
         {
           id: "account-list",
           label: "Cuentas bancarias",
-          link: "/accounts",
+          link: "/accounting/accounts",
           parentId: "accounting",
         },
         {
           id: "payment-list",
           label: "Pagos",
-          link: "/payments-list",
+          link: "/accounting/payments-list",
           parentId: "accounting",
         },
         {
           id: "purchase-list",
           label: "Compras",
-          link: "/purchases",
+          link: "/accounting/purchases",
           parentId: "accounting",
         },
         {
@@ -409,13 +405,13 @@ const Navdata = () => {
         {
           id: "zones",
           label: "Sedes",
-          link: "/zones",
+          link: "/settings/zones",
           parentId: "configurations",
         },
         {
           id: "view-warehouses",
           label: "Bodegas",
-          link: "/warehouses",
+          link: "/settings/warehouses",
           parentId: "configurations",
         },
       ],
@@ -436,13 +432,13 @@ const Navdata = () => {
         {
           id: "users",
           label: "Usuarios",
-          link: "/admin-users",
+          link: "/admin/users",
           parentId: "administration",
         },
         {
           id: "roles",
           label: "Roles",
-          link: "/admin-roles",
+          link: "/admin/roles",
           parentId: "administration",
         },
       ],

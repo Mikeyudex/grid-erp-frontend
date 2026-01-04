@@ -286,7 +286,7 @@ export default function ExpenseRegistrationForm({ mode = 'create' }) {
                                                     <Label for="provider">Tercero *</Label>
                                                     <FaPlus
                                                         className="cursor-pointer mx-2 text-primary"
-                                                        onClick={() => navigate("/customers-create-v2")} />
+                                                        onClick={() => navigate("/customers/create-v2")} />
                                                     <Select
                                                         id="provider"
                                                         name="provider"

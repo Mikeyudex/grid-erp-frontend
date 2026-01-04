@@ -315,7 +315,7 @@ export default function CrearProductoGeneral() {
                 setSuccess('Producto creado!')
                 // Redireccionar después de 2 segundos
                 setTimeout(() => {
-                    navigate("/products-list-v2")
+                    navigate("/products/list-v2")
                 }, 2000)
             }
         } catch (err) {
@@ -326,7 +326,7 @@ export default function CrearProductoGeneral() {
     }
 
     const handleBack = () => {
-        navigate("/products-list-v2")
+        navigate("/products/list-v2")
     }
 
     const triggerFileInput = () => {

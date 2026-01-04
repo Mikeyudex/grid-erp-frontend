@@ -82,24 +82,24 @@ const authProtectedRoutes = [
     { path: "/profile", component: <ProfileSettings /> },
     // Products
     {
-        path: "/products-create",
+        path: "/products/create",
         component: <CrearProductoGeneral />,
     },
     {
-        path: "/products-create-tapete",
+        path: "/products/create-tapete",
         component: <ImportProductState> <LayoutCreateProductTapete /> </ImportProductState>,
     },
     {
-        path: "/products-list",
+        path: "/products/list",
         component: <ImportProductState> <ListProducts /> </ImportProductState>,
     },
     {
-        path: "/products-list-v2",
+        path: "/products/list-v2",
         component: <ImportProductState> <ListProductsV2 /> </ImportProductState>,
     },
-    { path: "/products-edit-tapete/:id", component: <ImportProductState> <EditProductMatView /> </ImportProductState>, },
+    { path: "/products/edit-tapete/:id", component: <ImportProductState> <EditProductMatView /> </ImportProductState>, },
     {
-        path: "/success-product",
+        path: "/products/success-product",
         component: <SuccessProductCreateView />,
     },
     {
@@ -111,15 +111,15 @@ const authProtectedRoutes = [
         component: <TransferStockView />,
     },
     {
-        path: "/category",
+        path: "/products/category",
         component: <CategoryProductState><ListCategories /></CategoryProductState>,
     },
     {
-        path: "/category-v2",
+        path: "/products/category-v2",
         component: <CategoryProductState><ListCategoriesV2 /></CategoryProductState>,
     },
     {
-        path: "/subcategory",
+        path: "/products/subcategory",
         component: <SubCategoryProductState><ListSubCategories /></SubCategoryProductState>,
     },
     {
@@ -134,13 +134,13 @@ const authProtectedRoutes = [
     { path: "/woocommerce-config/credentials", component: <WooCredentialsView />, },
 
     // Customers
-    { path: "/customers-create", component: <CreateCustomer />, },
-    { path: "/customers-create-v2", component: <CreateClientV2 />, },
-    { path: "/customers-edit/:id", component: <EditCustomerView />, },
-    { path: "/customers-list-v2", component: <ListCustomerV2 />, },
-    { path: "/customers-types-list-v2", component: <ClientTypesPage />, },
-    { path: "/type-of-customer-list", component: <ListTypeOfClient />, },
-    { path: "/type-of-document-list", component: <ListTypeOfDocument />, },
+    { path: "/customers/create", component: <CreateCustomer />, },
+    { path: "/customers/create-v2", component: <CreateClientV2 />, },
+    { path: "/customers/edit/:id", component: <EditCustomerView />, },
+    { path: "/customers/list-v2", component: <ListCustomerV2 />, },
+    { path: "/customers/types-list-v2", component: <ClientTypesPage />, },
+    { path: "/customers/type-of-customer-list", component: <ListTypeOfClient />, },
+    { path: "/customers/type-of-document-list", component: <ListTypeOfDocument />, },
 
     // Purchase Order
     { path: "/purchase-orders", component: <ListPurchaseOrder /> },
@@ -150,8 +150,8 @@ const authProtectedRoutes = [
     { path: "/purchase-orders/view-detail/:id", component: <ViewDetailPurchaseOrder /> },
 
     // Mat Material Price
-    { path: "/mat-material-price", component: <ListMatMaterialPrice /> },
-    { path: "/mat-material-price-v2", component: <ListMatMaterialPriceV2 /> },
+    { path: "/products/mat-material-price", component: <ListMatMaterialPrice /> },
+    { path: "/products/mat-material-price-v2", component: <ListMatMaterialPriceV2 /> },
 
     // Production
     { path: "/production", component: <ProductionListPage /> },
@@ -161,9 +161,9 @@ const authProtectedRoutes = [
     { path: "/production/view-detail/:id", component: <ProductionListPage /> },
 
     //payments
-    { path: "/payments-register", component: <RegisterPaymentPage /> },
-    { path: "/payments-list", component: <PaymentListPage /> },
-    { path: "/payments-edit/:id", component: <EditPaymentPage /> },
+    { path: "/accounting/payments-register", component: <RegisterPaymentPage /> },
+    { path: "/accounting/payments-list", component: <PaymentListPage /> },
+    { path: "/accounting/payments-edit/:id", component: <EditPaymentPage /> },
 
     //expenses
     { path: "/accounting/expenses-types-list", component: <ListTypeExpenses /> },
@@ -172,20 +172,20 @@ const authProtectedRoutes = [
     /* { path: "/accounting/expenses-edit/:id", component: <EditExpensePage /> }, */
 
     // Uploads
-    { path: "/uploads", component: <UploadHistoryPage /> },
+    { path: "/products/uploads", component: <UploadHistoryPage /> },
     //warehouses
-    { path: "/warehouses", component: <WarehouseListPage /> },
+    { path: "/settings/warehouses", component: <WarehouseListPage /> },
 
     //zones
-    { path: "/zones", component: <ZonesListPage /> },
+    { path: "/settings/zones", component: <ZonesListPage /> },
 
     //Accounting
-    { path: "/accounts", component: <ListAccounts /> },
+    { path: "/accounting/accounts", component: <ListAccounts /> },
     { path: "/accounting/retentions-list", component: <ListRetentions /> },
     { path: "/accounting/taxes-list", component: <ListTaxes /> },
 
     //Purchase
-    { path: "/purchases", component: <PurchaseListPage /> },
+    { path: "/accounting/purchases", component: <PurchaseListPage /> },
     { path: "/purchases-create", component: <CreatePurchase /> },
 
     //Reports
@@ -200,8 +200,8 @@ const authProtectedRoutes = [
     { path: "/reports-shipping-labels", component: <ShippingLabelsPage /> },
 
     //Admin Users
-    { path: "/admin-users", component: <AdminUsersPage /> },
-    { path: "/admin-roles", component: <AdminRolesPage /> },
+    { path: "/admin/users", component: <AdminUsersPage /> },
+    { path: "/admin/roles", component: <AdminRolesPage /> },
 ]
 
 const publicRoutes = [

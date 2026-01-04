@@ -7,12 +7,12 @@ import VerticalLayout from "../Layouts/index";
 
 //routes
 import { authProtectedRoutes, publicRoutes } from "./allRoutesv2";
-import { AuthProtected } from './AuthProtected';
+import { AuthAndResourceProtected } from './AuthProtected';
 import { CustomerState } from '../pages/GridErp/Customers/context/customerState';
 import { PurchaseOrderState } from '../pages/GridErp/PurchaseOrder/context/purchaseOrderState';
 import { MatMaterialPriceState } from '../pages/GridErp/MatMaterialPrice/context/State';
 import { ProfileState } from '../context/profile/profileState';
-
+import {UnauthorizedPage} from '../pages/GridErp/commons/UnauthorizedPage';
 
 const Index = () => {
     return (
@@ -37,14 +37,26 @@ const Index = () => {
                                     ))}
                                 </Route>
 
+                                {/* Ruta de acceso no autorizado */}
+                                <Route
+                                    path="/unauthorized"
+                                    element={
+                                        <NonAuthLayout>
+                                            <UnauthorizedPage />
+                                        </NonAuthLayout>
+                                    }
+                                />
+
                                 <Route>
                                     {authProtectedRoutes.map((route, idx) => (
                                         <Route
                                             path={route.path}
                                             element={
-                                                <AuthProtected>
-                                                    <VerticalLayout>{route.component}</VerticalLayout>
-                                                </AuthProtected>}
+                                                <AuthAndResourceProtected>
+                                                    <VerticalLayout>
+                                                        {route.component}
+                                                    </VerticalLayout>
+                                                </AuthAndResourceProtected>}
                                             key={idx}
                                             exact={true}
                                         />

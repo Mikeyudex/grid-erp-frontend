@@ -12,7 +12,7 @@ const EditCustomerView = () => {
     const { id } = useParams();
 
     const handleCancel = () => {
-        navigate('/customers-list-v2');
+        navigate('/customers/list-v2');
     }
 
     const handleSubmit = async (payload) => {
@@ -30,7 +30,7 @@ const EditCustomerView = () => {
             if (!response.ok) {
                 throw new Error("Error al actualizar el cliente")
             }
-            return navigate('/customers-list-v2');
+            return navigate('/customers/list-v2');
         } catch (err) {
             console.error("Error updating client:", err)
             throw new Error("Error al actualizar el cliente");

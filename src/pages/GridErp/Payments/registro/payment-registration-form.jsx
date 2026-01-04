@@ -330,7 +330,7 @@ export default function PaymentRegistrationForm({
     <TopLayoutGeneralView
       titleBreadcrumb={mode === 'create' ? "Registro de Pagos" : "Editar Pago"}
       pageTitleBreadcrumb={mode === 'create' ? "Pagos" : "Pago"}
-      to={'/payments-list'}
+      to={'/accounting/payments-list'}
       main={
         <Container className="py-4">
           {
@@ -550,7 +550,7 @@ export default function PaymentRegistrationForm({
                     </FormGroup>
 
                     <CardFooter className="d-flex justify-content-end gap-2">
-                      <Button color="light" onClick={() => navigate(`/payments-list`)}>
+                      <Button color="light" onClick={() => navigate(`/accounting/payments-list`)}>
                         <ArrowLeft size={16} />
                         Volver
                       </Button>

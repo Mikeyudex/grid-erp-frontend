@@ -73,11 +73,11 @@ const ListCustomerV2 = () => {
     }, [page, limit, customerData.reloadTableCustomer]);
 
     const handleAddCustomer = () => {
-        return navigate("/customers-create-v2")
+        return navigate("/customers/create-v2")
     };
 
     const handleClickEditRow = (id) => {
-        return navigate(`/customers-edit/${id}`)
+        return navigate(`/customers/edit/${id}`)
     };
 
     const handleUpdate = async (updatedCustomer) => {

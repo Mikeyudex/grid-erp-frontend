@@ -28,20 +28,20 @@ export default function SeleccionTipoProducto() {
 
   const handleContinuar = () => {
     if (tipoSeleccionado === "general") {
-      navigate("/products-create")
+      navigate("/products/create")
     } else if (tipoSeleccionado === "tapete") {
-      navigate("/products-create-tapete")
+      navigate("/products/create-tapete")
     }
   }
 
   const handleVolver = () => {
-    navigate("/products-list-v2")
+    navigate("/products/list-v2")
   }
 
   return (
     <div className="page-content">
       <Container fluid>
-        <BreadCrumb title="Seleccionar tipo de producto" pageTitle="Productos" to={`/products-list`} />
+        <BreadCrumb title="Seleccionar tipo de producto" pageTitle="Productos" to={`/products/list`} />
         {/* Encabezado */}
         <div className="text-center mb-2">
           <h2 className="display-6 fw-bold mb-3">Crear Nuevo Producto</h2>

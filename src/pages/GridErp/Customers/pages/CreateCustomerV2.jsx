@@ -430,7 +430,7 @@ export default function CreateClientV2({
         if (onCancel) {
             onCancel()
         } else {
-            return navigate('/customers-list-v2');
+            return navigate('/customers/list-v2');
         }
     }
 

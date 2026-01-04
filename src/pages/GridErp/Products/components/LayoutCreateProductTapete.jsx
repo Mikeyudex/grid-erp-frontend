@@ -216,7 +216,7 @@ export default function LayoutCreateProductTapete({
             setAttributeConfigs([]);
             setAdditionalConfigs({ hasBarcode: false });
             setFileData([]);
-            return navigate('/success-product');
+            return navigate('/products/success-product');
 
         } catch (error) {
             console.log(error);
@@ -483,7 +483,7 @@ export default function LayoutCreateProductTapete({
             <TopLayoutPage
                 title={mode === "edit" ? "Actualizar producto" : "Crear producto"}
                 pageTitle={"Productos"}
-                to={`/products-list-v2`}
+                to={`/products/list-v2`}
                 children={
                     <Fragment>
 

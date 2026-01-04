@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Route, Navigate } from "react-router-dom";
 import { validateToken } from "../helpers/jwt-token-access/validate-token";
 import SpinnerLoading from '../Components/Common/SpinnerLoading';
+import { ResourceProtected } from "./ResourceProtected";
+
 
 const AuthProtected = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -32,4 +34,14 @@ const AccessRoute = ({ component: Component, ...rest }) => {
   );
 };
 
-export { AuthProtected, AccessRoute };
+const AuthAndResourceProtected = ({ children }) => {
+  return (
+    <AuthProtected>
+      <ResourceProtected>
+        {children}
+      </ResourceProtected>
+    </AuthProtected>
+  );
+};
+
+export { AuthProtected, AccessRoute, AuthAndResourceProtected };

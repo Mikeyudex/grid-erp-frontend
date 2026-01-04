@@ -38,7 +38,7 @@ const DropdownOptions = ({ table, toggleDrawer, viewType }) => {
                 viewType === viewsType.listCustomers && (
                     <DropdownMenu.Portal>
                         <DropdownMenu.Content className="DropdownMenuContent" sideOffset={5}>
-                            <DropdownMenu.Item className="DropdownMenuItem" onClick={() => navigate("/customers-create")}>
+                            <DropdownMenu.Item className="DropdownMenuItem" onClick={() => navigate("/customers/create")}>
                                 <div className="LeftSlot"><CiSquarePlus /></div>
                                 <span style={{ marginLeft: '0.5em' }} >Nuevo cliente</span>
                             </DropdownMenu.Item>

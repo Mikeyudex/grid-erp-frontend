@@ -79,7 +79,9 @@ const TwosVerify = () => {
                     setIsOpenModal(true);
                     setTypeModal('success');
 
-                    let resources = user?.role?.resources;
+                    let roleId = user?.roleId;
+
+                    let resources = await getResourcesByRole(roleId);
 
                     if (resources) {
                         user.resources = resources;

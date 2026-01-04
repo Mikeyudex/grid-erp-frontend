@@ -185,7 +185,7 @@ const ListProductsV2 = () => {
     };
 
     const handleClickEditRow = (id) => {
-        return navigate(`/products-edit-tapete/${id}`)
+        return navigate(`/products/edit-tapete/${id}`)
     };
 
     const columns = [

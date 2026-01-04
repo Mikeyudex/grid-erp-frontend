@@ -274,14 +274,14 @@ export default function PaymentListPage() {
     }
 
     const handleClickEditRow = (id) => {
-        return navigate(`/payments-edit/${id}`)
+        return navigate(`/accounting/payments-edit/${id}`)
     };
 
     return (
         <TopLayoutGeneralView
             titleBreadcrumb={"Listado de Pagos"}
             pageTitleBreadcrumb="Pagos"
-            to={`/payments-list`}
+            to={`/accounting/payments-list`}
             main={
                 <Fragment>
                     <Row>
@@ -289,7 +289,7 @@ export default function PaymentListPage() {
                             <Card>
                                 <CardHeader className="bg-light text-white d-flex justify-content-between align-items-center">
                                     <div className="d-flex align-items-center gap-2">
-                                        <Button color="light" onClick={() => navigate("/payments-register")}>
+                                        <Button color="light" onClick={() => navigate("/accounting/payments-register")}>
                                             <FaPlus className="me-1" /> Nuevo Pago
                                         </Button>
                                         <Dropdown isOpen={dropdownOpen} toggle={toggleDropdown}>

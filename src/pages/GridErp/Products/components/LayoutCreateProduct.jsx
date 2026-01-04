@@ -194,7 +194,7 @@ export default function LayoutCreateProduct(props) {
                 setAttributeConfigs([]);
                 setAdditionalConfigs({ hasBarcode: false });
                 setFileData([]);
-                return navigate('/success-product');
+                return navigate('/products/success-product');
             }
 
         } catch (error) {
@@ -216,7 +216,7 @@ export default function LayoutCreateProduct(props) {
     const handleClickDialogSyncSuccess = () => {
         setOpenAlertSuccessSync(false);
         openSnackbarSuccess('Proceso exitoso! recibirás una notificación cuando se haya sincronizado el producto.');
-        return navigate('/success-product');
+        return navigate('/products/success-product');
     }
 
     const handleSyncProductWooCommerce = async (payload) => {
@@ -352,7 +352,7 @@ export default function LayoutCreateProduct(props) {
                 />
 
                 <Container fluid>
-                    <BreadCrumb title="Crear Producto" pageTitle="Productos" to={`/products-list`} />
+                    <BreadCrumb title="Crear Producto" pageTitle="Productos" to={`/products/list`} />
 
                     <Row md={12}>
 

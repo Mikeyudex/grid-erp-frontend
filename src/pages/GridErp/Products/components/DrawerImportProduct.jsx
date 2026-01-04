@@ -103,7 +103,7 @@ export function DrawerProductsImport({
                     console.log(response?.message);
                     toggleDrawer(false);
                     openSnackbarSuccess('Archivo cargado exitosamente');
-                    return navigate('/uploads');
+                    return navigate('/products/uploads');
                 }, 3500);
             }
         } catch (error) {
