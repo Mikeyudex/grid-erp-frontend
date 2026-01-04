@@ -13,9 +13,10 @@ export const ResourceProtected = ({ children }) => {
       setLoading(true);
       const access = await validateResourceAccess(location.pathname);
       setHasAccess(access);
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     };
-
     checkResourceAccess();
   }, [location.pathname]);
 
