@@ -69,6 +69,7 @@ import BankAccountsBalancePage from "../pages/GridErp/Reports/pages/saldos-banca
 import BankMovementsReportPage from "../pages/GridErp/Reports/pages/movimientos-bancarios/page";
 import ShippingLabelsPage from "../pages/GridErp/Reports/pages/rotulos-envio/page";
 import AdminUsersPage from "../pages/GridErp/Administration/AdminUsersPage";
+import AdminRolesPage from "../pages/GridErp/Administration/RolUsersPage";
 
 const authProtectedRoutes = [
     { path: "/home", component: <HomeBackoffice /> },
@@ -200,6 +201,7 @@ const authProtectedRoutes = [
 
     //Admin Users
     { path: "/admin-users", component: <AdminUsersPage /> },
+    { path: "/admin-roles", component: <AdminRolesPage /> },
 ]
 
 const publicRoutes = [

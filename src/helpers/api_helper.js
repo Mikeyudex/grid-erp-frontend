@@ -2,6 +2,7 @@ import axios from "axios";
 import { api } from "../config";
 import { GET_RESORCES_BY_ROLE } from "../pages/GridErp/Auth/helpers/auth_url_helper";
 import { getToken } from "./jwt-token-access/get_token";
+import * as url from "../pages/GridErp/Auth/helpers/auth_url_helper";
 
 // default
 axios.defaults.baseURL = api.API_URL;
@@ -126,7 +127,7 @@ const getLoggedinUser = () => {
 export const getResourcesByRole = async (roleId) => {
   try {
     let token = getToken();
-    const response = await fetch(`${URL_BASE_API}${GET_RESORCES_BY_ROLE}/${roleId}`, {
+    const response = await fetch(`${GET_RESORCES_BY_ROLE}/${roleId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -136,6 +137,7 @@ export const getResourcesByRole = async (roleId) => {
     const data = await response.json();
     return data?.data;
   } catch (error) {
+    console.log(error);
     return null;
   }
 };

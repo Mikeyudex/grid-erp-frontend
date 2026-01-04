@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Papa from "papaparse";
-import { Button, Card, CardBody, CardHeader, Col, Container, Input, Row, Tooltip } from 'reactstrap';
+import { Button, Card, CardBody, CardHeader, Col, Input, Row, Tooltip } from 'reactstrap';
 
-import BreadCrumb from '../../../../Components/Common/BreadCrumb';
 import * as url from '../../../../helpers/url_helper';
 import TableAdminUsers from './TableUi';
 import AlertCustom from '../../../../Components/Common/Alert';
@@ -11,7 +9,6 @@ import { getToken } from '../../../../helpers/jwt-token-access/get_token';
 
 const AdminUsersContent = () => {
 
-    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [loading, setLoading] = useState(true);

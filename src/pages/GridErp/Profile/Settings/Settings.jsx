@@ -224,7 +224,7 @@ const ProfileSettings = () => {
 
                                         <h5 className="fs-16 mb-1">{`${capitalizeFirstLetter(String(user?.name).split(' ')[0]) ?? ''} ${capitalizeFirstLetter(String(user?.name).split(' ')[1]) ?? ''}`}</h5>
                                         <p className="text-muted mb-0">{`${capitalizeFirstLetter(String(user?.lastname).split(' ')[0]) ?? ''} ${capitalizeFirstLetter(String(user?.lastname).split(' ')[1]) ?? ''}`}</p>
-                                        <p className="text-muted mb-0"><strong>Rol:</strong>  {user?.role ?? 'Rol'}</p>
+                                        <p className="text-muted mb-0"><strong>Rol:</strong>  {user?.role?.name ?? 'Rol'}</p>
                                         <p className="text-muted mb-0">{zone?.shortCode ?? 'Sin definir'} - {zone?.name ?? 'Sin definir'}</p>
                                     </div>
                                 </CardBody>

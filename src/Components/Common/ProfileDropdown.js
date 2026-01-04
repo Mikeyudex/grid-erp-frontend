@@ -40,7 +40,7 @@ const ProfileDropdown = () => {
         }
         setUserName(name);
         if (user?.role) {
-            setRol(user.role);
+            setRol(user.role?.name);
         }
         if (user?.avatar) {
             setAvatar(user?.avatar);

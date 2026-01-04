@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { IndexedDBService } from "../helpers/indexedDb/indexed-db-helper";
+
+const indexedDBService = new IndexedDBService();
+
 
 const Navdata = () => {
   const history = useNavigate();
@@ -19,6 +23,7 @@ const Navdata = () => {
   const [isAdministration, setIsAdministration] = useState(false);
 
   const [iscurrentState, setIscurrentState] = useState("Dashboard");
+  const [userResources, setUserResources] = useState([]);
 
   function updateIconSidebar(e) {
     if (e && e.target && e.target.getAttribute("subitems")) {
@@ -33,6 +38,23 @@ const Navdata = () => {
       });
     }
   }
+
+  useEffect(() => {
+    let getResources = async () => {
+      try {
+        const user = await indexedDBService.getItemById(localStorage.getItem('userId'));
+        if (user?.resources) {
+          setUserResources(user?.resources);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    
+    if (userResources.length === 0) {
+      getResources();
+    }
+  }, []);
 
   useEffect(() => {
     document.body.classList.remove("twocolumn-panel");
@@ -68,6 +90,10 @@ const Navdata = () => {
     isReports,
     isAdministration
   ]);
+
+  const hasAccess = (path) => {
+    return userResources.some((resource) => typeof path === "string" ? path.startsWith(resource?.path) : false);
+  };
 
   const menuItems = [
     {
@@ -240,39 +266,39 @@ const Navdata = () => {
         },
       ],
     },
-   /*  {
-      id: "stock",
-      label: "Stock",
-      icon: "bx bxs-package",
-      link: "/#",
-      click: function (e) {
-        e.preventDefault();
-        setIsStock(!isStock);
-        setIscurrentState("Stock");
-        updateIconSidebar(e);
-      },
-      stateVariables: isStock,
-      subItems: [
-        {
-          id: "manage-stock",
-          label: "Administrar stock",
-          link: "/manage-stock-view",
-          parentId: "stock",
-        },
-        {
-          id: "adjustment-stock",
-          label: "Ajustar stock",
-          link: "/adjustment-stock-view",
-          parentId: "stock",
-        },
-        {
-          id: "transfer-stock",
-          label: "Transferir stock",
-          link: "/transfer-stock-view",
-          parentId: "stock",
-        },
-      ],
-    }, */
+    /*  {
+       id: "stock",
+       label: "Stock",
+       icon: "bx bxs-package",
+       link: "/#",
+       click: function (e) {
+         e.preventDefault();
+         setIsStock(!isStock);
+         setIscurrentState("Stock");
+         updateIconSidebar(e);
+       },
+       stateVariables: isStock,
+       subItems: [
+         {
+           id: "manage-stock",
+           label: "Administrar stock",
+           link: "/manage-stock-view",
+           parentId: "stock",
+         },
+         {
+           id: "adjustment-stock",
+           label: "Ajustar stock",
+           link: "/adjustment-stock-view",
+           parentId: "stock",
+         },
+         {
+           id: "transfer-stock",
+           label: "Transferir stock",
+           link: "/transfer-stock-view",
+           parentId: "stock",
+         },
+       ],
+     }, */
     {
       label: "Contabilidad",
       isHeader: true,
@@ -413,9 +439,26 @@ const Navdata = () => {
           link: "/admin-users",
           parentId: "administration",
         },
+        {
+          id: "roles",
+          label: "Roles",
+          link: "/admin-roles",
+          parentId: "administration",
+        },
       ],
     },
   ];
-  return <React.Fragment>{menuItems}</React.Fragment>;
+
+  const filteredMenuItems = menuItems
+    .map((item) => {
+      if (item.subItems) {
+        const allowedSubItems = item.subItems.filter((sub) => hasAccess(sub.link));
+        return allowedSubItems.length > 0 ? { ...item, subItems: allowedSubItems } : null;
+      }
+      return hasAccess(item.link) ? item : null;
+    })
+    .filter(Boolean);
+
+  return <React.Fragment>{filteredMenuItems}</React.Fragment>;
 };
 export default Navdata;

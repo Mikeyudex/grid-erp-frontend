@@ -7,8 +7,11 @@ import AuthSlider from '../../../AuthenticationInner/authCarousel';
 import { FooterQuality } from '../components/Footer';
 import AlertCustom from '../../commons/AlertCustom';
 import { AuthHelper } from '../helpers/auth_helper';
+import { IndexedDBService } from '../../../../helpers/indexedDb/indexed-db-helper';
+import { getResourcesByRole } from '../../../../helpers/api_helper';
 
 const authHelper = new AuthHelper();
+const indexedDBService = new IndexedDBService();
 
 const TwosVerify = () => {
     document.title = "Código de verificación | ERP Quality";
@@ -62,16 +65,44 @@ const TwosVerify = () => {
         try {
             const response = await authHelper.verifyOtp({ otp: otp, email: localStorage.getItem('userEmail') });
             const data = await response?.json();
-            if (!response.ok) {
-                setMessageAlert(response.statusText);
-                setIsOpenModal(true);
-                setTypeModal('danger');
-            } else {
+
+            if (response.ok) {
                 let isValid = data?.data?.isValid;
-                if (isValid) {
+                let token = data?.data?.access_token;
+
+                if (isValid && token) {
+                    //guardar el token en una cookie
+                    document.cookie = `jwt-quality=${token}`;
+                    let user = data?.data?.user;
+
                     setMessageAlert(data?.message);
                     setIsOpenModal(true);
                     setTypeModal('success');
+
+                    let resources = user?.role?.resources;
+
+                    if (resources) {
+                        user.resources = resources;
+                    }
+                    indexedDBService.addItem(user)
+                        .then(() => {
+                            console.log('User added to IndexedDB');
+                        })
+                        .catch(error => {
+                            console.log(error);
+                        });
+                    setMessageAlert(data?.message);
+                    setIsOpenModal(true);
+                    setTypeModal('success');
+                    /* let userSocket = {
+                        id: user?.id,
+                        name: user?.name,
+                        email: user?.email,
+                        avatar: user?.avatar,
+                        role: user?.role?.name,
+                        documento: user?.documento,
+                    } */
+                    /* registerUser(userSocket); */
                     return setTimeout(() => {
                         navigate('/home');
                     }, 2000);
@@ -81,6 +112,11 @@ const TwosVerify = () => {
                     setTypeModal('danger');
                     return;
                 }
+            } else {
+                setMessageAlert(data?.message);
+                setIsOpenModal(true);
+                setTypeModal('danger');
+                return;
             }
         } catch (error) {
             console.log(error);

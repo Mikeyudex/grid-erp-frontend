@@ -56,31 +56,18 @@ const SignIn = () => {
                 if (!data?.data?.access_token) {
                     throw new Error('Error al autenticar');
                 }
-                let token = data?.data?.access_token;
-                //guardar el token en una cookie
-                document.cookie = `jwt-quality=${token}`;
                 let user = data?.data?.user;
+
+                if (!user) {
+                    throw new Error('Error al autenticar');
+                }
+
                 localStorage.setItem('userId', user?.id);
                 localStorage.setItem('userEmail', user?.email);
-                localStorage.setItem('companyId', user?.companyId);
 
                 setMessageAlert(data?.message);
                 setIsOpenModal(true);
                 setTypeModal('success');
-
-                let roleId = user?.role?._id;
-
-                let resources = await getResourcesByRole(roleId);
-                if (resources) {
-                    user.resources = resources;
-                }
-                indexedDBService.addItem(user)
-                    .then(() => {
-                        console.log('User added to IndexedDB');
-                    })
-                    .catch(error => {
-                        console.log(error);
-                    });
 
                 if (!user?.activeOtp) {
                     return setTimeout(() => {
@@ -92,6 +79,7 @@ const SignIn = () => {
                     return navigate('/auth-otp');
                 }, 3000);
             }
+
         } catch (error) {
             console.log(error);
             setMessageAlert('Error interno');
