@@ -1,16 +1,11 @@
 "use client"
-import { Fragment, useContext, useEffect, useState } from "react";
-import { Alert, Col, Input, Row } from "reactstrap";
+import { Fragment, useContext, useEffect, useRef, useState } from "react";
+import { Alert, Badge, Button, Card, CardBody, Col, Input, Progress, Row, Spinner } from "reactstrap";
 import Select from 'react-select';
-import * as url from "../helper/url_helper";
-import { FilePond, registerPlugin } from 'react-filepond';
-import 'filepond/dist/filepond.min.css';
-import FilePondPluginImageExifOrientation from 'filepond-plugin-image-exif-orientation';
-import FilePondPluginImagePreview from 'filepond-plugin-image-preview';
+
 import { useSnackbar } from 'react-simple-snackbar';
-import 'filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css';
 import CancelIcon from '@mui/icons-material/Cancel';
-import { ImportIcon } from "lucide-react";
+import { Camera, Check, CheckCheck, ImportIcon, Trash2, Upload } from "lucide-react";
 import SaveIcon from '@mui/icons-material/Save';
 import { useNavigate } from 'react-router-dom';
 import { CircleAlert, WarehouseIcon, ImageIcon } from "lucide-react";
@@ -25,12 +20,14 @@ import TopLayoutPage from "../../../../Layouts/TopLayoutPage";
 import { ImportProductContext } from "../context/imports/importProductContext";
 import { CollapsibleSection } from "../../../../Components/Common/CollapsibleSection";
 import { FloatingInput } from "../../../../Components/Common/FloatingInput";
-
-// Register the plugins
-registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
+import { AdministrationHelper } from "../../Administration/helpers/administration-helper";
+import { ZonesHelper } from "../../Zones/helper/zones_helper";
+import { StylesLayoutCreateProduct } from "./styles";
 
 const acceptedFileTypes = ['image/jpeg', 'image/png', 'image/gif'];
 const helper = new ProductHelper();
+const administrationHelper = new AdministrationHelper();
+const zonesHelper = new ZonesHelper();
 const typeOfPiecesDefault = ['Conductor', 'Copiloto', 'Segunda Fila'];
 
 export default function LayoutCreateProductTapete({
@@ -43,6 +40,7 @@ export default function LayoutCreateProductTapete({
 
     document.title = "Crear producto | Quality";
     const navigate = useNavigate();
+    const fileInputRef = useRef(null);
     const { updateImportData, importData } = useContext(ImportProductContext);
     const [attributeConfigs, setAttributeConfigs] = useState([]);
     const [categories, setCategories] = useState([]);
@@ -55,14 +53,11 @@ export default function LayoutCreateProductTapete({
     const [formData, setFormData] = useState({
         companyId: helper.companyId,
         externalId: '',
-        //warehouseId: '',
-        //providerId: '',
         historyActivityUserId: localStorage.getItem("userId"),
         name: '',
         description: '',
         id_type_product: '',
         id_category: '',
-        //id_sub_category: '',
         quantity: 1,
         unitOfMeasureId: '',
         taxId: '',
@@ -72,10 +67,12 @@ export default function LayoutCreateProductTapete({
         typeOfPieces: [],
         observations: "",
         barCode: "",
-        taxIncluded: false
-    });
-    const [additionalConfigs, setAdditionalConfigs] = useState({
-        hasBarcode: false
+        taxIncluded: false,
+        takenById: null,
+        physicalMoldsId: null,
+        additionalConfigs: {
+            images: [],
+        },
     });
     const [fileData, setFileData] = useState([]);
     const [hasSuccessProductCreate, setHasSuccessProductCreate] = useState(false);
@@ -96,6 +93,12 @@ export default function LayoutCreateProductTapete({
     const [isInitialLoading, setIsInitialLoading] = useState(true);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [users, setUsers] = useState([]);
+    const [zones, setZones] = useState([]);
+    // Estados para manejo de imágenes
+    const [imageUploading, setImageUploading] = useState(false)
+    const [uploadProgress, setUploadProgress] = useState({})
+
 
     useEffect(() => {
         if (mode === "edit" && (productId || initialData)) {
@@ -128,6 +131,12 @@ export default function LayoutCreateProductTapete({
                 observations: productData?.observations,
                 barCode: productData?.barCode,
                 taxIncluded: productData?.taxIncluded,
+                takenById: productData?.takenById,
+                physicalMoldsId: productData?.physicalMoldsId,
+                additionalConfigs: {
+                    images: productData?.additionalConfigs?.images ?? [],
+                    hasBarcode: productData?.additionalConfigs?.hasBarcode ?? false,
+                },
             }));
 
 
@@ -155,13 +164,10 @@ export default function LayoutCreateProductTapete({
         setFormData(
             {
                 externalId: '',
-                //warehouseId: '',
-                //providerId: '',
                 name: '',
                 description: '',
                 id_type_product: '',
                 id_category: '',
-                //id_sub_category: '',
                 quantity: 0,
                 unitOfMeasureId: '',
                 taxId: '',
@@ -172,7 +178,12 @@ export default function LayoutCreateProductTapete({
                 barCode: '',
                 taxIncluded: false,
                 taxPercent: '',
-
+                takenById: null,
+                physicalMoldsId: null,
+                additionalConfigs: {
+                    images: [],
+                    hasBarcode: false,
+                },
             }
         );
         setFileData([]);
@@ -214,7 +225,6 @@ export default function LayoutCreateProductTapete({
 
             handleClearForm();
             setAttributeConfigs([]);
-            setAdditionalConfigs({ hasBarcode: false });
             setFileData([]);
             return navigate('/products/success-product');
 
@@ -238,9 +248,7 @@ export default function LayoutCreateProductTapete({
         payloadModiffied.costPrice = Number(formData.costPrice) ?? 0;
         payloadModiffied.salePrice = Number(formData.costPrice) ?? 0;
         payloadModiffied.companyId = helper.companyId;
-
-        let additionalConfigsModiffied = { ...additionalConfigs, images: fileData.map(({ url }) => url) }
-        return { ...payloadModiffied, additionalConfigs: additionalConfigsModiffied };
+        return payloadModiffied;
     }
 
     const handleSetLastSku = async () => {
@@ -274,6 +282,121 @@ export default function LayoutCreateProductTapete({
         { icon: <ImportIcon />, name: 'Importar', onClick: () => handleOpenDrawerImport() },
         { icon: <CancelIcon />, name: 'Cancelar' },
     ];
+
+    // Función para manejar la selección de archivos
+    const handleFileSelect = (e) => {
+        const files = Array.from(e.target.files)
+        if (files.length === 0) return
+
+        // Filtrar solo imágenes
+        const imageFiles = files.filter((file) => file.type.startsWith("image/"))
+
+        if (imageFiles.length !== files.length) {
+            setError("Solo se permiten archivos de imagen")
+            return
+        }
+
+        // Subir cada imagen
+        imageFiles.forEach((file) => uploadSingleImage(file))
+
+        // Limpiar el input
+        if (fileInputRef.current) {
+            fileInputRef.current.value = ""
+        }
+    }
+
+    // Función para subir una imagen individual
+    const uploadSingleImage = async (file) => {
+        const fileId = Date.now() + "_" + Math.random().toString(36).substr(2, 9)
+
+        try {
+            setImageUploading(true)
+            setUploadProgress((prev) => ({ ...prev, [fileId]: 0 }))
+
+            // Simular progreso de subida
+            const progressInterval = setInterval(() => {
+                setUploadProgress((prev) => {
+                    const currentProgress = prev[fileId] || 0
+                    if (currentProgress >= 90) {
+                        clearInterval(progressInterval)
+                        return prev
+                    }
+                    return { ...prev, [fileId]: currentProgress + 10 }
+                })
+            }, 200)
+
+            const response = await helper.uploadImage(file)
+
+            clearInterval(progressInterval)
+            setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }))
+
+            if (response.success) {
+                // Agregar la URL a las imágenes del formulario
+                setFormData((prev) => ({
+                    ...prev,
+                    additionalConfigs: {
+                        ...prev.additionalConfigs,
+                        images: [...prev.additionalConfigs.images, { url: response.url, hasPublic: false }],
+                    },
+                }))
+
+                // Limpiar el progreso después de un momento
+                setTimeout(() => {
+                    setUploadProgress((prev) => {
+                        const newProgress = { ...prev }
+                        delete newProgress[fileId]
+                        return newProgress
+                    })
+                }, 1000)
+            }
+        } catch (err) {
+            setError("Error al subir la imagen: " + err.message)
+            setUploadProgress((prev) => {
+                const newProgress = { ...prev }
+                delete newProgress[fileId]
+                return newProgress
+            })
+        } finally {
+            setImageUploading(false)
+        }
+    }
+
+    // Función para eliminar una imagen
+    const removeImage = (indexToRemove) => {
+        setFormData((prev) => ({
+            ...prev,
+            additionalConfigs: {
+                ...prev.additionalConfigs,
+                images: prev.additionalConfigs.images.filter((_, index) => index !== indexToRemove),
+            },
+        }))
+    }
+
+    const triggerFileInput = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click()
+        }
+    }
+
+    const handleMarkAsPublicImage = async (urlImage, hasPublic) => {
+        let images = formData.additionalConfigs.images;
+        let newImages = images.map((image) => {
+            if (image.url === urlImage) {
+                return {
+                    ...image,
+                    hasPublic: hasPublic,
+                }
+            }
+            return image;
+        });
+        setFormData((prev) => ({
+            ...prev,
+            additionalConfigs: {
+                ...prev.additionalConfigs,
+                images: newImages,
+            },
+        }));
+    }
 
     useEffect(() => {
         helper.getCategoriesFullByProduct(helper.companyId)
@@ -319,6 +442,19 @@ export default function LayoutCreateProductTapete({
             });
     }, []);
 
+    useEffect(() => {
+        administrationHelper.getUsers()
+            .then(response => response.json())
+            .then(data => setUsers(data?.data ?? []))
+            .catch(error => console.log(error));
+    }, []);
+
+    useEffect(() => {
+        zonesHelper.getZones()
+            .then(data => setZones(data ?? []))
+            .catch(error => console.log(error));
+    }, []);
+
     if (isInitialLoading) {
         return (
             <TopLayoutPage
@@ -341,132 +477,7 @@ export default function LayoutCreateProductTapete({
 
     return (
         <>
-            <style jsx>{`
-    .floating-input-container {
-      position: relative;
-      margin-bottom: 1.5rem;
-    }
-
-    .floating-input {
-      width: 100%;
-      padding: 1rem 0.75rem 0.5rem 0.75rem;
-      border: 1px solid #ced4da;
-      border-radius: 0.375rem;
-      font-size: 1rem;
-      background-color: #fff;
-      transition: all 0.2s ease-in-out;
-    }
-
-    .floating-input:focus {
-      outline: none;
-      border-color: #0d6efd;
-      box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-    }
-
-    .floating-label {
-      position: absolute;
-      left: 0.75rem;
-      top: 50%;
-      transform: translateY(-50%);
-      background-color: #fff;
-      padding: 0 0.25rem;
-      color: #6c757d;
-      font-size: 1rem;
-      transition: all 0.2s ease-in-out;
-      pointer-events: none;
-    }
-
-    .floating-input:focus + .floating-label,
-    .floating-input.has-value + .floating-label {
-      top: 0;
-      transform: translateY(-50%);
-      font-size: 0.75rem;
-      color: #0d6efd;
-      font-weight: 500;
-    }
-
-    .section-card {
-      border: 1px solid #e9ecef;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-    }
-
-    .section-header {
-      border-bottom: 1px solid #e9ecef;
-      transition: background-color 0.2s ease;
-    }
-
-    .section-header:hover {
-      background-color: #f8f9fa;
-    }
-
-    .section-title {
-      color: #333;
-      font-weight: 600;
-    }
-
-    .type-option {
-      border: 2px solid #e9ecef;
-      border-radius: 0.5rem;
-      padding: 1.5rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      height: 100%;
-    }
-
-    .type-option:hover {
-      border-color: #0d6efd;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .type-option.selected {
-      border-color: #0d6efd;
-      background-color: #f8f9ff;
-    }
-
-    .type-option input[type="radio"] {
-      transform: scale(1.2);
-    }
-
-    .contact-card {
-      border: 1px solid #e9ecef;
-      border-radius: 0.5rem;
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-      background-color: #f8f9fa;
-    }
-
-    .custom-field-row {
-      background-color: #f8f9fa;
-      border-radius: 0.375rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    .btn-floating {
-      position: fixed;
-      bottom: 2rem;
-      right: 2rem;
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 1000;
-    }
-
-    @media (max-width: 768px) {
-      .floating-input {
-        padding: 0.875rem 0.75rem 0.375rem 0.75rem;
-      }
-      
-      .btn-floating {
-        bottom: 1rem;
-        right: 1rem;
-        width: 50px;
-        height: 50px;
-      }
-    }
-  `}</style>
+            <StylesLayoutCreateProduct />
             <Fragment>
                 <DrawerProductsImport
                     openDrawer={openDrawerImport}
@@ -639,6 +650,64 @@ export default function LayoutCreateProductTapete({
                                     {validationErrors.observations && <span style={{ color: "red" }}>{validationErrors.observations}</span>}
                                 </Col>
                             </Row>
+
+                            <Row>
+                                <Col md={6}>
+                                    <Input
+                                        style={{
+                                            border: 'none !important',
+                                            borderBottom: '2px solid #ccc !important',
+                                            backgroundColor: 'transparent',
+                                            color: '#132649',
+                                            '&:focus': { border: 'none', boxShadow: 'none' },
+                                            fontSize: '1em',
+                                        }}
+                                        bsSize="md"
+                                        type="select"
+                                        id="takenById"
+                                        name="takenById"
+                                        value={formData.takenById}
+                                        onChange={handleInputChange}
+                                        className="form-control mb-3 floating-input"
+                                    >
+                                        <option value="0">Selecciona a quien tomó el molde</option>
+                                        {
+                                            users.map((user) => {
+                                                return (<option key={user.id} label={`${user.name} ${user.lastname}`} value={user.id}></option>)
+                                            })
+                                        }
+                                    </Input>
+                                    {validationErrors.takenById && <span style={{ color: "red" }}>{validationErrors.takenById}</span>}
+                                </Col>
+                                <Col md={6}>
+                                    <Input
+                                        style={{
+                                            border: 'none !important',
+                                            borderBottom: '2px solid #ccc !important',
+                                            backgroundColor: 'transparent',
+                                            color: '#132649',
+                                            '&:focus': { border: 'none', boxShadow: 'none' },
+                                            fontSize: '1em',
+                                        }}
+                                        bsSize="md"
+                                        type="select"
+                                        id="physicalMoldsId"
+                                        name="physicalMoldsId"
+                                        value={formData.physicalMoldsId}
+                                        onChange={handleInputChange}
+                                        className="form-control mb-3 floating-input"
+                                    >
+                                        <option value="0">Sede donde están los moldes físicos </option>
+                                        {
+                                            zones.map((zone) => {
+                                                return (<option key={zone._id} label={`${zone.name}`} value={zone._id}></option>)
+                                            })
+                                        }
+                                    </Input>
+                                    {validationErrors.physicalMoldsId && <span style={{ color: "red" }}>{validationErrors.physicalMoldsId}</span>}
+                                </Col>
+                            </Row>
+
                         </CollapsibleSection>
 
                         {/* Datos de inventario */}
@@ -765,83 +834,118 @@ export default function LayoutCreateProductTapete({
                             <Row className="mt-3">
                                 <Col md={12}>
 
-                                    <FilePond
-                                        acceptedFileTypes={acceptedFileTypes}
-                                        fileValidateTypeLabelExpectedTypesMap={{
-                                            'image/jpeg': '.jpg',
-                                            'image/png': '.png',
-                                            'image/gif': '.gif',
-                                        }}
-                                        labelFileTypeNotAllowed={'Solo se permiten archivos de imagen.'}
-                                        beforeAddFile={(file) => {
-                                            const fileType = file.fileType;
-                                            if (!acceptedFileTypes.includes(fileType)) {
-                                                return false;
-                                            }
-                                            return true;
-                                        }}
-                                        server={
-                                            {
-                                                process: {
-                                                    url: url.UPLOAD_IMAGES,
-                                                    method: 'POST',
-                                                    withCredentials: false,
-                                                    onload: (response) => {
-                                                        const { url, storageId } = JSON.parse(response);
-                                                        return JSON.stringify({ url, storageId });
-                                                    },
-                                                    onerror: (response) => {
-                                                        console.error('Error uploading file:', response);
-                                                    },
-                                                },
-                                                revert: async (uniqueFileId, load, error) => {
-                                                    try {
-                                                        const { storageId } = JSON.parse(uniqueFileId);
-                                                        let data = await helper.deleteImageProduct(storageId);
-                                                        if (data?.status === 'success') {
-                                                            let newFileData = fileData.filter((file) => file.storageId !== storageId)
-                                                            setFileData(newFileData);
-                                                            load();
-                                                        } else {
-                                                            error('Could not delete file');
-                                                        }
-                                                    } catch (e) {
-                                                        error('Could not delete file');
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        onprocessfile={(error, file) => {
-                                            if (error) {
-                                                console.error('Error processing file:', error);
-                                                return;
-                                            }
-                                            const { file: fileInfo } = file;
-                                            const { name } = fileInfo;
-                                            // Add the URL and storageId to fileData
-                                            setFileData((prevData) => [
-                                                ...prevData,
-                                                {
-                                                    url: JSON.parse(file.serverId).url,  // URL returned by onload
-                                                    storageId: JSON.parse(file.serverId).storageId, // Extract storageId from serverId
-                                                    name,
-                                                },
-                                            ]);
-                                        }}
-                                        allowMultiple={true}
-                                        maxFiles={4}
-                                        name="files"
-                                        className="filepond filepond-input-multiple"
-                                        labelIdle='Arrastra tus archivos aquí o <span className="filepond--label-action">Buscar</span>'
-                                        labelFileLoadError="Error durante la carga"
-                                        labelFileProcessingError="Error al cargar la imagen"
-                                        labelTapToCancel="Tap para cancelar"
-                                        labelTapToRetry="Tap para reintentar"
-                                        labelTapToUndo="Tap para revertir"
-                                        labelFileProcessing="Subiendo"
-                                        labelFileProcessingComplete="Carga completa"
-                                        labelFileProcessingAborted="Carga cancelada"
-                                    />
+                                    {/* Imágenes del Producto */}
+                                    <Card className="mb-3 shadow-sm">
+                                        <CardBody className="p-3">
+                                            <div className="d-flex align-items-center mb-3">
+                                                <Camera size={20} className="text-primary me-2" />
+                                                <h6 className="mb-0 fw-bold">Imágenes del Producto</h6>
+                                                <Badge color="secondary" className="ms-2">
+                                                    {formData.additionalConfigs.images.length}
+                                                </Badge>
+                                            </div>
+
+                                            {/* Input oculto para archivos */}
+                                            <input
+                                                ref={fileInputRef}
+                                                type="file"
+                                                multiple
+                                                accept="image/*"
+                                                onChange={handleFileSelect}
+                                                style={{ display: "none" }}
+                                            />
+
+                                            {/* Botón para agregar imágenes */}
+                                            <div className="mb-3">
+                                                <Button
+                                                    color="outline-primary"
+                                                    size="sm"
+                                                    onClick={triggerFileInput}
+                                                    disabled={imageUploading}
+                                                    className="w-100 d-flex align-items-center justify-content-center py-2"
+                                                >
+                                                    {imageUploading ? (
+                                                        <>
+                                                            <Spinner size="sm" className="me-2" />
+                                                            Subiendo...
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Upload size={16} className="me-2" />
+                                                            Agregar Imágenes
+                                                        </>
+                                                    )}
+                                                </Button>
+                                                <small className="text-muted d-block mt-1">
+                                                    Selecciona múltiples imágenes (solo archivos de imagen, máx. 5MB cada una)
+                                                </small>
+                                            </div>
+
+                                            {/* Progreso de subida */}
+                                            {Object.keys(uploadProgress).length > 0 && (
+                                                <div className="mb-3">
+                                                    {Object.entries(uploadProgress).map(([fileId, progress]) => (
+                                                        <div key={fileId} className="mb-2">
+                                                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                                                <small className="text-muted">{progress === 100 ? "Imagen cargada con éxito ✅" : "Subiendo imagen... ⌛"}</small>
+                                                                <small className="text-muted">{progress}%</small>
+                                                            </div>
+                                                            <Progress value={progress} color="primary" style={{ height: "4px" }} />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Lista de imágenes subidas */}
+                                            {formData.additionalConfigs.images.length > 0 && (
+                                                <div className="row g-2">
+                                                    {formData.additionalConfigs.images.map((imageObj, index) => (
+                                                        <div key={index} className="col-6 col-sm-4">
+                                                            <div className="position-relative">
+                                                                <div
+                                                                    className="bg-light rounded d-flex align-items-center justify-content-center"
+                                                                    style={{ height: "80px", border: "1px solid #dee2e6" }}
+                                                                >
+                                                                    <img src={imageObj.url} alt="Producto" width="100%" height="100%" />
+                                                                </div>
+                                                                <Button
+                                                                    title={imageObj.hasPublic ? "Marcar como público" : "Marcar como privado"}
+                                                                    color={imageObj.hasPublic ? "success" : "primary"}
+                                                                    size="sm"
+                                                                    className="position-absolute top-0 end-0 p-1"
+                                                                    style={{ transform: "translate(-90%, -25%)" }}
+                                                                    onClick={() => handleMarkAsPublicImage(imageObj.url, !imageObj.hasPublic)}
+                                                                >
+                                                                    {imageObj.hasPublic ? <CheckCheck size={12} /> : <Check size={12} />}
+                                                                </Button>
+                                                                <Button
+                                                                    color="danger"
+                                                                    size="sm"
+                                                                    className="position-absolute top-0 end-0 p-1"
+                                                                    style={{ transform: "translate(25%, -25%)" }}
+                                                                    onClick={() => removeImage(index)}
+                                                                >
+                                                                    <Trash2 size={12} />
+                                                                </Button>
+                                                                <div className="position-absolute bottom-0 start-0 end-0 bg-dark bg-opacity-75 text-white p-1 rounded-bottom">
+                                                                    <small className="d-block text-truncate" style={{ fontSize: "10px" }}>
+                                                                        Imagen {index + 1}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {formData.additionalConfigs.images.length === 0 && (
+                                                <div className="text-center py-3 text-muted">
+                                                    <ImageIcon size={32} className="mb-2" />
+                                                    <p className="mb-0 small">No hay imágenes agregadas</p>
+                                                </div>
+                                            )}
+                                        </CardBody>
+                                    </Card>
 
                                 </Col>
                             </Row>

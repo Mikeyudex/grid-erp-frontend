@@ -31,6 +31,7 @@ export const GET_PROVIDERS_BYCOMPANY = baseUrl + "/provider/getbyCompany";
 export const GET_TAXES_BYCOMPANY = baseUrl + "/taxes/getbyCompany";
 export const GET_UNIT_OF_MEASURE = baseUrl + "/units/getAll";
 export const UPLOAD_IMAGES = baseUrl + "/products/upload";
+export const UPLOAD_PRODUCT_IMAGE = baseUrl + "/upload/img-product";
 export const DELETE_FILE = baseUrl + "/products/deleteFile";
 export const GET_CLIENTS_BY_FIELDS = baseUrl + "/customers/getAllByFields";
 export const GET_TYPE_OF_PIECES = baseUrl + "/type-of-piece";

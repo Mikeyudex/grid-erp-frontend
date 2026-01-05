@@ -6,6 +6,9 @@ import * as url from '../../../../helpers/url_helper';
 import TableAdminUsers from './TableUi';
 import AlertCustom from '../../../../Components/Common/Alert';
 import { getToken } from '../../../../helpers/jwt-token-access/get_token';
+import { AdministrationHelper } from '../helpers/administration-helper';
+
+const administrationHelper = new AdministrationHelper();
 
 const AdminUsersContent = () => {
 
@@ -36,14 +39,8 @@ const AdminUsersContent = () => {
             setMessageAlert('');
             setTypeModal('success');
 
-            let token = getToken();
-            const response = await fetch(`${url.BASE_URL}${url.GET_USERS}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await administrationHelper.getUsers();
+
             if (!response.ok) {
                 setMessageAlert(data?.message);
                 setIsOpenModal(true);

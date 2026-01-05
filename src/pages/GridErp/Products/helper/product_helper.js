@@ -11,7 +11,7 @@ const api = new APIClient();
 const apiFetch = new ApiClientFetch();
 
 export class ProductHelper {
-    companyId = localStorage.getItem('companyId');
+    companyId = "66becedd790bddbc9b1e2cbc";
     // get attributes of product
     getAttrProduct = companyId => api.get(`${url.GET_ATTR_PRODUCT}/${companyId}`);
     addAttrProduct = payload => api.create(`${url.ADD_ATTR_PRODUCT}`, payload);
@@ -192,7 +192,7 @@ export class ProductHelper {
             let formData = new FormData();
             formData.append("file", file);
             let token = getToken();
-            let response = await fetch(`${url.UPLOADIMAGE}`, {
+            let response = await fetch(`${url.UPLOAD_PRODUCT_IMAGE}`, {
                 method: "POST",
                 headers: {
                     "Authorization": `Bearer ${token}`,
