@@ -220,7 +220,7 @@ const Navdata = () => {
     {
       id: "products",
       label: "Productos",
-      icon: "ri-apps-2-line",
+      icon: "ri-product-hunt-line",
       link: "/#",
       click: function (e) {
         e.preventDefault();

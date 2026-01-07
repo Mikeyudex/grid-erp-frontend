@@ -232,8 +232,7 @@ const ProductForm = ({ onSuccess }) => {
 
         //ordenar alphabeticamente las categorías
         categories.sort((a, b) => a.name.localeCompare(b.name));
-        console.log(categories);
-        
+
         setCategories(categories ?? []);
         setWarehouses(warehouses ?? []);
         setProviders(providers ?? []);

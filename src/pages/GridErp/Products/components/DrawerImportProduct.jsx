@@ -100,7 +100,6 @@ export function DrawerProductsImport({
             let response = await apiClient.create(`${url.IMPORT_PRODUCTS}/${url.companyId}/${localStorage.getItem("userId")}`, formData, config);
             if (response?.success) {
                 setTimeout(() => {
-                    console.log(response?.message);
                     toggleDrawer(false);
                     openSnackbarSuccess('Archivo cargado exitosamente');
                     return navigate('/products/uploads');
