@@ -124,11 +124,11 @@ export const createDefaultPayment = (valor = 0) => ({
     soporte: null,
 });
 
-export const actionsSpeedDialPurchaseOrder = (mode, onClick) => {
+export const actionsSpeedDialPurchaseOrder = (mode, onClick, navigate) => {
 
     return [
         { icon: <SaveIcon />, name: `${mode === "edit" ? "Actualizar" : "Crear"}`, onClick: onClick },
-        { icon: <XCircleIcon />, name: 'Cancelar' },
+        { icon: <XCircleIcon />, name: 'Cancelar', onClick: () => navigate('/purchase-orders') },
     ];
 }
 

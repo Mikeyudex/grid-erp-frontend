@@ -1037,7 +1037,7 @@ export default function OrderGrid({
                 )
             }
 
-            <SpeedDialProduct actions={actionsSpeedDialPurchaseOrder(isEditMode ? "edit" : "create", handleSubmit)} />
+            <SpeedDialProduct actions={actionsSpeedDialPurchaseOrder(isEditMode ? "edit" : "create", handleSubmit, navigate)} />
 
             {/* Modal de Selección de Cliente */}
             <Modal isOpen={clientModalOpen} toggle={toggleClientModal}>
